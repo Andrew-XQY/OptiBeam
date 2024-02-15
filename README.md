@@ -22,7 +22,7 @@
   </p>
 </p>
 
-![Downloads](https://img.shields.io/github/downloads/Andrew-XQY/OptiBeam/total) ![Contributors](https://img.shields.io/github/contributors/Andrew-XQY/OptiBeam?color=dark-green) ![TOP_LANGUAGE](https://img.shields.io/github/languages/top/Andrew-XQY/OptiBeam.svg?style=for-the-badge) ![Issues](https://img.shields.io/github/issues/Andrew-XQY/OptiBeam) ![License](https://img.shields.io/github/license/Andrew-XQY/OptiBeam) 
+![Downloads](https://img.shields.io/github/downloads/Andrew-XQY/OptiBeam/total) ![Contributors](https://img.shields.io/github/contributors/Andrew-XQY/OptiBeam?color=dark-green) ![Issues](https://img.shields.io/github/issues/Andrew-XQY/OptiBeam) ![License](https://img.shields.io/github/license/Andrew-XQY/OptiBeam) 
 
 ## Table Of Contents
 
