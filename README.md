@@ -69,18 +69,14 @@ pip install numpy
 
 2. Clone the repo
 
-```pip
-pip install optibeam
-```
-
 ```sh
 git clone https://github.com/your_username_/Project-Name.git
 ```
 
-3. Install NPM packages
+3. Install Python packages
 
-```sh
-npm install
+```pip
+pip install optibeam
 ```
 
 4. Enter your API in `config.js`
