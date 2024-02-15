@@ -22,7 +22,7 @@
   </p>
 </p>
 
-![Downloads](https://img.shields.io/github/downloads/Andrew-XQY/OptiBeam/total) ![Contributors](https://img.shields.io/github/contributors/Andrew-XQY/OptiBeam?color=dark-green) ![Issues](https://img.shields.io/github/issues/Andrew-XQY/OptiBeam) ![License](https://img.shields.io/github/license/Andrew-XQY/OptiBeam) 
+![Downloads](https://img.shields.io/github/downloads/Andrew-XQY/OptiBeam/total) ![Contributors](https://img.shields.io/github/contributors/Andrew-XQY/OptiBeam?color=dark-green) ![Issues](https://img.shields.io/github/issues/Andrew-XQY/OptiBeam) ![License](https://img.shields.io/github/license/Andrew-XQY/OptiBeam) ![TOP_LANGUAGE](https://img.shields.io/github/languages/top/Andrew-XQY/Projectile_Simulation.svg?style=for-the-badge)
 
 ## Table Of Contents
 
@@ -46,7 +46,7 @@ Python modules for image processing, sensor automation control and machine learn
 
 ## Built With
 
-This section should list any major frameworks that you built your project using. Leave any add-ons/plugins for the acknowledgements section. Here are a few examples.
+<a href="https://docs.microsoft.com/en-us/cpp/standard-library/cpp-standard-library-reference?view=msvc-160"><img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/cplusplus/cplusplus-original.svg" height="40px" width="40px" /></a><a href="https://www.python.org/"><img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/python/python-original.svg" height="40px" width="40px" /></a>
 
 ## Getting Started
 
