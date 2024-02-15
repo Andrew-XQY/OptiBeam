@@ -1,6 +1,6 @@
 <br/>
 <p align="center">
-  <a href="https://github.com/Andrew Xu/OptiBeam">
+  <a href="https://github.com/Andrew-XQY/OptiBeam">
     <img src="images/logo.png" alt="Logo" width="80" height="80">
   </a>
 
@@ -11,18 +11,18 @@
     Python modules for image processing, sensor automation control and machine learning in accelerator physics
     <br/>
     <br/>
-    <a href="https://github.com/Andrew Xu/OptiBeam"><strong>Explore the docs »</strong></a>
+    <a href="https://github.com/Andrew-XQY/OptiBeam"><strong>Explore the docs »</strong></a>
     <br/>
     <br/>
-    <a href="https://github.com/Andrew Xu/OptiBeam">View Demo</a>
+    <a href="https://github.com/Andrew-XQY/OptiBeam">View Demo</a>
     .
-    <a href="https://github.com/Andrew Xu/OptiBeam/issues">Report Bug</a>
+    <a href="https://github.com/Andrew-XQY/OptiBeam/issues">Report Bug</a>
     .
-    <a href="https://github.com/Andrew Xu/OptiBeam/issues">Request Feature</a>
+    <a href="https://github.com/Andrew-XQY/OptiBeam/issues">Request Feature</a>
   </p>
 </p>
 
-![Downloads](https://img.shields.io/github/downloads/Andrew Xu/OptiBeam/total) ![Contributors](https://img.shields.io/github/contributors/Andrew Xu/OptiBeam?color=dark-green) ![Issues](https://img.shields.io/github/issues/Andrew Xu/OptiBeam) ![License](https://img.shields.io/github/license/Andrew Xu/OptiBeam) 
+![Downloads](https://img.shields.io/github/downloads/Andrew-XQY/OptiBeam/total) ![Contributors](https://img.shields.io/github/contributors/Andrew-XQY/OptiBeam?color=dark-green) ![Issues](https://img.shields.io/github/issues/Andrew-XQY/OptiBeam) ![License](https://img.shields.io/github/license/Andrew-XQY/OptiBeam) 
 
 ## Table Of Contents
 
@@ -103,7 +103,7 @@ _For more examples, please refer to the [Documentation](https://example.com)_
 
 ## Roadmap
 
-See the [open issues](https://github.com/Andrew Xu/OptiBeam/issues) for a list of proposed features (and known issues).
+See the [open issues](https://github.com/Andrew-XQY/OptiBeam/issues) for a list of proposed features (and known issues).
 
 ## Contributing
 
@@ -111,7 +111,6 @@ Contributions are what make the open source community such an amazing place to b
 * If you have suggestions for adding or removing projects, feel free to [open an issue](https://github.com/Andrew Xu/OptiBeam/issues/new) to discuss it, or directly create a pull request after you edit the *README.md* file with necessary changes.
 * Please make sure you check your spelling and grammar.
 * Create individual PR for each suggestion.
-* Please also read through the [Code Of Conduct](https://github.com/Andrew Xu/OptiBeam/blob/main/CODE_OF_CONDUCT.md) before posting your first idea as well.
 
 ### Creating A Pull Request
 
@@ -123,7 +122,7 @@ Contributions are what make the open source community such an amazing place to b
 
 ## License
 
-Distributed under the MIT License. See [LICENSE](https://github.com/Andrew Xu/OptiBeam/blob/main/LICENSE.md) for more information.
+Distributed under the MIT License. See [LICENSE](https://github.com/Andrew-XQY/OptiBeam/blob/main/LICENSE.md) for more information.
 
 ## Authors
 
@@ -131,6 +130,4 @@ Distributed under the MIT License. See [LICENSE](https://github.com/Andrew Xu/Op
 
 ## Acknowledgements
 
-* []()
-* []()
 * []()
