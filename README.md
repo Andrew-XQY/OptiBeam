@@ -57,10 +57,10 @@ To get a local copy up and running follow these simple example steps.
 
 This is an example of how to list things you need to use the software and how to install them.
 
-* pip
+* pip install
 
 ```sh
-pip install optibeam -g
+pip install numpy
 ```
 
 ### Installation
@@ -68,6 +68,10 @@ pip install optibeam -g
 1. Get a free API Key at [https://example.com](https://example.com)
 
 2. Clone the repo
+
+```pip
+pip install optibeam
+```
 
 ```sh
 git clone https://github.com/your_username_/Project-Name.git
