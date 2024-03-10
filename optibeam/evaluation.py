@@ -5,7 +5,7 @@ Including:
 2. Common Image Quality Metrics (PSNR, SSIM, MSE, etc.) for image reconstruction.
 '''
 
-from utils import *
+from .utils import *
 from scipy.optimize import curve_fit
 from scipy.stats import norm
 
