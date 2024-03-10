@@ -5,7 +5,7 @@ setup(
     version='0.1.0',
     author='Andrew Xu',
     author_email='qiyuanxu95@gmail.com',
-    description='Python modules for image processing, sensor automation control and machine learning in accelerator physics',
+    description='Python modules for image processing, data analysis and machine learning in accelerator physics',
     url='https://github.com/Andrew-XQY/OptiBeam',
     packages=find_packages(),
     install_requires=[
