@@ -1,7 +1,7 @@
 <br/>
 <p align="center">
   <a href="https://github.com/Andrew-XQY/OptiBeam">
-    <img src="images/logo.png" alt="Logo" width="80" height="80">
+    <img src="https://github.com/Andrew-XQY/OptiBeam/issues/1#issue-2177788988" alt="Logo" width="80" height="80">
   </a>
 
   <h3 align="center">OptiBeam
