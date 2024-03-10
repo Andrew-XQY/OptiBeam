@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 setup(
-    name='OptiBeam',
+    name='optibeam',
     version='0.1.0',
     author='Andrew Xu',
     author_email='qiyuanxu95@gmail.com',
