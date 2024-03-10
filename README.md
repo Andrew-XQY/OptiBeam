@@ -4,7 +4,7 @@
     <img src="https://github.com/Andrew-XQY/OptiBeam/assets/26278255/59e6e340-e3c1-4b4b-8762-5f73c1ca44bd" alt="Logo" width="128" height="128">
   </a>
 
-  <h3 align="center">OptiBeam
+  <!-- <h3 align="center">OptiBeam -->
 </h3>
 
   <p align="center">
