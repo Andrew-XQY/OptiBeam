@@ -143,7 +143,7 @@ def plot_gaussian_fit(image):
         
     fit_2d = fit_2d_gaussian(image)
 
-    plt.figure(figsize=(8, 8))
+    fig = plt.figure(figsize=(8, 8))
     thickness = 1
     thickness_1 = 0.8
     # Vertical fit
@@ -181,7 +181,8 @@ def plot_gaussian_fit(image):
     plt.gca().set_yticklabels(reversed(plt.gca().get_yticklabels()))   # Reverse y-axis
 
     plt.tight_layout()
-    plt.show()
+    # plt.show()
+    return fig
     
 
 
