@@ -6,7 +6,22 @@ import random
 
 from PIL import Image
 from tqdm import tqdm
+from functools import wraps
 from typing import *
+
+
+def add_progress_bar(iterable_arg_index=0):
+    def decorator(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            iterable = args[iterable_arg_index]
+            progress_bar = tqdm(iterable)
+            # Replace the iterable in the arguments with the progress bar
+            new_args = list(args)
+            new_args[iterable_arg_index] = progress_bar
+            return func(*new_args, **kwargs)
+        return wrapper
+    return decorator
 
 
 # ------------------- file operations -------------------
