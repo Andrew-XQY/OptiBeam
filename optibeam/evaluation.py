@@ -51,8 +51,8 @@ def beam_params(img, func=subtract_minimum, normalize=False):
     img: 2d numpy array representing the image
     func: function, optional, used to process the histogram data, e.g. minmax_normalization
     """
-    horizontal_x = np.arange(len(img[0]))
-    vertical_x = np.arange(len(img))
+    horizontal_x = np.arange(len(img[0])) # x-axis (horizontal)
+    vertical_x = np.arange(len(img)) # y-axis (vertical)
     horizontal_histogram = np.sum(img, axis=0)
     vertical_histogram = np.sum(img, axis=1)
     if func:
@@ -68,10 +68,10 @@ def beam_params(img, func=subtract_minimum, normalize=False):
             "horizontal_width" : 0, "vertical_width" : 0}
         
     if normalize:
-        res["horizontal_centroid"] = res["horizontal_centroid"] / horizontal_x
-        res["vertical_centroid"] = res["vertical_centroid"] / vertical_x
-        res["horizontal_width"] = res["horizontal_width"] / horizontal_x
-        res["vertical_width"] = res["vertical_width"] / vertical_x
+        res["horizontal_centroid"] = res["horizontal_centroid"] / len(img[0])
+        res["vertical_centroid"] = res["vertical_centroid"] / len(img)
+        res["horizontal_width"] = res["horizontal_width"] / len(img[0])
+        res["vertical_width"] = res["vertical_width"] / len(img)
     return res
 
 
