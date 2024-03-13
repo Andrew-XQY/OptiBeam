@@ -45,7 +45,7 @@ def fit_gaussian(x, y):
 
 
 
-def beam_params(img, func=subtract_minimum):
+def beam_params(img, func=subtract_minimum, normalize=False):
     """
     Input image -> beam parameters (beam centroids, beam widths), not normalized. Two 1D Gaussian fits are used.
     img: 2d numpy array representing the image
@@ -66,6 +66,12 @@ def beam_params(img, func=subtract_minimum):
     except: # if the fitting fails, return the center of the image, zero sigma can be seen as a indicator
         res = {"horizontal_centroid" : len(img[0]) // 2, "vertical_centroid" : len(img) // 2,
             "horizontal_width" : 0, "vertical_width" : 0}
+        
+    if normalize:
+        res["horizontal_centroid"] = res["horizontal_centroid"] / horizontal_x
+        res["vertical_centroid"] = res["vertical_centroid"] / vertical_x
+        res["horizontal_width"] = res["horizontal_width"] / horizontal_x
+        res["vertical_width"] = res["vertical_width"] / vertical_x
     return res
 
 
