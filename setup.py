@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='optibeam',
-    version='0.1.8',
+    version='0.1.9',
     author='Andrew Xu',
     author_email='qiyuanxu95@gmail.com',
     description='Python modules for image processing, data analysis and machine learning in accelerator physics',
