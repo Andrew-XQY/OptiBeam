@@ -62,7 +62,7 @@ def beam_params(img, func=subtract_minimum, normalize=False):
         _, v_params = fit_gaussian(horizontal_x, horizontal_histogram) # assume it is a Gaussian beam                        
         _, h_params = fit_gaussian(vertical_x, vertical_histogram)
         res = {"horizontal_centroid" : v_params[1], "vertical_centroid" : h_params[1],
-            "horizontal_width" : v_params[2], "vertical_width" : h_params[2]}
+            "horizontal_width" : abs(v_params[2]), "vertical_width" : abs(h_params[2])}
     except: # if the fitting fails, return the center of the image, zero sigma can be seen as a indicator
         res = {"horizontal_centroid" : len(img[0]) // 2, "vertical_centroid" : len(img) // 2,
             "horizontal_width" : 0, "vertical_width" : 0}
