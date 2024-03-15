@@ -87,6 +87,7 @@ def minmax_normalization(arr):
     return (arr - np.min(arr)) / (np.max(arr) - np.min(arr))
 
 
+
 def image_normalize(image: np.array):
     """
     Normalize the input image by scaling its pixel values to the range [0, 1].
@@ -96,3 +97,29 @@ def image_normalize(image: np.array):
     np.ndarray: The normalized image.
     """
     return image.astype('float32') / 255.
+
+
+
+# ------------------- Plot image -------------------
+
+def plot_narray(image_array):    
+    """
+    Plot a 2D NumPy array as an image.
+    Parameters:
+    image_array (np.ndarray): A 2D NumPy array to plot as an image.
+    """
+    # if the image is normalized, convert it back to 0-255 scale
+    if np.max(image_array) <= 1:
+        image_array = (image_array * 255).astype(np.uint8)
+    # Plot the image
+    if len(image_array.shape) == 2:
+        plt.imshow(image_array, cmap='gray')  # cmap='gray' sets the colormap to grayscale
+        plt.colorbar()  # Add a color bar to show intensity scale
+        plt.title('2D Array Image')  # Add a title
+        plt.xlabel('X-axis')  # Label X-axis
+        plt.ylabel('Y-axis')  # Label Y-axis
+        plt.show()
+    else:
+        plt.imshow(image_array)
+        plt.axis('off')
+        plt.show()
