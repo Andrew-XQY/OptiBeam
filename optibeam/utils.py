@@ -85,3 +85,14 @@ def minmax_normalization(arr):
     Min-max normalization
     """
     return (arr - np.min(arr)) / (np.max(arr) - np.min(arr))
+
+
+def image_normalize(image: np.array):
+    """
+    Normalize the input image by scaling its pixel values to the range [0, 1].
+    Parameters:
+    image (np.ndarray): A NumPy array representing the input image.
+    Returns:
+    np.ndarray: The normalized image.
+    """
+    return image.astype('float32') / 255.
