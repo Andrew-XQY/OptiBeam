@@ -10,6 +10,7 @@ from functools import wraps
 from typing import *
 
 
+# ------------------- progress indicator -------------------
 def add_progress_bar(iterable_arg_index=0):
     def decorator(func):
         @wraps(func)
@@ -35,14 +36,20 @@ def get_all_file_paths(dir:str, types=['']) -> list:
     return [file for file in file_paths if any(type in file for type in types)]
 
 
-def get_all_images(dir:str, color_space="") -> list:
-    paths = get_all_file_paths(dir)
-    return [Image.open(i).convert(color_space) if color_space else Image.open(i) for i in tqdm(paths)]
 
-
-def get_all_images_as_nparray(dir:str, color_space="") -> list:
-    return [np.array(i) for i in tqdm(get_all_images(dir, color_space))]
-
+@add_progress_bar()
+def load_images(image_paths, funcs=[]):
+    """
+    Load an image from the specified paths and apply the specified functions to each image sequentially.
+    example: load_images(image_paths, funcs=[np.array, rgb_to_grayscale, split_image, lambda x: x[0].flatten()])
+    """
+    temp = []
+    for image_path in image_paths:
+        with Image.open(image_path) as img:
+            for func in funcs:
+                img = func(img)
+            temp.append(img)
+    return np.array(temp)
 
 
 
@@ -54,12 +61,15 @@ def rgb_to_grayscale(img):
     return np.mean(img, axis=2) # return grayscale image by averaging all the colors
 
 
-def split_image(narray_img) -> Tuple[np.array, np.array]:
+def split_image(narray_img, select='') -> Tuple[np.array, np.array]:
     """
     input: grayscale image in numpy array format
     output: two images, split in the middle horizontally
     """
-    return np.array_split(narray_img, 2, axis=1)
+    left, right = np.array_split(narray_img, 2, axis=1)
+    if select not in ['left', 'right']:
+        return left, right
+    return left if select == 'left' else right
 
 
 def subtract_minimum(arr):
@@ -97,6 +107,8 @@ def image_normalize(image: np.array):
     np.ndarray: The normalized image.
     """
     return image.astype('float32') / 255.
+
+
 
 
 

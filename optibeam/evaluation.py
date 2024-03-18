@@ -14,7 +14,7 @@ from scipy.stats import norm
 
 def subtract_min_from_array(arr):
     """
-    Subtract the minimum value from all elements in a 2D numpy array.
+    Subtract the minimum value from all elements in a 2D numpy array (img).
     Parameters:
     arr (np.ndarray): A 2D numpy array.
     Returns:
@@ -59,10 +59,10 @@ def beam_params(img, func=subtract_minimum, normalize=False):
         horizontal_histogram = func(horizontal_histogram)
         vertical_histogram = func(vertical_histogram)
     try:
-        _, v_params = fit_gaussian(horizontal_x, horizontal_histogram) # assume it is a Gaussian beam                        
-        _, h_params = fit_gaussian(vertical_x, vertical_histogram)
-        res = {"horizontal_centroid" : v_params[1], "vertical_centroid" : h_params[1],
-            "horizontal_width" : abs(v_params[2]), "vertical_width" : abs(h_params[2])}
+        _, h_params = fit_gaussian(horizontal_x, horizontal_histogram) # assume it is a Gaussian beam                        
+        _, v_params = fit_gaussian(vertical_x, vertical_histogram)
+        res = {"horizontal_centroid" : h_params[1], "vertical_centroid" : v_params[1],
+            "horizontal_width" : abs(h_params[2]), "vertical_width" : abs(v_params[2])}
     except: # if the fitting fails, return the center of the image, zero sigma can be seen as a indicator
         res = {"horizontal_centroid" : len(img[0]) // 2, "vertical_centroid" : len(img) // 2,
             "horizontal_width" : 0, "vertical_width" : 0}
@@ -195,44 +195,4 @@ def plot_gaussian_fit(image):
 
 
 # ------------------- Other functions (remains to be use) -------------------
-
-# def calculate_center_of_mass(image):
-#     """
-#     Calculate the center of mass for the white shape in a grayscale image.
-#     Parameters:
-#     - image: A 2D numpy array representing the grayscale image.
-#     Returns:
-#     - (center_x, center_y): A tuple representing the x and y coordinates of the center of mass.
-#     """
-#     # Ensure the image is a numpy array.
-#     image = np.array(image)
-#     # Calculate the total mass (sum of all pixel values).
-#     total_mass = np.sum(image)
-#     # Create a grid of x and y coordinates.
-#     y, x = np.indices(image.shape)
-#     # Calculate the weighted sum of the coordinates.
-#     center_x = np.sum(x * image) / total_mass
-#     center_y = np.sum(y * image) / total_mass
-#     return center_x, center_y
-
-
-# def remove_white_spots_morph(image, threshold=200, kernel_size=3):
-#     """
-#     Removes white spots from a grayscale image using morphological opening.
-#     Parameters:
-#     - image: A 2D numpy array representing a grayscale image.
-#     - threshold: An integer brightness threshold. Pixels brighter than this will be considered.
-#     - kernel_size: Size of the morphological kernel.
-#     Returns:
-#     - A 2D numpy array of the image after white spot noise reduction.
-#     """
-#     # Threshold the image to create a binary image
-#     _, binary_image = cv2.threshold(image, threshold, 255, cv2.THRESH_BINARY)
-#     # Create a morphological kernel
-#     kernel = np.ones((kernel_size, kernel_size), np.uint8)
-#     # Apply morphological opening
-#     opening_image = cv2.morphologyEx(binary_image, cv2.MORPH_OPEN, kernel)
-#     # Apply mask to the original image
-#     image_filtered = np.where(opening_image == 255, image, 0)
-#     return image_filtered
 
