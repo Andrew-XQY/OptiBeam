@@ -5,7 +5,7 @@ setup(
     version='0.1.11',
     author='Andrew Xu',
     author_email='qiyuanxu95@gmail.com',
-    description='Python modules for image processing, data analysis and machine learning in accelerator physics',
+    description='Python modules for processing images, analyzing data, visualizing results, and machine learning in accelerator physics.',
     url='https://github.com/Andrew-XQY/OptiBeam',
     packages=find_packages(),
     install_requires=[
@@ -17,5 +17,5 @@ setup(
         'License :: OSI Approved :: MIT License',
         'Programming Language :: Python :: 3'
     ],
-    python_requires='>=3.6',
+    python_requires='>=3.8',
 )

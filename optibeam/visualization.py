@@ -11,7 +11,7 @@ class visualPCA:
         self.pc = None
 
     def fit(self, data):
-        self.pc = self.pca.fit_transform(data)
+        self.pc = self.pca.fit_transform(data) # narray of images (flattened)
 
     def plot_2d(self):
         plt.scatter(self.pc[:, 0], self.pc[:, 1], s=2)

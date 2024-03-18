@@ -8,7 +8,7 @@
 </h3>
 
   <p align="center">
-    Python modules for image processing, data analysis and machine learning in accelerator physics
+    Python modules for processing images, analyzing data, visualizing results, and machine learning in accelerator physics.
     <br/>
     <br/>
     <a href="https://github.com/Andrew-XQY/OptiBeam"><strong>Explore the docs »</strong></a>
@@ -40,7 +40,7 @@
 
 ## About The Project
 
-![Screen Shot](images/screenshot.png)
+<!-- ![Screen Shot](images/screenshot.png) -->
 
 Python modules for image processing, sensor automation control and machine learning in accelerator physics
 
