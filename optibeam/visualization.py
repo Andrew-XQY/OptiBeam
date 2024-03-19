@@ -42,13 +42,13 @@ class visualPCA:
         plt.close(fig)  # Close the figure to free memory
         return buf
     
-    def create_gif(self, output_path, start_angle=0, end_angle=89, nums=60, fps=30, reverse=True):
+    def create_gif(self, save_To, start_angle=0, end_angle=89, nums=60, fps=30, reverse=True):
         image_buffers = [self.plot_to_memory(a) for a in np.linspace(start_angle, end_angle, nums)]
         images = [Image.open(image_buffer) for image_buffer in image_buffers]
         if reverse:
             images = images + images[::-1]
         clips = [np.array(image) for image in images]
         clip = ImageSequenceClip(clips, fps=fps)
-        clip.write_gif(output_path)
+        clip.write_gif(save_To)
 
 
