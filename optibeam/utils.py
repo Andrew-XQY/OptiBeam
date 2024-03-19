@@ -55,15 +55,19 @@ def load_images(image_paths, funcs=[]):
 
 # ------------------- image processing -------------------
 
-def rgb_to_grayscale(img):
-    if img.shape[2] == 4:  # If the image has 4 channels (RGBA), ignore the alpha channel.
-        img = img[:, :, :3]
-    return np.mean(img, axis=2) # return grayscale image by averaging all the colors
+def rgb_to_grayscale(narray_img):
+    """
+    input: image in numpy array format
+    output: grayscale image in numpy array format
+    """
+    if narray_img.shape[2] == 4:  # If the image has 4 channels (RGBA), ignore the alpha channel.
+        narray_img = narray_img[:, :, :3]
+    return np.mean(narray_img, axis=2) # return grayscale image by averaging all the colors
 
 
 def split_image(narray_img, select='') -> Tuple[np.array, np.array]:
     """
-    input: grayscale image in numpy array format
+    input: image in numpy array format
     output: two images, split in the middle horizontally
     """
     left, right = np.array_split(narray_img, 2, axis=1)
@@ -112,9 +116,9 @@ def image_normalize(image: np.array):
 
 
 
-# ------------------- Plot image -------------------
+# ------------------- Quick Plot image -------------------
 
-def plot_narray(image_array):    
+def plot_narray(image_array, channel=1):    
     """
     Plot a 2D NumPy array as an image.
     Parameters:
@@ -125,7 +129,10 @@ def plot_narray(image_array):
         image_array = (image_array * 255).astype(np.uint8)
     # Plot the image
     if len(image_array.shape) == 2:
-        plt.imshow(image_array, cmap='gray')  # cmap='gray' sets the colormap to grayscale
+        if channel == 1:
+            plt.imshow(image_array, cmap='gray')  # cmap='gray' sets the colormap to grayscale
+        else:
+            plt.imshow(image_array)
         plt.colorbar()  # Add a color bar to show intensity scale
         plt.title('2D Array Image')  # Add a title
         plt.xlabel('X-axis')  # Label X-axis
