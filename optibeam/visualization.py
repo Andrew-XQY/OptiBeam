@@ -6,6 +6,7 @@ from moviepy.editor import ImageSequenceClip
         
 # ------------------- PCA -------------------
 class visualPCA:
+
     def __init__(self, n_components=3):
         self.pca = PCA(n_components=n_components)
         self.pc = None
@@ -49,6 +50,6 @@ class visualPCA:
             images = images + images[::-1]
         clips = [np.array(image) for image in images]
         clip = ImageSequenceClip(clips, fps=fps)
-        clip.write_gif(save_To)
+        clip.write_gif(save_To + '/sample.gif')
 
 
