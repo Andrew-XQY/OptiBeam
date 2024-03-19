@@ -1,4 +1,4 @@
-from utils import *
+from .utils import *
 from io import BytesIO
 from sklearn.decomposition import PCA
 from moviepy.editor import ImageSequenceClip
