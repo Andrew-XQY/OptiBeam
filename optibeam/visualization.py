@@ -2,6 +2,7 @@ from .utils import *
 from io import BytesIO
 from sklearn.decomposition import PCA
 from moviepy.editor import ImageSequenceClip
+import plotly.graph_objects as go
         
         
 # ------------------- PCA -------------------
@@ -11,8 +12,8 @@ class visualPCA:
         self.pca = PCA(n_components=n_components)
         self.pc = None
 
-    def fit(self, data):
-        self.pc = self.pca.fit_transform(data) # narray of images (flattened)
+    def fit(self, data):  # narray of images (flattened)
+        self.pc = self.pca.fit_transform(data) 
 
     def plot_2d(self):
         plt.scatter(self.pc[:, 0], self.pc[:, 1], s=2)
@@ -21,13 +22,29 @@ class visualPCA:
         plt.show()
 
     def plot_3d(self):
-        fig = plt.figure(figsize=(10, 7))  # Increase figure size for larger output
-        ax = fig.add_subplot(111, projection='3d')
-        scatter = ax.scatter(self.pc[:, 0], self.pc[:, 1], self.pc[:, 2], c=self.pc[:, 2], cmap='viridis', s=2)
-        ax.set_xlabel('PC 1')
-        ax.set_ylabel('PC 2')
-        ax.set_zlabel('PC 3')
-        plt.show()
+        # Create a 3D scatter plot using Plotly
+        fig = go.Figure(data=[go.Scatter3d(
+            x=self.pc[:, 0],
+            y=self.pc[:, 1],
+            z=self.pc[:, 2],
+            mode='markers',
+            marker=dict(
+                size=2,
+                color=self.pc[:, 2],  # Set color to the third principal component
+                colorscale='Viridis',  # Color scale
+                opacity=0.8
+            )
+        )])
+        # Update the layout of the plot for better visualization
+        fig.update_layout(
+            margin=dict(l=0, r=0, b=0, t=0),
+            scene=dict(
+                xaxis_title='PC 1',
+                yaxis_title='PC 2',
+                zaxis_title='PC 3'
+            )
+        )
+        fig.show()
 
     def plot_to_memory(self, angle):
         fig = plt.figure(figsize=(10, 7))  # Increase figure size for larger output
@@ -51,5 +68,4 @@ class visualPCA:
         clips = [np.array(image) for image in images]
         clip = ImageSequenceClip(clips, fps=fps)
         clip.write_gif(save_To + '/sample.gif')
-
 
