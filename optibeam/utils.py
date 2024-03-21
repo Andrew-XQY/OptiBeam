@@ -27,13 +27,28 @@ def add_progress_bar(iterable_arg_index=0):
 
 # ------------------- file operations -------------------
 
-def get_all_file_paths(dir:str, types=['']) -> list:
+# def get_all_file_paths(dirs:str, types=['']) -> list:
+#     file_paths = []  # List to store file paths
+#     for dir in dirs:
+#         for root, _, files in os.walk(dir):
+#             for file in files:
+#                 file_path = os.path.join(root, file)
+#                 file_paths.append(os.path.abspath(file_path))
+#     return [file for file in file_paths if any(type in file for type in types)]
+
+
+def get_all_file_paths(dirs, types=['']) -> list:
+    # Check if dirs is a single string and convert to list if necessary
+    if isinstance(dirs, str):
+        dirs = [dirs]
     file_paths = []  # List to store file paths
-    for root, _, files in os.walk(dir):
-        for file in files:
-            file_path = os.path.join(root, file)
-            file_paths.append(os.path.abspath(file_path))
-    return [file for file in file_paths if any(type in file for type in types)]
+    for dir in dirs:
+        for root, _, files in os.walk(dir):
+            for file in files:
+                if any(type in file for type in types):
+                    file_path = os.path.join(root, file)
+                    file_paths.append(os.path.abspath(file_path))
+    return file_paths
 
 
 

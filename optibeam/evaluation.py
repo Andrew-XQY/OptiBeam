@@ -10,19 +10,6 @@ from scipy.optimize import curve_fit
 from scipy.stats import norm
 
 
-# ------------------- data processing -------------------
-
-def subtract_min_from_array(arr):
-    """
-    Subtract the minimum value from all elements in a 2D numpy array (img).
-    Parameters:
-    arr (np.ndarray): A 2D numpy array.
-    Returns:
-    np.ndarray: A 2D numpy array with the minimum value subtracted from all elements.
-    """
-    min_value = np.min(arr)
-    return arr - min_value
-
 
 # ------------------- Image to Parameters Metrics -------------------
 
@@ -45,33 +32,74 @@ def fit_gaussian(x, y):
 
 
 
-def beam_params(img, func=subtract_minimum, normalize=False):
+# def beam_params(img, func=subtract_minimum, normalize=False):
+#     """
+#     Input image -> beam parameters (beam centroids, beam widths), not normalized. Two 1D Gaussian fits are used.
+#     img: 2d numpy array representing the image
+#     func: function, optional, used to process the histogram data, e.g. minmax_normalization
+#     """
+#     horizontal_x = np.arange(len(img[0])) # x-axis (horizontal)
+#     vertical_x = np.arange(len(img)) # y-axis (vertical)
+#     horizontal_histogram = np.sum(img, axis=0)
+#     vertical_histogram = np.sum(img, axis=1)
+#     if func:
+#         horizontal_histogram = func(horizontal_histogram)
+#         vertical_histogram = func(vertical_histogram)
+#     try:
+#         _, h_params = fit_gaussian(horizontal_x, horizontal_histogram) # assume it is a Gaussian beam                        
+#         _, v_params = fit_gaussian(vertical_x, vertical_histogram)
+#         res = {"horizontal_centroid" : h_params[1], "vertical_centroid" : v_params[1],
+#             "horizontal_width" : abs(h_params[2]), "vertical_width" : abs(v_params[2])}
+#     except: # if the fitting fails, return the center of the image, zero sigma can be seen as a indicator
+#         res = {"horizontal_centroid" : 0, "vertical_centroid" : 0,
+#             "horizontal_width" : 0, "vertical_width" : 0}
+#         return res
+  
+#     if normalize:
+#         res["horizontal_centroid"] = res["horizontal_centroid"] / len(img[0])
+#         res["vertical_centroid"] = res["vertical_centroid"] / len(img)
+#         res["horizontal_width"] = res["horizontal_width"] / len(img[0])
+#         res["vertical_width"] = res["vertical_width"] / len(img)
+#     return res
+
+def center_of_mass(narray):
+    total_mass = np.sum(narray)
+    # Compute the x and y coordinates. We use np.arange to create arrays of x and y indexes, 
+    # and np.sum to sum up the coordinates weighted by their intensity values (mass)
+    y_indices, x_indices = np.indices(narray.shape)  # Get the indices for each dimension
+    cx = np.sum(x_indices * narray) / total_mass
+    cy = np.sum(y_indices * narray) / total_mass
+    print(f"The centroid of mass is at ({cx:.2f}, {cy:.2f})")
+    return cx, cy
+
+
+def beam_params(narray, normalize=True):
     """
-    Input image -> beam parameters (beam centroids, beam widths), not normalized. Two 1D Gaussian fits are used.
-    img: 2d numpy array representing the image
-    func: function, optional, used to process the histogram data, e.g. minmax_normalization
+    Input: single channel narray image -> beam parameters (beam centroids, beam widths), normalized. Two 1D Gaussian fits are used.
+    Output: dictionary object containing the beam parameters.
     """
-    horizontal_x = np.arange(len(img[0])) # x-axis (horizontal)
-    vertical_x = np.arange(len(img)) # y-axis (vertical)
-    horizontal_histogram = np.sum(img, axis=0)
-    vertical_histogram = np.sum(img, axis=1)
-    if func:
-        horizontal_histogram = func(horizontal_histogram)
-        vertical_histogram = func(vertical_histogram)
+    res = {"horizontal_centroid" : 0, "vertical_centroid" : 0, 
+           "horizontal_width" : 0, "vertical_width" : 0}
+    horizontal_x = np.arange(len(narray[0])) # x-axis (horizontal)
+    vertical_x = np.arange(len(narray)) # y-axis (vertical)
+    horizontal_hist = np.sum(narray, axis=0)
+    vertical_hist = np.sum(narray, axis=1)
+    # need to subtract the minimum value from the histogram for stability
+    horizontal_hist = subtract_minimum(horizontal_hist)
+    vertical_hist = subtract_minimum(vertical_hist)
+    # two 1D Gaussian fits
     try:
-        _, h_params = fit_gaussian(horizontal_x, horizontal_histogram) # assume it is a Gaussian beam                        
-        _, v_params = fit_gaussian(vertical_x, vertical_histogram)
+        _, h_params = fit_gaussian(horizontal_x, horizontal_hist) # assume it is a Gaussian beam                        
+        _, v_params = fit_gaussian(vertical_x, vertical_hist)
         res = {"horizontal_centroid" : h_params[1], "vertical_centroid" : v_params[1],
             "horizontal_width" : abs(h_params[2]), "vertical_width" : abs(v_params[2])}
-    except: # if the fitting fails, return the center of the image, zero sigma can be seen as a indicator
-        res = {"horizontal_centroid" : len(img[0]) // 2, "vertical_centroid" : len(img) // 2,
-            "horizontal_width" : 0, "vertical_width" : 0}
-        
+    except: # if the fitting fails, return zero centroids, zero sigma as an indicator
+        res = fit_2d_gaussian(narray)
     if normalize:
-        res["horizontal_centroid"] = res["horizontal_centroid"] / len(img[0])
-        res["vertical_centroid"] = res["vertical_centroid"] / len(img)
-        res["horizontal_width"] = res["horizontal_width"] / len(img[0])
-        res["vertical_width"] = res["vertical_width"] / len(img)
+        res["horizontal_centroid"] = res["horizontal_centroid"] / len(horizontal_x)
+        res["vertical_centroid"] = res["vertical_centroid"] / len(vertical_x)
+        res["horizontal_width"] = res["horizontal_width"] / len(horizontal_x)
+        res["vertical_width"] = res["vertical_width"] / len(vertical_x)
     return res
 
 
@@ -109,7 +137,7 @@ def fit_2d_gaussian(image):
         res = {"horizontal_centroid" : popt[1], "vertical_centroid" : popt[2],
                 "horizontal_width" : popt[3], "vertical_width" : popt[4]}
     except: # if the fitting fails, return the center of the image, zero sigma can be seen as a indicator
-        res = {"vertical_centroid" : len(image[0]) // 2, "horizontal_centroid" : len(image) // 2,
+        res = {"vertical_centroid" : 0, "horizontal_centroid" : 0,
             "vertical_width" : 0, "horizontal_width" : 0}
     return res  # Returns the optimized parameters (A, x0, y0, sigma_x, sigma_y)
 
@@ -196,3 +224,8 @@ def plot_gaussian_fit(image):
 
 # ------------------- Other functions (remains to be use) -------------------
 
+def center_of_mass(img):
+    """
+    Calculate the center of mass of the image. based on pixel intensity.
+    """
+    pass
