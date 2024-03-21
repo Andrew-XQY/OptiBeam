@@ -48,6 +48,7 @@ def get_all_file_paths(dirs, types=['']) -> list:
                 if any(type in file for type in types):
                     file_path = os.path.join(root, file)
                     file_paths.append(os.path.abspath(file_path))
+    print(f"Found {len(file_paths)} files.")
     return file_paths
 
 
@@ -64,7 +65,9 @@ def load_images(image_paths, funcs=[]):
             for func in funcs:
                 img = func(img)
             temp.append(img)
-    return np.array(temp)
+    dataset = np.array(temp)
+    print(f"Loaded dataset shape: {dataset.shape}")
+    return dataset
 
 
 
