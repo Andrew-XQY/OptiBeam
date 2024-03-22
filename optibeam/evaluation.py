@@ -162,7 +162,7 @@ def plot_gaussian_fit(image):
     horizontal_x = np.arange(len(horizontal_histogram))
     vertical_x = np.arange(len(vertical_histogram))
 
-    params = beam_params(image)
+    params = beam_params(image, normalize=False)
     h_mu = params["vertical_centroid"]  # history mistake
     v_mu = params["horizontal_centroid"]
     h_sigma = params["vertical_width"]
