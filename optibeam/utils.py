@@ -159,8 +159,8 @@ class Logger:
     Create folder and a log file in the specified directory, containing the experiment details.
     After training, save the log content in the log file under the log directory.
     """
-    def __init__(self, log_dir, model, dataset: np.array, history, info=''):
-        self.log_dir = os.path.join(log_dir, datetime.now().strftime("%Y-%m-%d" + info))
+    def __init__(self, log_dir, model=None, dataset=None, history=None, info=''):
+        self.log_dir = os.path.join(log_dir, datetime.now().strftime("%Y-%m-%d_" + info))
         self.model = model
         self.dataset = dataset
         self.history = history
@@ -179,6 +179,9 @@ class Logger:
             self.register_model()
         if self.history is not None:
             self.register_training()
+            
+    def register_extra(self, extra_info):
+        self.log_content['extra_info'] = extra_info
             
     def register_dataset(self):
         if isinstance(self.dataset, np.ndarray):
