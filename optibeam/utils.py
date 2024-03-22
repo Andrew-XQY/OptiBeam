@@ -1,10 +1,14 @@
-import os
+import os, json
+import platform
 import numpy as np
 import matplotlib.pyplot as plt
+import tensorflow as tf
+from datetime import datetime
 from PIL import Image
 from tqdm import tqdm
 from functools import wraps
 from typing import *
+
 
 
 # ------------------- progress indicator -------------------
@@ -98,13 +102,11 @@ def subtract_minimum(arr):
     return processed_arr
 
 
-
 def minmax_normalization(arr):
     """
     Min-max normalization
     """
     return (arr - np.min(arr)) / (np.max(arr) - np.min(arr))
-
 
 
 def image_normalize(narray_img: np.array):
@@ -147,3 +149,84 @@ def plot_narray(narray_img, channel=1):
         plt.imshow(narray_img)
         plt.axis('off')
         plt.show()
+        
+
+
+# ------------------- experiment logs -------------------
+
+class Logger:
+    """
+    Create folder and a log file in the specified directory, containing the experiment details.
+    After training, save the log content in the log file under the log directory.
+    """
+    def __init__(self, log_dir, model, dataset: np.array, history, info=''):
+        self.log_dir = os.path.join(log_dir, datetime.now().strftime("%Y-%m-%d" + info))
+        self.model = model
+        self.dataset = dataset
+        self.history = history
+        self.log_file = os.path.join(self.log_dir, 'log.json')
+        self.log_content = {'info' : info,
+                            'experiment_date' : datetime.now().strftime("%Y-%m-%d %H:%M:%S"), 
+                            'dataset_info': None,
+                            'model_info': None, 
+                            'training_info': None}
+        self.update()
+            
+    def update(self):
+        if self.dataset is not None:
+            self.register_dataset()
+        if self.model is not None:
+            self.register_model()
+        if self.history is not None:
+            self.register_training()
+            
+    def register_dataset(self):
+        if isinstance(self.dataset, np.ndarray):
+            self.log_content['dataset_info'] = {'dataset_shape': str(self.dataset.shape), 
+                                                'dataset_dtype': str(self.dataset.dtype),
+                                                'dataset_mean': str(np.mean(self.dataset)), 
+                                                'dataset_std': str(np.std(self.dataset)),
+                                                'dataset_min': str(np.min(self.dataset)), 
+                                                'dataset_max': str(np.max(self.dataset))}
+
+    def register_model(self):
+        if isinstance(self.model, tf.keras.models.Model):
+            self.log_content['model_info'] = self.tf_model_summary()
+        
+    def register_training(self):
+        os_info = {
+        "System": platform.system(),
+        "Version": platform.version(),
+        "Machine": platform.machine(),
+        "Processor": platform.processor(),
+        "Architecture": platform.architecture()[0],
+        "Python Build": platform.python_version()
+        }
+        compiled_info = {
+        'loss': self.model.loss,
+        'optimizer': type(self.model.optimizer).__name__,
+        'optimizer_config': {k:str(v) for k,v in self.model.optimizer.get_config().items()},
+        'metrics': [m.name for m in self.model.metrics]
+        }
+        self.log_content['training_info'] = {'os_info': os_info, 
+                                             'compiled_info': compiled_info,
+                                             'epoch': len(self.history.epoch),
+                                             'training_history': self.history.history
+                                             }
+        if isinstance(self.model, tf.keras.models.Model):
+            compiled_info['tensorflow_version'] = tf.__version__
+            
+    def tf_model_summary(self):
+        summary = []
+        self.model.summary(print_fn=lambda x: summary.append(x))
+        return summary
+        
+    def log_parse(self):
+        pass
+        
+    def save(self):
+        if not os.path.exists(self.log_dir):
+            os.makedirs(self.log_dir)
+        with open(self.log_file, 'w') as f:
+            json.dump(self.log_content, f, indent=4)
+        return self.log_file

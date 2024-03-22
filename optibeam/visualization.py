@@ -3,6 +3,46 @@ from io import BytesIO
 from sklearn.decomposition import PCA
 from moviepy.editor import ImageSequenceClip
 import plotly.graph_objects as go
+import seaborn as sns
+
+
+# ------------------- Plot evaluation -------------------
+
+def plot_prediction_comparison(real : np.array, predicted : np.array, param_name=''):
+    # Assuming 'real' and 'predicted' are the lists containing the actual and predicted ages
+    # Scatter Plot of Predicted vs. Actual Ages
+    plt.figure(figsize=(14, 5))
+
+    plt.subplot(1, 3, 1)
+    plt.scatter(real, predicted, alpha=0.6, s=3)
+    plt.plot([real.min(), real.max()], [real.min(), real.max()], 'k--', lw=2)  # Diagonal line
+    plt.title(f'Predicted vs. Actual {param_name}')
+    plt.xlabel(f'Actual {param_name}')
+    plt.ylabel(f'Predicted {param_name}')
+    plt.grid(True)
+    
+    # Residual Plot
+    plt.subplot(1, 3, 2)
+    residuals = predicted - real
+    plt.scatter(predicted, residuals, alpha=0.6, s=3)
+    plt.title(f'{param_name} Residual Plot')
+    plt.xlabel(f'Predicted {param_name}')
+    plt.ylabel('Residuals')
+    plt.axhline(y=0, color='k', linestyle='--')
+    plt.grid(True)
+    
+    # Histogram or Density Plot of Prediction Errors
+    plt.subplot(1, 3, 3)
+    ax = sns.histplot([i*100 for i in residuals], kde=True)
+    # ax.lines[0].set_color('orange')
+    plt.title('Histogram of Percentage Prediction Errors')
+    plt.xlabel('Prediction Error (%)')
+    plt.ylabel('Frequency')
+    plt.grid(True)
+    # plt.xlim(-100, 100)  # Limiting x-axis to -100% to 100% for clearer visualization
+    plt.tight_layout()
+    plt.show()
+        
         
         
 # ------------------- PCA -------------------
@@ -12,7 +52,7 @@ class visualPCA:
         self.pca = PCA(n_components=n_components)
         self.pc = None
 
-    def fit(self, data):  # narray of images (flattened)
+    def fit(self, data : np.array):  # narray of images (flattened)
         self.pc = self.pca.fit_transform(data) 
 
     def plot_2d(self):
@@ -46,7 +86,7 @@ class visualPCA:
         )
         fig.show()
 
-    def plot_to_memory(self, angle):
+    def plot_to_memory(self, angle : int) -> BytesIO:
         fig = plt.figure(figsize=(10, 7))  # Increase figure size for larger output
         ax = fig.add_subplot(111, projection='3d')
         scatter = ax.scatter(self.pc[:, 0], self.pc[:, 1], self.pc[:, 2], c=self.pc[:, 2], cmap='viridis', s=2)
@@ -60,12 +100,12 @@ class visualPCA:
         plt.close(fig)  # Close the figure to free memory
         return buf
     
-    def create_gif(self, save_To, start_angle=0, end_angle=89, nums=60, fps=30, reverse=True):
+    def create_gif(self, save_to : str, start_angle=0, end_angle=89, nums=60, fps=30, reverse=True):
         image_buffers = [self.plot_to_memory(a) for a in np.linspace(start_angle, end_angle, nums)]
         images = [Image.open(image_buffer) for image_buffer in image_buffers]
         if reverse:
             images = images + images[::-1]
         clips = [np.array(image) for image in images]
         clip = ImageSequenceClip(clips, fps=fps)
-        clip.write_gif(save_To + '/sample.gif')
+        clip.write_gif(save_to + '/sample.gif')
 

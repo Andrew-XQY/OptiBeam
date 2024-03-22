@@ -7,7 +7,6 @@ Including:
 
 from .utils import *
 from scipy.optimize import curve_fit
-from scipy.stats import norm
 
 
 
@@ -220,12 +219,3 @@ def plot_gaussian_fit(image):
     
 
 
-
-
-# ------------------- Other functions (remains to be use) -------------------
-
-def center_of_mass(img):
-    """
-    Calculate the center of mass of the image. based on pixel intensity.
-    """
-    pass
