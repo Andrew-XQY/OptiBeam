@@ -13,13 +13,15 @@ from typing import *
 
 # ------------------- progress indicator -------------------
 def add_progress_bar(iterable_arg_index=0):
-    def decorator(func):
+    """
+    Decorator to add a progress bar to the specified iterable argument of a function.
+    """
+    def decorator(func : Callable):
         @wraps(func)
         def wrapper(*args, **kwargs):
             iterable = args[iterable_arg_index]
             progress_bar = tqdm(iterable)
-            # Replace the iterable in the arguments with the progress bar
-            new_args = list(args)
+            new_args = list(args)  # Replace the iterable in the arguments with the progress bar
             new_args[iterable_arg_index] = progress_bar
             return func(*new_args, **kwargs)
         return wrapper
@@ -29,10 +31,14 @@ def add_progress_bar(iterable_arg_index=0):
 # ------------------- file operations -------------------
 
 def get_all_file_paths(dirs, types=['']) -> list:
+    """
+    Get all file paths in the specified directories with the specified file types.
+    input: dirs (list of strings or string of the root of dataset folder), types (list of strings) 
+    """
     # Check if dirs is a single string and convert to list if necessary
     if isinstance(dirs, str):
         dirs = [dirs]
-    file_paths = []  # List to store file paths
+    file_paths = []  
     for dir in dirs:
         for root, _, files in os.walk(dir):
             for file in files:
@@ -64,17 +70,17 @@ def load_images(image_paths, funcs=[]):
 
 # ------------------- image processing -------------------
 
-def rgb_to_grayscale(narray_img):
+def rgb_to_grayscale(narray_img : np.array):
     """
     input: image in numpy array format
-    output: grayscale image in numpy array format
+    output: grayscale image in numpy array format by averaging all the colors
     """
     if narray_img.shape[2] == 4:  # If the image has 4 channels (RGBA), ignore the alpha channel.
         narray_img = narray_img[:, :, :3]
-    return np.mean(narray_img, axis=2) # return grayscale image by averaging all the colors
+    return np.mean(narray_img, axis=2)
 
 
-def split_image(narray_img, select='') -> Tuple[np.array, np.array]:
+def split_image(narray_img : np.array, select='') -> Tuple[np.array, np.array]:
     """
     input: image in numpy array format
     output: two images, split in the middle horizontally
@@ -93,10 +99,8 @@ def subtract_minimum(arr):
     Returns:
     np.ndarray: The processed array with the minimum value subtracted from each element.
     """
-    # Ensure the input is a 1D array
     if arr.ndim != 1:
         raise ValueError("Input must be a 1D numpy array.")
-    # Subtract the minimum value from the array
     min_value = np.min(arr)
     processed_arr = arr - min_value
     return processed_arr
@@ -121,9 +125,7 @@ def image_normalize(narray_img: np.array):
 
 
 
-
-
-# ------------------- Quick Plot image -------------------
+# ------------------- Plot image -------------------
 
 def plot_narray(narray_img, channel=1):    
     """
@@ -131,19 +133,17 @@ def plot_narray(narray_img, channel=1):
     Parameters:
     narray_img (np.ndarray): A 2D NumPy array to plot as an image.
     """
-    # if the image is normalized, convert it back to 0-255 scale
     if np.max(narray_img) <= 1:
         narray_img = (narray_img * 255).astype(np.uint8)
-    # Plot the image
     if len(narray_img.shape) == 2:
         if channel == 1:
             plt.imshow(narray_img, cmap='gray')  # cmap='gray' sets the colormap to grayscale
         else:
             plt.imshow(narray_img)
         plt.colorbar()  # Add a color bar to show intensity scale
-        plt.title('2D Array Image')  # Add a title
-        plt.xlabel('X-axis')  # Label X-axis
-        plt.ylabel('Y-axis')  # Label Y-axis
+        plt.title('2D Array Image') 
+        plt.xlabel('X-axis')  
+        plt.ylabel('Y-axis') 
         plt.show()
     else:
         plt.imshow(narray_img)
@@ -197,26 +197,19 @@ class Logger:
             self.log_content['model_info'] = self.tf_model_summary()
         
     def register_training(self):
-        os_info = {
-        "System": platform.system(),
-        "Version": platform.version(),
-        "Machine": platform.machine(),
-        "Processor": platform.processor(),
-        "Architecture": platform.architecture()[0],
-        "Python Build": platform.python_version()
-        }
-        compiled_info = {
-        'loss': self.model.loss,
-        'optimizer': type(self.model.optimizer).__name__,
-        'optimizer_config': {k:str(v) for k,v in self.model.optimizer.get_config().items()},
-        'metrics': [m.name for m in self.model.metrics]
-        }
-        self.log_content['training_info'] = {'os_info': os_info, 
-                                             'compiled_info': compiled_info,
-                                             'epoch': len(self.history.epoch),
-                                             'training_history': self.history.history
-                                             }
+        os_info = get_system_info()
         if isinstance(self.model, tf.keras.models.Model):
+            compiled_info = {
+            'loss': self.model.loss,
+            'optimizer': type(self.model.optimizer).__name__,
+            'optimizer_config': {k:str(v) for k,v in self.model.optimizer.get_config().items()},
+            'metrics': [m.name for m in self.model.metrics]
+            }
+            self.log_content['training_info'] = {'os_info': os_info, 
+                                                'compiled_info': compiled_info,
+                                                'epoch': len(self.history.epoch),
+                                                'training_history': self.history.history
+                                                }
             compiled_info['tensorflow_version'] = tf.__version__
             
     def tf_model_summary(self):
@@ -233,3 +226,37 @@ class Logger:
         with open(self.log_file, 'w') as f:
             json.dump(self.log_content, f, indent=4)
         return self.log_file
+
+
+
+# ------------------- system/enviornment info -------------------
+
+def is_jupyter():
+    """Check if Python is running in Jupyter (notebook or lab) or in a command line."""
+    try:
+        # Attempt to import a Jupyter-specific package
+        from IPython import get_ipython
+        # If `get_ipython` does not return None, we are in a Jupyter environment
+        if get_ipython() is not None:
+            return True
+    except ImportError:
+        # If the import fails, we are not in a Jupyter environment
+        pass
+    return False
+
+
+def get_system_info():
+    """
+    Get system information including the operating system, version, machine, processor, and Python version.
+    Returns:
+    dict: A dictionary containing the system information.
+    """
+    system_info = {
+        "System": platform.system(),
+        "Version": platform.version(),
+        "Machine": platform.machine(),
+        "Processor": platform.processor(),
+        "Architecture": platform.architecture()[0],
+        "Python Build": platform.python_version()
+    }
+    return system_info

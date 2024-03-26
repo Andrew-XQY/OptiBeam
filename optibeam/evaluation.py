@@ -1,13 +1,5 @@
-'''
-This module contains the functions to evaluate the performance of the model
-Including:
-1. Image to parameter (speckle pattern -> beam centroids (horizontal, vertical), beam widths).
-2. Common Image Quality Metrics (PSNR, SSIM, MSE, etc.) for image reconstruction.
-'''
-
 from .utils import *
 from scipy.optimize import curve_fit
-
 
 
 # ------------------- Image to Parameters Metrics -------------------
@@ -15,7 +7,6 @@ from scipy.optimize import curve_fit
 # Define the Gaussian function
 def gaussian(x, a, mu, sigma):
     return a * np.exp(-((x - mu) ** 2) / (2 * sigma ** 2))
-
 
 
 def fit_gaussian(x, y):
@@ -29,37 +20,6 @@ def fit_gaussian(x, y):
     y_fit = gaussian(x, *params)
     return y_fit, params
 
-
-
-# def beam_params(img, func=subtract_minimum, normalize=False):
-#     """
-#     Input image -> beam parameters (beam centroids, beam widths), not normalized. Two 1D Gaussian fits are used.
-#     img: 2d numpy array representing the image
-#     func: function, optional, used to process the histogram data, e.g. minmax_normalization
-#     """
-#     horizontal_x = np.arange(len(img[0])) # x-axis (horizontal)
-#     vertical_x = np.arange(len(img)) # y-axis (vertical)
-#     horizontal_histogram = np.sum(img, axis=0)
-#     vertical_histogram = np.sum(img, axis=1)
-#     if func:
-#         horizontal_histogram = func(horizontal_histogram)
-#         vertical_histogram = func(vertical_histogram)
-#     try:
-#         _, h_params = fit_gaussian(horizontal_x, horizontal_histogram) # assume it is a Gaussian beam                        
-#         _, v_params = fit_gaussian(vertical_x, vertical_histogram)
-#         res = {"horizontal_centroid" : h_params[1], "vertical_centroid" : v_params[1],
-#             "horizontal_width" : abs(h_params[2]), "vertical_width" : abs(v_params[2])}
-#     except: # if the fitting fails, return the center of the image, zero sigma can be seen as a indicator
-#         res = {"horizontal_centroid" : 0, "vertical_centroid" : 0,
-#             "horizontal_width" : 0, "vertical_width" : 0}
-#         return res
-  
-#     if normalize:
-#         res["horizontal_centroid"] = res["horizontal_centroid"] / len(img[0])
-#         res["vertical_centroid"] = res["vertical_centroid"] / len(img)
-#         res["horizontal_width"] = res["horizontal_width"] / len(img[0])
-#         res["vertical_width"] = res["vertical_width"] / len(img)
-#     return res
 
 def center_of_mass(narray):
     total_mass = np.sum(narray)
@@ -219,3 +179,4 @@ def plot_gaussian_fit(image):
     
 
 
+# ------------------- dataset clean -------------------
