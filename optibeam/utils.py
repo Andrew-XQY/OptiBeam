@@ -24,7 +24,8 @@ def add_progress_bar(iterable_arg_index=0):
             iterable = args[iterable_arg_index]
             progress_bar = tqdm(iterable)
             new_args = list(args)  
-            new_args[iterable_arg_index] = progress_bar  # Replace the iterable in the arguments with the new progress bar iterator
+            # Replace the iterable in the arguments with the new progress bar iterator
+            new_args[iterable_arg_index] = progress_bar  
             return func(*new_args, **kwargs)
         return wrapper
     return decorator
@@ -58,7 +59,6 @@ class ImageLoader:
             funcs = [funcs]
         self.funcs = funcs
 
-    @add_progress_bar(iterable_arg_index=1)
     def load_images(self, image_paths):
         """
         Load an image from the specified paths and apply the specified functions to each image sequentially.
