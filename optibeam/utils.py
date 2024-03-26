@@ -6,7 +6,8 @@ import tensorflow as tf
 from datetime import datetime
 from PIL import Image
 from tqdm import tqdm
-from functools import wraps
+from functools import wraps, reduce
+from multiprocessing import Pool, cpu_count
 from typing import *
 
 
@@ -49,22 +50,30 @@ def get_all_file_paths(dirs, types=['']) -> list:
     return file_paths
 
 
+class ImageLoader:
+    def __init__(self, funcs):
+        if not isinstance(funcs, list):
+            funcs = [funcs]
+        self.funcs = funcs
 
-@add_progress_bar()
-def load_images(image_paths, funcs=[]):
-    """
-    Load an image from the specified paths and apply the specified functions to each image sequentially.
-    example: load_images(image_paths, funcs=[np.array, rgb_to_grayscale, split_image, lambda x: x[0].flatten()])
-    """
-    temp = []
-    for image_path in image_paths:
-        with Image.open(image_path) as img:
-            for func in funcs:
-                img = func(img)
-            temp.append(img)
-    dataset = np.array(temp)
-    print(f"Loaded dataset shape: {dataset.shape}")
-    return dataset
+    def __repr__(self) -> str:
+        return f"ImageLoader(funcs={self.funcs})"
+
+    @add_progress_bar()
+    def load_images(self, image_paths):
+        """
+        Load an image from the specified paths and apply the specified functions to each image sequentially.
+        example: load_images(image_paths, funcs=[np.array, rgb_to_grayscale, split_image, lambda x: x[0].flatten()])
+        """
+        temp = []
+        for image_path in image_paths:
+            with Image.open(image_path) as img:
+                for func in self.funcs:
+                    img = func(img)
+                temp.append(img)
+        dataset = np.array(temp)
+        print(f"Loaded dataset shape: {dataset.shape}")
+        return dataset
 
 
 
@@ -156,7 +165,7 @@ def plot_narray(narray_img, channel=1):
 
 class Logger:
     """
-    Create folder and a log file in the specified directory, containing the experiment details.
+    Create folder and a log file in the specified directory, containing the experiment details (snapshot).
     After training, save the log content in the log file under the log directory.
     """
     def __init__(self, log_dir, model=None, dataset=None, history=None, info=''):
@@ -260,3 +269,14 @@ def get_system_info():
         "Python Build": platform.python_version()
     }
     return system_info
+
+
+
+# ------------------- multiprocessing -------------------
+
+def combine_functions_chain(functions):
+    def combined_function(input_value):
+        return reduce(lambda x, f: f(x), functions, input_value)
+    return combined_function
+
+

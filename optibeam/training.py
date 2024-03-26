@@ -4,29 +4,30 @@ from tensorflow.keras.callbacks import Callback
 from sklearn.model_selection import train_test_split
 from IPython.display import clear_output
 
+# ------------------- callback functions for tensorflow fit -------------------
 class PlotPredictionParamsCallback(Callback):
     """
     Callback to plot the true and predicted beam parameters on a random validation image
     input: val_images (np.array, (m, n)), val_labels (np.array, (l, 1), normalized), val_beam_image (np.array, (p, q))
     """
-    def __init__(self, val_images, val_labels, val_beam_image):
+    def __init__(self, val_images, val_labels, val_beam_images):
         super().__init__()
         self.val_images = val_images
         self.val_labels = val_labels
-        self.val_beam_image = val_beam_image
+        self.val_beam_images = val_beam_images
 
     def on_epoch_begin(self, epoch, logs=None):
         clear_output(wait=True)
         # Randomly select an image from the validation set
         idx = np.random.randint(0, len(self.val_images))
-        image = self.val_beam_image[idx]
+        image = self.val_beam_images[idx]
         true_label = self.val_labels[idx]
         # Predict the output using the current model state
         pred_label = self.model.predict(self.val_images[idx][np.newaxis, :])[0]
         fig, ax = plt.subplots()
         ax.imshow(image.squeeze(), cmap='gray')  # Assuming grayscale images, remove .squeeze() if not applicable
         
-        # ------------------- plot the true and predicted beam parameters -------------------
+        # plot the true and predicted beam parameters
         # Plot true centroids
         ax.plot(true_label[0] * image.shape[1], true_label[1] * image.shape[0],
                 'ro', label='True Centroid', markersize=1)
@@ -151,7 +152,7 @@ def seperate_img(data):
     assume data consists of both beam image and speckle pattern
     """
     new_data = np.transpose(data, (1, 0, 2, 3, 4))
-    return new_data[0], new_data[1]
+    return new_data[0], new_data[1] # beam image, speckle pattern
 
 
 
