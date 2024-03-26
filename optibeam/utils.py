@@ -1,5 +1,6 @@
 import os, json
 import platform
+import inspect
 import numpy as np
 import matplotlib.pyplot as plt
 import tensorflow as tf
@@ -13,20 +14,61 @@ from typing import *
 
 
 # ------------------- progress indicator -------------------
+# def add_progress_bar(iterable_arg_index=0):
+#     """
+#     Decorator to add a progress bar to the specified iterable argument of a function.
+#     """
+#     def decorator(func : Callable):
+#         @wraps(func)
+#         def wrapper(*args, **kwargs):
+#             iterable = args[iterable_arg_index]
+#             progress_bar = tqdm(iterable)
+#             new_args = list(args)  # Replace the iterable in the arguments with the progress bar
+#             new_args[iterable_arg_index] = progress_bar
+#             return func(*new_args, **kwargs)
+#         return wrapper
+#     return decorator
+
 def add_progress_bar(iterable_arg_index=0):
     """
-    Decorator to add a progress bar to the specified iterable argument of a function.
+    Decorator to add a progress bar to the specified iterable argument of a function or method.
+    Automatically adjusts for methods to account for 'self' or 'cls'.
     """
-    def decorator(func : Callable):
+    def decorator(func: Callable):
         @wraps(func)
         def wrapper(*args, **kwargs):
-            iterable = args[iterable_arg_index]
+            # Inspect whether the function is bound to a class (instance method) or a classmethod
+            if inspect.ismethod(func):
+                # For class instance methods, 'self' is always the first argument
+                adjusted_index = iterable_arg_index + 1
+            elif "cls" in inspect.signature(func).parameters:
+                # For @classmethods, 'cls' is the first argument
+                adjusted_index = iterable_arg_index + 1
+            else:
+                # For standalone functions or static methods, use the original index
+                adjusted_index = iterable_arg_index
+
+            # Extract the iterable using the adjusted index
+            if adjusted_index < len(args):  # Direct positional argument
+                iterable = args[adjusted_index]
+            else:  # Attempt to find the iterable in kwargs
+                param_name = list(inspect.signature(func).parameters)[adjusted_index]
+                iterable = kwargs.get(param_name, [])
+            # Create progress bar
             progress_bar = tqdm(iterable)
-            new_args = list(args)  # Replace the iterable in the arguments with the progress bar
-            new_args[iterable_arg_index] = progress_bar
-            return func(*new_args, **kwargs)
+            # Update args or kwargs with the progress bar wrapped iterable
+            if adjusted_index < len(args):
+                new_args = list(args)
+                new_args[adjusted_index] = progress_bar
+                args = tuple(new_args)
+            else:
+                kwargs[param_name] = progress_bar
+            
+            return func(*args, **kwargs)
         return wrapper
     return decorator
+
+
 
 
 # ------------------- file operations -------------------
