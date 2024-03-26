@@ -102,8 +102,8 @@ def get_labels(data) -> np.array:
 
 def clean_tensors(data):
     """
-    Manually discard some problematic images
-    In future, need to develop a better evaluation function (beam_params) to handle this properly
+    Manually discard some problematic images based on beam parameters calculation.
+    In future, need to develop a better evaluation function (beam_params) to handle this properly?
     """
     labels = get_labels(data)
     exclude = []
