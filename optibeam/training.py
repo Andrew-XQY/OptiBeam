@@ -92,11 +92,10 @@ def exclude_elements(arr, indices):
     return arr[mask]
 
 
-@add_progress_bar()
 def get_labels(data) -> np.array:
     temp = []
     for i in data:
-        temp.append(list(beam_params(np.squeeze(i[0]), normalize=True)).values())
+        temp.append(list(beam_params(np.squeeze(i[0]), normalize=True).values()))
     return np.array(temp)
 
 
@@ -113,12 +112,11 @@ def clean_tensors(data):
             print(index, i)
             exclude.append(index)
             
-    print('Before cleaning: ', len(data), len(labels), data.shape, labels.shape)
+    print('Before cleaning: ', data.shape, labels.shape)
     data_cleaned = exclude_elements(data, exclude)
     label_cleaned = exclude_elements(labels, exclude)
-    print('After cleaning: ', len(data_cleaned), len(label_cleaned), data_cleaned.shape, label_cleaned.shape)
+    print('After cleaning: ', data_cleaned.shape, label_cleaned.shape)
     return data_cleaned, label_cleaned
-
 
 
 def split_dataset(data, labels, proportion=(8, 1, 1)):
@@ -145,6 +143,7 @@ def split_dataset(data, labels, proportion=(8, 1, 1)):
     return {'x_train' : train, 'label_train' : labels_train, 
             'x_val' : val, 'label_val' : labels_val,
             'x_test' : test, 'label_test' : labels_test} 
+
 
 def seperate_img(data):
     """
