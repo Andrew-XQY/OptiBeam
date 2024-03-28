@@ -1,11 +1,11 @@
-# This __init__.py is intentionally left empty to allow the package to be imported as a module.
-
 # __init__.py for optibeam package
 
 from . import utils
 from . import evaluation
 from . import visualization
 from . import training
+from . import dmd
+from . import camera
 
-__all__ = ['utils', 'evaluation', 'visualization', 'training']
-
+__all__ = ['utils', 'evaluation', 'visualization', 'training', 'dmd', 'camera']
+__author__ = "Andrew Xu"
