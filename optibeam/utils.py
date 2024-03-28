@@ -70,14 +70,21 @@ class ImageLoader:
         if not isinstance(funcs, list):
             funcs = [funcs]
         self.funcs = funcs
+        
+    def load_image(self, image_path):
+        """
+        Load an image from the specified path and apply the specified functions to the image sequentially.
+        example: load_image(image_path, funcs=[np.array, rgb_to_grayscale, split_image, lambda x: x[0].flatten()])
+        """
+        with Image.open(image_path) as img:
+            for func in self.funcs:
+                img = func(img)
+        return img
 
     def load_images(self, image_paths):
         """
-        Load an image from the specified paths and apply the specified functions to each image sequentially.
-        example: load_images(image_paths, funcs=[np.array, rgb_to_grayscale, split_image, lambda x: x[0].flatten()])
+        Load images and return a dataset in numpy array format.
         """
-        if not isinstance(image_paths, list):
-            image_paths = [image_paths]
         temp = []
         for image_path in image_paths:
             with Image.open(image_path) as img:
@@ -87,6 +94,7 @@ class ImageLoader:
         dataset = np.array(temp)
         print(f"Loaded dataset shape: {dataset.shape}")
         return dataset
+
 
 
 
