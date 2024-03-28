@@ -278,19 +278,18 @@ def apply_multiprocessing(function):
     return wrapper
 
 
-def apply_multiprocess(function, progress_bar=True):
+def apply_multiprocess(function):
     """
     Decorator to apply multiprocess to a function that processes an iterable. 
     Use multiprocess which is compatible with Jupyter notebook.
-    Adds a progress indicator to the operation.
+    Could select adding a progress indicator to the operation.
     """
     @wraps(function)
     def wrapper(iterable):
-        with multiprocess.Pool(processes=multiprocess.cpu_count()) as pool:
-            if progress_bar:
-                result = list(tqdm(pool.imap(function, iterable), total=len(iterable)))
-            else:
-                result = pool.map(function, iterable)
+        processor = multiprocess.cpu_count()
+        with multiprocess.Pool(processes=processor) as pool:
+            print(f"Processing {len(iterable)} items with {processor} processes...")
+            result = list(tqdm(pool.imap(function, iterable), total=len(iterable)))
         return result
     return wrapper
 
