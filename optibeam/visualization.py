@@ -3,6 +3,7 @@ from io import BytesIO
 from sklearn.decomposition import PCA
 from moviepy.editor import ImageSequenceClip
 import plotly.graph_objects as go
+import matplotlib.pyplot as plt
 import seaborn as sns
 
 

@@ -1,19 +1,16 @@
 import os, json
 import platform
-import inspect
 import numpy as np
-import matplotlib.pyplot as plt
 import tensorflow as tf
+import multiprocessing, multiprocess
 from datetime import datetime
 from PIL import Image
 from tqdm import tqdm
 from functools import wraps, reduce
-from multiprocessing import Pool, cpu_count
 from typing import *
 
 
-
-# ------------------- progress indicator -------------------
+# ------------------- functional modules -------------------
 def add_progress_bar(iterable_arg_index=0):
     """
     Decorator to add a progress bar to the specified iterable argument of a function.
@@ -31,6 +28,22 @@ def add_progress_bar(iterable_arg_index=0):
     return decorator
 
 
+def combine_functions(functions):
+    """
+    Combine a list of functions into a single function. The combined function processes
+    data sequentially through each function in the list.
+    
+    Args:
+    functions (list): A list of functions, where each function has the same type of input and output.
+    Returns:
+    function: A combined function that is the composition of all the functions in the list.
+    """
+    if not functions:  
+        return lambda x: x
+    return reduce(lambda f, g: lambda x: g(f(x)), functions)
+
+
+
 
 # ------------------- file operations -------------------
 
@@ -39,8 +52,7 @@ def get_all_file_paths(dirs, types=['']) -> list:
     Get all file paths in the specified directories with the specified file types.
     input: dirs (list of strings or string of the root of dataset folder), types (list of strings) 
     """
-    # Check if dirs is a single string and convert to list if necessary
-    if isinstance(dirs, str):
+    if isinstance(dirs, str): # Check if dirs is a single string and convert to list if necessary
         dirs = [dirs]
     file_paths = []  
     for dir in dirs:
@@ -64,6 +76,8 @@ class ImageLoader:
         Load an image from the specified paths and apply the specified functions to each image sequentially.
         example: load_images(image_paths, funcs=[np.array, rgb_to_grayscale, split_image, lambda x: x[0].flatten()])
         """
+        if not isinstance(image_paths, list):
+            image_paths = [image_paths]
         temp = []
         for image_path in image_paths:
             with Image.open(image_path) as img:
@@ -246,9 +260,39 @@ def get_system_info():
 
 # ------------------- multiprocessing -------------------
 
-def combine_functions_chain(functions):
-    def combined_function(input_value):
-        return reduce(lambda x, f: f(x), functions, input_value)
-    return combined_function
+def process_list_in_parallel(function, data_list):
+    with multiprocess.Pool(processes=multiprocess.cpu_count()) as pool:
+        result = pool.map(function, data_list)
+    return result
+
+
+def apply_multiprocessing(function):
+    """
+    Decorator to apply multiprocessing to a function that processes an iterable.
+    """
+    @wraps(function)
+    def wrapper(iterable):
+        with multiprocessing.Pool(processes=multiprocessing.cpu_count()) as pool:
+            result = pool.map(function, iterable)
+        return result
+    return wrapper
+
+
+def apply_multiprocess(function, progress_bar=True):
+    """
+    Decorator to apply multiprocess to a function that processes an iterable. 
+    Use multiprocess which is compatible with Jupyter notebook.
+    Adds a progress indicator to the operation.
+    """
+    @wraps(function)
+    def wrapper(iterable):
+        with multiprocess.Pool(processes=multiprocess.cpu_count()) as pool:
+            if progress_bar:
+                result = list(tqdm(pool.imap(function, iterable), total=len(iterable)))
+            else:
+                result = pool.map(function, iterable)
+        return result
+    return wrapper
+
 
 
