@@ -1,7 +1,6 @@
 import os, json
 import platform
 import numpy as np
-import tensorflow as tf
 import multiprocessing, multiprocess
 from datetime import datetime
 from PIL import Image
@@ -42,6 +41,43 @@ def combine_functions(functions):
         return lambda x: x
     return reduce(lambda f, g: lambda x: g(f(x)), functions)
 
+
+
+# ------------------- multiprocessing -------------------
+
+def process_list_in_parallel(function, data_list):
+    with multiprocess.Pool(processes=multiprocess.cpu_count()) as pool:
+        result = pool.map(function, data_list)
+    return result
+
+
+def apply_multiprocessing(function):
+    """
+    Decorator to apply multiprocessing to a function that processes an iterable.
+    No progress indicator, can be used in the terminal.
+    """
+    @wraps(function)
+    def wrapper(iterable):
+        with multiprocessing.Pool(processes=multiprocessing.cpu_count()) as pool:
+            result = pool.map(function, iterable)
+        return result
+    return wrapper
+
+
+def apply_multiprocess(function):
+    """
+    Decorator to apply multiprocess to a function that processes an iterable. 
+    Use multiprocess which is compatible with Jupyter notebook.
+    Could select adding a progress indicator to the operation.
+    """
+    @wraps(function)
+    def wrapper(iterable):
+        processor = multiprocess.cpu_count()
+        with multiprocess.Pool(processes=processor) as pool:
+            print(f"Processing {len(iterable)} items with {processor} processes...")
+            result = list(tqdm(pool.imap(function, iterable), total=len(iterable)))
+        return result
+    return wrapper
 
 
 
@@ -152,82 +188,6 @@ def image_normalize(narray_img: np.array):
 
 
 
-# ------------------- experiment logs -------------------
-
-class Logger:
-    """
-    Create folder and a log file in the specified directory, containing the experiment details (snapshot).
-    After training, save the log content in the log file under the log directory.
-    """
-    def __init__(self, log_dir, model=None, dataset=None, history=None, info=''):
-        self.log_dir = os.path.join(log_dir, datetime.now().strftime("%Y-%m-%d_" + info))
-        self.model = model
-        self.dataset = dataset
-        self.history = history
-        self.log_file = os.path.join(self.log_dir, 'log.json')
-        self.log_content = {'info' : info,
-                            'experiment_date' : datetime.now().strftime("%Y-%m-%d %H:%M:%S"), 
-                            'dataset_info': None,
-                            'model_info': None, 
-                            'training_info': None}
-        self.update()
-            
-    def update(self):
-        if self.dataset is not None:
-            self.register_dataset()
-        if self.model is not None:
-            self.register_model()
-        if self.history is not None:
-            self.register_training()
-            
-    def register_extra(self, extra_info):
-        self.log_content['extra_info'] = extra_info
-            
-    def register_dataset(self):
-        if isinstance(self.dataset, np.ndarray):
-            self.log_content['dataset_info'] = {'dataset_shape': str(self.dataset.shape), 
-                                                'dataset_dtype': str(self.dataset.dtype),
-                                                'dataset_mean': str(np.mean(self.dataset)), 
-                                                'dataset_std': str(np.std(self.dataset)),
-                                                'dataset_min': str(np.min(self.dataset)), 
-                                                'dataset_max': str(np.max(self.dataset))}
-
-    def register_model(self):
-        if isinstance(self.model, tf.keras.models.Model):
-            self.log_content['model_info'] = self.tf_model_summary()
-        
-    def register_training(self):
-        os_info = get_system_info()
-        if isinstance(self.model, tf.keras.models.Model):
-            compiled_info = {
-            'loss': self.model.loss,
-            'optimizer': type(self.model.optimizer).__name__,
-            'optimizer_config': {k:str(v) for k,v in self.model.optimizer.get_config().items()},
-            'metrics': [m.name for m in self.model.metrics]
-            }
-            self.log_content['training_info'] = {'os_info': os_info, 
-                                                'compiled_info': compiled_info,
-                                                'epoch': len(self.history.epoch),
-                                                'training_history': self.history.history
-                                                }
-            compiled_info['tensorflow_version'] = tf.__version__
-            
-    def tf_model_summary(self):
-        summary = []
-        self.model.summary(print_fn=lambda x: summary.append(x))
-        return summary
-        
-    def log_parse(self):
-        pass
-        
-    def save(self):
-        if not os.path.exists(self.log_dir):
-            os.makedirs(self.log_dir)
-        with open(self.log_file, 'w') as f:
-            json.dump(self.log_content, f, indent=4)
-        return self.log_file
-
-
 
 # ------------------- system/enviornment info -------------------
 
@@ -262,41 +222,6 @@ def get_system_info():
     return system_info
 
 
-
-# ------------------- multiprocessing -------------------
-
-def process_list_in_parallel(function, data_list):
-    with multiprocess.Pool(processes=multiprocess.cpu_count()) as pool:
-        result = pool.map(function, data_list)
-    return result
-
-
-def apply_multiprocessing(function):
-    """
-    Decorator to apply multiprocessing to a function that processes an iterable.
-    """
-    @wraps(function)
-    def wrapper(iterable):
-        with multiprocessing.Pool(processes=multiprocessing.cpu_count()) as pool:
-            result = pool.map(function, iterable)
-        return result
-    return wrapper
-
-
-def apply_multiprocess(function):
-    """
-    Decorator to apply multiprocess to a function that processes an iterable. 
-    Use multiprocess which is compatible with Jupyter notebook.
-    Could select adding a progress indicator to the operation.
-    """
-    @wraps(function)
-    def wrapper(iterable):
-        processor = multiprocess.cpu_count()
-        with multiprocess.Pool(processes=processor) as pool:
-            print(f"Processing {len(iterable)} items with {processor} processes...")
-            result = list(tqdm(pool.imap(function, iterable), total=len(iterable)))
-        return result
-    return wrapper
 
 
 
