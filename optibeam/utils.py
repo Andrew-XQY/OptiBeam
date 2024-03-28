@@ -87,10 +87,7 @@ class ImageLoader:
         """
         temp = []
         for image_path in image_paths:
-            with Image.open(image_path) as img:
-                for func in self.funcs:
-                    img = func(img)
-                temp.append(img)
+            temp.append(self.load_image(image_path))
         dataset = np.array(temp)
         print(f"Loaded dataset shape: {dataset.shape}")
         return dataset
