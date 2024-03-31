@@ -13,9 +13,9 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
 ]
-urls = {
-    "Homepage": "https://github.com/Andrew-XQY/OptiBeam"
-}
+
+[project.urls]
+Homepage = "https://github.com/Andrew-XQY/OptiBeam"
 
 dependencies = [
     "numpy>=1.18.1",
