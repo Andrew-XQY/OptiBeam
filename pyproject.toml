@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "optibeam"
-version = "0.1.32"
+version = "0.1.33"
 description = "Python modules for processing images, analyzing data, visualizing results, and machine learning in accelerator physics."
 readme = "README.md"
 authors = [
@@ -28,6 +28,7 @@ dependencies = [
     "Pillow",  # Note: PIL should be replaced with Pillow, the modern fork of PIL
     "typing; python_version<'3.5'",  # Only needed for versions of Python < 3.5
     "seaborn",
+    "plotly",
 ]
 
 [project.urls]
