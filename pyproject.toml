@@ -14,9 +14,6 @@ classifiers = [
     "Programming Language :: Python :: 3",
 ]
 
-[project.urls]
-Homepage = "https://github.com/Andrew-XQY/OptiBeam"
-
 dependencies = [
     "numpy>=1.18.1",
     "scipy",
@@ -43,5 +40,6 @@ dev = [
 dynamic = ["version", "description"]
 
 [project.urls]
+Homepage = "https://github.com/Andrew-XQY/OptiBeam"
 Documentation = "https://example.com/OptiBeam/documentation"  # Change URL as needed
 Source = "https://github.com/Andrew-XQY/OptiBeam"
