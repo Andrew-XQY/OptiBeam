@@ -8,8 +8,7 @@ __pycache__/
 
 # Distribution / packaging
 .Python
-build/*
-!build/html/
+build/
 develop-eggs/
 dist/
 downloads/

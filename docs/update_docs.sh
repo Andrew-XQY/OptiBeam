@@ -10,4 +10,4 @@ make clean
 make html && make deploy
 
 # Optionally, open the generated documentation in the default browser
-open build/html/index.html
+open index.html
