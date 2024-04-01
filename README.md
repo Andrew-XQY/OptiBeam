@@ -11,10 +11,10 @@
     Python modules for processing images, analyzing data, visualizing results, and machine learning in accelerator physics.
     <br/>
     <br/>
-    <a href="https://github.com/Andrew-XQY/OptiBeam"><strong>Explore the docs »</strong></a>
+    <a href="https://andrew-xqy.github.io/OptiBeam/"><strong>Explore the docs »</strong></a>
     <br/>
     <br/>
-    <a href="https://github.com/Andrew-XQY/OptiBeam">View Demo</a>
+    <a href="https://andrew-xqy.github.io/OptiBeam/">View Demo</a>
     .
     <a href="https://github.com/Andrew-XQY/OptiBeam/issues">Report Bug</a>
     .
