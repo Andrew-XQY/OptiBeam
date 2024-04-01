@@ -29,24 +29,43 @@ release = '0.1.33'
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
-
 extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.napoleon',
+    'sphinx.ext.autosummary',
+    'sphinx.ext.mathjax',
+    'sphinx.ext.viewcode',
+    'sphinx.ext.intersphinx',
     # ... any other extensions need
 ]
-extensions.append('sphinx.ext.intersphinx')
-intersphinx_mapping = {'python': ('https://docs.python.org/3', None)}
 
 
+intersphinx_mapping = {
+    'numpy': ('https://numpy.org/doc/stable/', None),
+    'sklearn': ('https://scikit-learn.org/stable/', None),
+    'python': ('https://docs.python.org/3', None),
+}
+
+
+autodoc_members = True
+autodoc_member_order = 'groupwise' # bysource, groupwise, alphabetical
+autosummary_generate = True
+numpydoc_show_class_members = False
+
+
+source_suffix = ['.rst']
 templates_path = ['_templates']
-exclude_patterns = []
-
+exclude_patterns = ['_build']
 language = 'en'
 
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
-html_theme = 'alabaster'
-# html_theme = 'sphinx_rtd_theme'
+# html_theme = 'alabaster'
+html_theme = 'pyramid' # sphinx_rtd_theme
 html_static_path = ['_static']
+
+
+# Custom stylesheets
+def setup(app):
+    app.add_css_file('css/toc.css')

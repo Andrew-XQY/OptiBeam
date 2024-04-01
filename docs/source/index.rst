@@ -3,12 +3,27 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
+.. image:: /_static/images/logo.jpg
+    :alt: OptiBeam
+    :width: 150px
+    :target: https://github.com/Andrew-XQY/OptiBeam
+    :align: center
+
+
 Welcome to OptiBeam's documentation!
 ====================================
 
+OptiBeam is a Python package provides modules for processing images, analyzing data, visualizing results, and machine learning in Accelerator Physics.
+
+
+Modules
+-------
+
 .. toctree::
-   :maxdepth: 2
-   :caption: Contents:
+   :titlesonly: 
+   
+   /modules/modules
+   
 
 
 

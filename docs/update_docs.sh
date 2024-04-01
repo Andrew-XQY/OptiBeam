@@ -3,7 +3,7 @@
 cd "$(dirname "$0")"
 
 # Run sphinx-apidoc to generate rst files from docstrings
-sphinx-apidoc -o docs/source/ ../optibeam/
+sphinx-apidoc -o source/modules/ ../optibeam/
 
 # Build the HTML documentation
 make clean
