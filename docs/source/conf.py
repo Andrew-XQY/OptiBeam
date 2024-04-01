@@ -6,9 +6,25 @@
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
+# -- Path setup --------------------------------------------------------------
+
+import sys, os
+
+# If extensions (or modules to document with autodoc) are in another directory,
+# add these directories to sys.path here. If the directory is relative to the
+# documentation root, use os.path.abspath to make it absolute, like shown here.
+try:
+    # Sequentia is installed
+    import optibeam
+except ImportError:
+    # optibeam is run from its source checkout
+    sys.path.insert(0, os.path.abspath('../optibeam'))
+    import optibeam
+
+
 project = 'OptiBeam'
 copyright = '2024, Andrew Xu'
-author = 'Andrew Xu'
+author = optibeam.__author__
 release = '0.1.33'
 
 # -- General configuration ---------------------------------------------------
@@ -26,7 +42,7 @@ intersphinx_mapping = {'python': ('https://docs.python.org/3', None)}
 templates_path = ['_templates']
 exclude_patterns = []
 
-language = 'Python'
+language = 'en'
 
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
