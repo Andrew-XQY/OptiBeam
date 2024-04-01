@@ -7,6 +7,7 @@ SPHINXOPTS    ?=
 SPHINXBUILD   ?= sphinx-build
 SOURCEDIR     = source
 BUILDDIR      = build
+DOCDIR        = ../docs
 
 # Put it first so that "make" without argument is like "make help".
 help:
@@ -19,17 +20,12 @@ help:
 %: Makefile
 	@$(SPHINXBUILD) -M $@ "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
 
-# New target to copy html files to the root directory and delete the build directory
+# New target to copy html files to the docs directory one level up
 deploy:
-	@echo "Moving built HTML files to the root of the repository..."
-	@cp -a "$(BUILDDIR)/html/." .
-	@echo "Deployment of documentation to the repository root complete."
+	@echo "Moving built HTML files to the $(DOCDIR) directory..."
+	@cp -a "$(BUILDDIR)/html/." "$(DOCDIR)"
+	@echo "Deployment of documentation to the $(DOCDIR) directory complete."
 	@echo "Removing the build directory..."
 	@rm -rf "$(BUILDDIR)"
 	@echo "Build directory removed."
 
-# Optional clean target to remove the copied html files from the root
-clean:
-	@echo "Cleaning up the HTML files from the root of the repository..."
-	# Add commands to remove the HTML files from the root if needed
-	@echo "Cleanup complete."
