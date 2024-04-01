@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>optibeam.evaluation &#8212; OptiBeam 0.1.33 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=4848ba22" />
+    <link rel="stylesheet" type="text/css" href="../../_static/pyramid.css?v=a5b9c134" />
+    <link rel="stylesheet" type="text/css" href="../../_static/css/toc.css?v=72483682" />
+    <script src="../../_static/documentation_options.js?v=449df4d2"></script>
+    <script src="../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Neuton&amp;subset=latin" type="text/css" media="screen" charset="utf-8" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Nobile:regular,italic,bold,bolditalic&amp;subset=latin" type="text/css" media="screen" charset="utf-8" />
+<!--[if lte IE 6]>
+<link rel="stylesheet" href="../../_static/ie6.css" type="text/css" media="screen" charset="utf-8" />
+<![endif]-->
+
+  </head><body>
+
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">OptiBeam 0.1.33 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">optibeam.evaluation</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for optibeam.evaluation</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">.utils</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">from</span> <span class="nn">scipy.optimize</span> <span class="kn">import</span> <span class="n">curve_fit</span>
+
+
+<span class="c1"># ------------------- Image to Parameters Metrics -------------------</span>
+
+<span class="c1"># Define the Gaussian function</span>
+<div class="viewcode-block" id="gaussian">
+<a class="viewcode-back" href="../../modules/optibeam.html#optibeam.evaluation.gaussian">[docs]</a>
+<span class="k">def</span> <span class="nf">gaussian</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">mu</span><span class="p">,</span> <span class="n">sigma</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">a</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="p">((</span><span class="n">x</span> <span class="o">-</span> <span class="n">mu</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">sigma</span> <span class="o">**</span> <span class="mi">2</span><span class="p">))</span></div>
+
+
+
+<div class="viewcode-block" id="fit_gaussian">
+<a class="viewcode-back" href="../../modules/optibeam.html#optibeam.evaluation.fit_gaussian">[docs]</a>
+<span class="k">def</span> <span class="nf">fit_gaussian</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Gaussian fit (Least Squares Fitting) </span>
+<span class="sd">    https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.curve_fit.html</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Initial guesses for fitting parameters: A, mu, sigma</span>
+    <span class="n">initial_guesses</span> <span class="o">=</span> <span class="p">[</span><span class="nb">max</span><span class="p">(</span><span class="n">y</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">x</span><span class="p">)]</span>
+    <span class="n">params</span><span class="p">,</span> <span class="n">covariance</span> <span class="o">=</span> <span class="n">curve_fit</span><span class="p">(</span><span class="n">gaussian</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">p0</span><span class="o">=</span><span class="n">initial_guesses</span><span class="p">)</span>
+    <span class="n">y_fit</span> <span class="o">=</span> <span class="n">gaussian</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="o">*</span><span class="n">params</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">y_fit</span><span class="p">,</span> <span class="n">params</span></div>
+
+
+
+<div class="viewcode-block" id="center_of_mass">
+<a class="viewcode-back" href="../../modules/optibeam.html#optibeam.evaluation.center_of_mass">[docs]</a>
+<span class="k">def</span> <span class="nf">center_of_mass</span><span class="p">(</span><span class="n">narray</span><span class="p">):</span>
+    <span class="n">total_mass</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">narray</span><span class="p">)</span>
+    <span class="c1"># Compute the x and y coordinates. We use np.arange to create arrays of x and y indexes, </span>
+    <span class="c1"># and np.sum to sum up the coordinates weighted by their intensity values (mass)</span>
+    <span class="n">y_indices</span><span class="p">,</span> <span class="n">x_indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">indices</span><span class="p">(</span><span class="n">narray</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>  <span class="c1"># Get the indices for each dimension</span>
+    <span class="n">cx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">x_indices</span> <span class="o">*</span> <span class="n">narray</span><span class="p">)</span> <span class="o">/</span> <span class="n">total_mass</span>
+    <span class="n">cy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">y_indices</span> <span class="o">*</span> <span class="n">narray</span><span class="p">)</span> <span class="o">/</span> <span class="n">total_mass</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;The centroid of mass is at (</span><span class="si">{</span><span class="n">cx</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">cy</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">cx</span><span class="p">,</span> <span class="n">cy</span></div>
+
+
+
+<div class="viewcode-block" id="beam_params">
+<a class="viewcode-back" href="../../modules/optibeam.html#optibeam.evaluation.beam_params">[docs]</a>
+<span class="k">def</span> <span class="nf">beam_params</span><span class="p">(</span><span class="n">narray</span><span class="p">,</span> <span class="n">normalize</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Input: single channel narray image -&gt; beam parameters (beam centroids, beam widths), normalized. Two 1D Gaussian fits are used.</span>
+<span class="sd">    Output: dictionary object containing the beam parameters.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;horizontal_centroid&quot;</span> <span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;vertical_centroid&quot;</span> <span class="p">:</span> <span class="mi">0</span><span class="p">,</span> 
+           <span class="s2">&quot;horizontal_width&quot;</span> <span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;vertical_width&quot;</span> <span class="p">:</span> <span class="mi">0</span><span class="p">}</span>
+    <span class="n">horizontal_x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">narray</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span> <span class="c1"># x-axis (horizontal)</span>
+    <span class="n">vertical_x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">narray</span><span class="p">))</span> <span class="c1"># y-axis (vertical)</span>
+    <span class="n">horizontal_hist</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">narray</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">vertical_hist</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">narray</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="c1"># need to subtract the minimum value from the histogram for stability</span>
+    <span class="n">horizontal_hist</span> <span class="o">=</span> <span class="n">subtract_minimum</span><span class="p">(</span><span class="n">horizontal_hist</span><span class="p">)</span>
+    <span class="n">vertical_hist</span> <span class="o">=</span> <span class="n">subtract_minimum</span><span class="p">(</span><span class="n">vertical_hist</span><span class="p">)</span>
+    <span class="c1"># two 1D Gaussian fits</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">_</span><span class="p">,</span> <span class="n">h_params</span> <span class="o">=</span> <span class="n">fit_gaussian</span><span class="p">(</span><span class="n">horizontal_x</span><span class="p">,</span> <span class="n">horizontal_hist</span><span class="p">)</span> <span class="c1"># assume it is a Gaussian beam                        </span>
+        <span class="n">_</span><span class="p">,</span> <span class="n">v_params</span> <span class="o">=</span> <span class="n">fit_gaussian</span><span class="p">(</span><span class="n">vertical_x</span><span class="p">,</span> <span class="n">vertical_hist</span><span class="p">)</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;horizontal_centroid&quot;</span> <span class="p">:</span> <span class="n">h_params</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="s2">&quot;vertical_centroid&quot;</span> <span class="p">:</span> <span class="n">v_params</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+            <span class="s2">&quot;horizontal_width&quot;</span> <span class="p">:</span> <span class="nb">abs</span><span class="p">(</span><span class="n">h_params</span><span class="p">[</span><span class="mi">2</span><span class="p">]),</span> <span class="s2">&quot;vertical_width&quot;</span> <span class="p">:</span> <span class="nb">abs</span><span class="p">(</span><span class="n">v_params</span><span class="p">[</span><span class="mi">2</span><span class="p">])}</span>
+    <span class="k">except</span><span class="p">:</span> <span class="c1"># if the fitting fails, return zero centroids, zero sigma as an indicator</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="n">fit_2d_gaussian</span><span class="p">(</span><span class="n">narray</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">normalize</span><span class="p">:</span>
+        <span class="n">res</span><span class="p">[</span><span class="s2">&quot;horizontal_centroid&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">res</span><span class="p">[</span><span class="s2">&quot;horizontal_centroid&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">horizontal_x</span><span class="p">)</span>
+        <span class="n">res</span><span class="p">[</span><span class="s2">&quot;vertical_centroid&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">res</span><span class="p">[</span><span class="s2">&quot;vertical_centroid&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">vertical_x</span><span class="p">)</span>
+        <span class="n">res</span><span class="p">[</span><span class="s2">&quot;horizontal_width&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">res</span><span class="p">[</span><span class="s2">&quot;horizontal_width&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">horizontal_x</span><span class="p">)</span>
+        <span class="n">res</span><span class="p">[</span><span class="s2">&quot;vertical_width&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">res</span><span class="p">[</span><span class="s2">&quot;vertical_width&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">vertical_x</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">res</span></div>
+
+
+
+
+<span class="c1"># 2D Gaussian fit (Least Squares Fitting)</span>
+<div class="viewcode-block" id="gaussian_2d">
+<a class="viewcode-back" href="../../modules/optibeam.html#optibeam.evaluation.gaussian_2d">[docs]</a>
+<span class="k">def</span> <span class="nf">gaussian_2d</span><span class="p">(</span><span class="n">xy</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">x0</span><span class="p">,</span> <span class="n">y0</span><span class="p">,</span> <span class="n">sigma_x</span><span class="p">,</span> <span class="n">sigma_y</span><span class="p">):</span>
+    <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">xy</span>
+    <span class="n">inner</span> <span class="o">=</span> <span class="p">((</span><span class="n">x</span> <span class="o">-</span> <span class="n">x0</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">sigma_x</span> <span class="o">**</span> <span class="mi">2</span><span class="p">))</span> <span class="o">+</span> <span class="p">((</span><span class="n">y</span> <span class="o">-</span> <span class="n">y0</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">sigma_y</span> <span class="o">**</span> <span class="mi">2</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">A</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">inner</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="fit_2d_gaussian">
+<a class="viewcode-back" href="../../modules/optibeam.html#optibeam.evaluation.fit_2d_gaussian">[docs]</a>
+<span class="k">def</span> <span class="nf">fit_2d_gaussian</span><span class="p">(</span><span class="n">image</span><span class="p">):</span>
+    <span class="c1"># Generate x and y indices</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">image</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">image</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+    
+    <span class="c1"># Flatten the x, y indices and image for fitting</span>
+    <span class="n">x_flat</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+    <span class="n">y_flat</span> <span class="o">=</span> <span class="n">y</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+    <span class="n">xy_flat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">((</span><span class="n">x_flat</span><span class="p">,</span> <span class="n">y_flat</span><span class="p">))</span>
+    <span class="n">image_flat</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+    
+    <span class="c1"># Initial guesses for fitting parameters</span>
+    <span class="n">A_guess</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
+    <span class="n">x0_guess</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">x_flat</span><span class="p">)</span>
+    <span class="n">y0_guess</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">y_flat</span><span class="p">)</span>
+    <span class="n">sigma_x_guess</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">x_flat</span><span class="p">)</span>
+    <span class="n">sigma_y_guess</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">y_flat</span><span class="p">)</span>
+    <span class="n">initial_guess</span> <span class="o">=</span> <span class="p">(</span><span class="n">A_guess</span><span class="p">,</span> <span class="n">x0_guess</span><span class="p">,</span> <span class="n">y0_guess</span><span class="p">,</span> <span class="n">sigma_x_guess</span><span class="p">,</span> <span class="n">sigma_y_guess</span><span class="p">)</span>
+    
+    <span class="c1"># Fit the 2D Gaussian</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">popt</span><span class="p">,</span> <span class="n">pcov</span> <span class="o">=</span> <span class="n">curve_fit</span><span class="p">(</span><span class="n">gaussian_2d</span><span class="p">,</span> <span class="n">xy_flat</span><span class="p">,</span> <span class="n">image_flat</span><span class="p">,</span> <span class="n">p0</span><span class="o">=</span><span class="n">initial_guess</span><span class="p">)</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;horizontal_centroid&quot;</span> <span class="p">:</span> <span class="n">popt</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="s2">&quot;vertical_centroid&quot;</span> <span class="p">:</span> <span class="n">popt</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span>
+                <span class="s2">&quot;horizontal_width&quot;</span> <span class="p">:</span> <span class="n">popt</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="s2">&quot;vertical_width&quot;</span> <span class="p">:</span> <span class="n">popt</span><span class="p">[</span><span class="mi">4</span><span class="p">]}</span>
+    <span class="k">except</span><span class="p">:</span> <span class="c1"># if the fitting fails, return the center of the image, zero sigma can be seen as a indicator</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;vertical_centroid&quot;</span> <span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;horizontal_centroid&quot;</span> <span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+            <span class="s2">&quot;vertical_width&quot;</span> <span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;horizontal_width&quot;</span> <span class="p">:</span> <span class="mi">0</span><span class="p">}</span>
+    <span class="k">return</span> <span class="n">res</span>  <span class="c1"># Returns the optimized parameters (A, x0, y0, sigma_x, sigma_y)</span></div>
+
+
+
+
+
+
+
+<span class="c1"># ------------------- image illustraion/visualization functions -------------------</span>
+
+
+<div class="viewcode-block" id="plot_gaussian_fit">
+<a class="viewcode-back" href="../../modules/optibeam.html#optibeam.evaluation.plot_gaussian_fit">[docs]</a>
+<span class="k">def</span> <span class="nf">plot_gaussian_fit</span><span class="p">(</span><span class="n">image</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Plot the horizontal and vertical histograms of the image, and the Gaussian fit.</span>
+<span class="sd">    input: 2d numpy array representing the image</span>
+<span class="sd">    output: None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Calculate vertical/horizontal histogram</span>
+    <span class="n">horizontal_histogram</span> <span class="o">=</span> <span class="n">subtract_minimum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)[::</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">vertical_histogram</span> <span class="o">=</span> <span class="n">subtract_minimum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">))</span>
+
+    <span class="n">horizontal_x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">horizontal_histogram</span><span class="p">))</span>
+    <span class="n">vertical_x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">vertical_histogram</span><span class="p">))</span>
+
+    <span class="n">params</span> <span class="o">=</span> <span class="n">beam_params</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">normalize</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">h_mu</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="s2">&quot;vertical_centroid&quot;</span><span class="p">]</span>  <span class="c1"># history mistake</span>
+    <span class="n">v_mu</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="s2">&quot;horizontal_centroid&quot;</span><span class="p">]</span>
+    <span class="n">h_sigma</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="s2">&quot;vertical_width&quot;</span><span class="p">]</span>
+    <span class="n">v_sigma</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="s2">&quot;horizontal_width&quot;</span><span class="p">]</span>
+    
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">horizontal_fit</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">fit_gaussian</span><span class="p">(</span><span class="n">horizontal_x</span><span class="p">,</span> <span class="n">horizontal_histogram</span><span class="p">)</span>
+        <span class="n">vertical_fit</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">fit_gaussian</span><span class="p">(</span><span class="n">vertical_x</span><span class="p">,</span> <span class="n">vertical_histogram</span><span class="p">)</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="n">horizontal_fit</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">horizontal_x</span><span class="p">)</span>
+        <span class="n">vertical_fit</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">vertical_x</span><span class="p">)</span>
+        
+    <span class="n">fit_2d</span> <span class="o">=</span> <span class="n">fit_2d_gaussian</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
+
+    <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">8</span><span class="p">))</span>
+    <span class="n">thickness</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">thickness_1</span> <span class="o">=</span> <span class="mf">0.8</span>
+    <span class="c1"># Vertical fit</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">vertical_histogram</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Data&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;blue&#39;</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="n">thickness</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">vertical_x</span><span class="p">,</span> <span class="n">vertical_fit</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Gaussian fit (LSE)&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;red&#39;</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="n">thickness</span><span class="p">)</span>
+    <span class="c1"># Highlight the mean</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">axvline</span><span class="p">(</span><span class="n">v_mu</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;--&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Mean ($\mu$)&#39;</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="n">thickness_1</span><span class="p">)</span>
+    <span class="c1"># Illustrate sigma intervals</span>
+    <span class="k">if</span> <span class="n">v_mu</span> <span class="o">-</span> <span class="n">v_sigma</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">axvline</span><span class="p">(</span><span class="n">v_mu</span> <span class="o">-</span> <span class="n">v_sigma</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;g&#39;</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;--&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;$\mu - \sigma$&#39;</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="n">thickness_1</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">axvline</span><span class="p">(</span><span class="n">v_mu</span> <span class="o">+</span> <span class="n">v_sigma</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;g&#39;</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;--&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;$\mu + \sigma$&#39;</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="n">thickness_1</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s1">&#39;X Histogram&#39;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;X-coordinate&#39;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;Pixel Count&#39;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s1">&#39;upper right&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="s1">&#39;small&#39;</span><span class="p">)</span>
+    <span class="c1"># original image</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">interpolation</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;gray&#39;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">v_mu</span><span class="p">,</span> <span class="n">h_mu</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;red&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;1D_Gaussion_fit&#39;</span><span class="p">,</span> <span class="n">s</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">fit_2d</span><span class="p">[</span><span class="s1">&#39;horizontal_centroid&#39;</span><span class="p">],</span> <span class="n">fit_2d</span><span class="p">[</span><span class="s1">&#39;vertical_centroid&#39;</span><span class="p">],</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;Yellow&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;2D_Gaussion_fit&#39;</span><span class="p">,</span> <span class="n">s</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s1">&#39;upper right&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="s1">&#39;small&#39;</span><span class="p">)</span>
+    <span class="c1"># Horizontal fit</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">horizontal_histogram</span><span class="p">,</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">horizontal_histogram</span><span class="p">)),</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Data&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;blue&#39;</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="n">thickness</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">horizontal_fit</span><span class="p">,</span> <span class="n">horizontal_x</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Gaussian fit (LSE)&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;red&#39;</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="n">thickness</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">axhline</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">horizontal_x</span><span class="p">)</span> <span class="o">-</span> <span class="n">h_mu</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;--&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Mean ($\mu$)&#39;</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="n">thickness_1</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">horizontal_x</span><span class="p">)</span> <span class="o">-</span> <span class="n">h_mu</span> <span class="o">-</span> <span class="n">h_sigma</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">axhline</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">horizontal_x</span><span class="p">)</span> <span class="o">-</span> <span class="n">h_mu</span> <span class="o">-</span> <span class="n">h_sigma</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;g&#39;</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;--&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;$\mu - \sigma$&#39;</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="n">thickness_1</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">axhline</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">horizontal_x</span><span class="p">)</span> <span class="o">-</span> <span class="n">h_mu</span> <span class="o">+</span> <span class="n">h_sigma</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;g&#39;</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;--&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;$\mu + \sigma$&#39;</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="n">thickness_1</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s1">&#39;Y Histogram&#39;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;Pixel Count&#39;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;Y-coordinate&#39;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s1">&#39;upper right&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="s1">&#39;small&#39;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span><span class="o">.</span><span class="n">set_yticklabels</span><span class="p">(</span><span class="nb">reversed</span><span class="p">(</span><span class="n">plt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span><span class="o">.</span><span class="n">get_yticklabels</span><span class="p">()))</span>   <span class="c1"># Reverse y-axis</span>
+
+    <span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+    <span class="c1"># plt.show()</span>
+    <span class="k">return</span> <span class="n">fig</span></div>
+
+    
+
+
+<span class="c1"># ------------------- dataset clean -------------------</span>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">OptiBeam 0.1.33 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">optibeam.evaluation</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2024, Andrew Xu.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.2.6.
+    </div>
+  </body>
+</html>
