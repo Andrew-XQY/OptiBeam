@@ -29,13 +29,16 @@ def add_progress_bar(iterable_arg_index=0):
 
 def combine_functions(functions):
     """
-    Combine a list of functions into a single function. The combined function processes
+    Combine a list of functions into a single function that processes
     data sequentially through each function in the list.
-    
+
     Args:
-    functions (list): A list of functions, where each function has the same type of input and output.
+        functions (list[callable]): A list of functions, where each function 
+            has the same type of input and output.
+
     Returns:
-    function: A combined function that is the composition of all the functions in the list.
+        callable: A combined function that is the composition of all the functions 
+        in the list. If the input list is empty, returns an identity function.
     """
     if not functions:  
         return lambda x: x
