@@ -68,20 +68,20 @@ pip install git+https://github.com/Andrew-XQY/OptiBeam
 pip install git+https://github.com/Andrew-XQY/OptiBeam --upgrade
 ```
 
-check installation:
+* Check installation:
 
 ```sh
 pip list | grep optibeam
 ```
 
 
-### Clone the repo
+* Clone the repo
 
 ```sh
 git clone https://github.com/Andrew-XQY/OptiBeam.git
 ```
 
-3. Install Python packages
+* Install Python packages from PyPI
 
 ```pip
 pip install optibeam
