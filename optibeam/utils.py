@@ -3,6 +3,7 @@ import platform
 import numpy as np
 import multiprocessing, multiprocess
 
+from skimage.transform import resize
 from PIL import Image
 from tqdm import tqdm
 from functools import wraps, reduce
@@ -189,6 +190,27 @@ def image_normalize(narray_img: np.array):
     """
     return narray_img.astype('float32') / 255.
 
+
+def scale_image(image, scaling_factor):
+    """
+    Scales an image by a given scaling factor.
+    
+    Parameters:
+    - image: ndarray, the input image to be scaled.
+    - scaling_factor: float, the factor by which the image will be scaled.
+    
+    Returns:
+    - scaled_image: ndarray, the scaled image.
+    """
+    # Calculate the new dimensions
+    new_height = int(image.shape[0] * scaling_factor)
+    new_width = int(image.shape[1] * scaling_factor)
+    new_dimensions = (new_height, new_width)
+    
+    # Resize the image
+    scaled_image = resize(image, new_dimensions, anti_aliasing=True)
+    
+    return scaled_image
 
 
 
