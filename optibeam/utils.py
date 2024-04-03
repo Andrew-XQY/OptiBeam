@@ -14,6 +14,8 @@ from typing import *
 def add_progress_bar(iterable_arg_index=0):
     """
     Decorator to add a progress bar to the specified iterable argument of a function.
+    Parameters:
+    - iterable_arg_index (int): The index of the iterable argument in the function's argument list.
     """
     def decorator(func : Callable):
         @wraps(func)
@@ -45,6 +47,24 @@ def combine_functions(functions):
         return lambda x: x
     return reduce(lambda f, g: lambda x: g(f(x)), functions)
 
+
+def preset_kwargs(**preset_kwargs):
+    """
+    A decorator to preset keyword arguments of any function. The first argument
+    of the function is assumed to be the input data, and the rest are considered
+    keyword arguments for tuning or controlling the function's behavior.
+
+    Parameters:
+    - **preset_kwargs: Arbitrary keyword arguments that will be preset for the decorated function.
+    """
+    def decorator(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            # Update the preset keyword arguments with explicitly provided ones, if any
+            combined_kwargs = {**preset_kwargs, **kwargs}
+            return func(*args, **combined_kwargs)
+        return wrapper
+    return decorator
 
 
 # ------------------- multiprocessing -------------------
