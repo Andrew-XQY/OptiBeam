@@ -33,6 +33,10 @@ jobs:
     - name: Bump version
       run: bump2version ${{ github.event.inputs.part }}
 
+    # Rebuild Sphinx Documentation
+    - name: Rebuild Documentation
+      run: bash ./tests/sphinx/update_docs.sh
+  
     # Use git diff to check for changes (Optional, for debugging)
     - name: Check for changes
       run: git diff
