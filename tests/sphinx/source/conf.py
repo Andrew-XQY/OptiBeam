@@ -24,7 +24,7 @@ import sys, os
 
 project = "OptiBeam"
 author = "Andrew Xu"
-release = "0.1.38"
+release = "0.1.39"
 copyright = f'2024, {author}'
 
 # -- General configuration ---------------------------------------------------
