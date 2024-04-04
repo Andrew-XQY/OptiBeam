@@ -33,21 +33,25 @@ MOCK_MODULES = ['numpy',
                 'matplotlib.axis',
                 'matplotlib.scale',
                 'matplotlib.transforms',
+                'moviepy',
+                'sklearn', 
+                'sklearn.model_selection',
+                'skimage'
                 'scipy.optimize',
+                'scikit-learn',
                 'sklearn.decomposition',
+                'plotly',
                 'plotly.graph_objects',
                 'tensorflow', 
                 'tensorflow.keras',
                 'tensorflow.keras.callbacks',
-                'sklearn', 
-                'sklearn.model_selection',
                 'IPython', 
                 'IPython.display',
                 'multiprocessing', 
                 'multiprocess',
                 'tqdm',
-                'PIL', 
-                'plotly'
+                'Pillow',
+                'seaborn'
                 ]
 
 sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
