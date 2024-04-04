@@ -44,6 +44,7 @@ MOCK_MODULES = ['numpy',
                 'IPython', 
                 'IPython.display',
                 'multiprocessing', 
+                'multiprocess',
                 'tqdm',
                 'PIL', 
                 'plotly'
