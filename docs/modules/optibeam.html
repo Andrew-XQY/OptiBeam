@@ -1,17 +1,17 @@
 <!DOCTYPE html>
 
-<html lang="en">
+<html lang="en" data-content_root="../">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>optibeam package &#8212; OptiBeam 0.1.38 documentation</title>
+    <title>optibeam package &#8212; OptiBeam 0.1.40 documentation</title>
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=4848ba22" />
-    <link rel="stylesheet" type="text/css" href="../_static/pyramid.css?v=6f14c262" />
+    <link rel="stylesheet" type="text/css" href="../_static/pyramid.css?v=a5b9c134" />
     <link rel="stylesheet" type="text/css" href="../_static/css/toc.css?v=72483682" />
-    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=28d3fec3"></script>
+    <script src="../_static/documentation_options.js?v=967b4925"></script>
     <script src="../_static/doctools.js?v=888ff710"></script>
-    <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="prev" title="optibeam" href="modules.html" />
@@ -30,9 +30,12 @@
           <a href="../genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
           <a href="modules.html" title="optibeam"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../index.html">OptiBeam 0.1.38 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">OptiBeam 0.1.40 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="modules.html" accesskey="U">optibeam</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">optibeam package</a></li> 
       </ul>
@@ -44,30 +47,426 @@
           <div class="body" role="main">
             
   <section id="optibeam-package">
-<h1>optibeam package<a class="headerlink" href="#optibeam-package" title="Permalink to this heading">¶</a></h1>
+<h1>optibeam package<a class="headerlink" href="#optibeam-package" title="Link to this heading">¶</a></h1>
 <section id="submodules">
-<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this heading">¶</a></h2>
+<h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading">¶</a></h2>
 </section>
-<section id="optibeam-camera-module">
-<h2>optibeam.camera module<a class="headerlink" href="#optibeam-camera-module" title="Permalink to this heading">¶</a></h2>
+<section id="module-optibeam.camera">
+<span id="optibeam-camera-module"></span><h2>optibeam.camera module<a class="headerlink" href="#module-optibeam.camera" title="Link to this heading">¶</a></h2>
 </section>
-<section id="optibeam-dmd-module">
-<h2>optibeam.dmd module<a class="headerlink" href="#optibeam-dmd-module" title="Permalink to this heading">¶</a></h2>
+<section id="module-optibeam.dmd">
+<span id="optibeam-dmd-module"></span><h2>optibeam.dmd module<a class="headerlink" href="#module-optibeam.dmd" title="Link to this heading">¶</a></h2>
 </section>
-<section id="optibeam-evaluation-module">
-<h2>optibeam.evaluation module<a class="headerlink" href="#optibeam-evaluation-module" title="Permalink to this heading">¶</a></h2>
+<section id="module-optibeam.evaluation">
+<span id="optibeam-evaluation-module"></span><h2>optibeam.evaluation module<a class="headerlink" href="#module-optibeam.evaluation" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="optibeam.evaluation.beam_params">
+<span class="sig-prename descclassname"><span class="pre">optibeam.evaluation.</span></span><span class="sig-name descname"><span class="pre">beam_params</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">narray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optibeam/evaluation.html#beam_params"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#optibeam.evaluation.beam_params" title="Link to this definition">¶</a></dt>
+<dd><p>Input: single channel narray image -&gt; beam parameters (beam centroids, beam widths), normalized. Two 1D Gaussian fits are used.
+Output: dictionary object containing the beam parameters.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="optibeam.evaluation.center_of_mass">
+<span class="sig-prename descclassname"><span class="pre">optibeam.evaluation.</span></span><span class="sig-name descname"><span class="pre">center_of_mass</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">narray</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optibeam/evaluation.html#center_of_mass"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#optibeam.evaluation.center_of_mass" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="optibeam.evaluation.fit_2d_gaussian">
+<span class="sig-prename descclassname"><span class="pre">optibeam.evaluation.</span></span><span class="sig-name descname"><span class="pre">fit_2d_gaussian</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optibeam/evaluation.html#fit_2d_gaussian"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#optibeam.evaluation.fit_2d_gaussian" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="optibeam.evaluation.fit_gaussian">
+<span class="sig-prename descclassname"><span class="pre">optibeam.evaluation.</span></span><span class="sig-name descname"><span class="pre">fit_gaussian</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optibeam/evaluation.html#fit_gaussian"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#optibeam.evaluation.fit_gaussian" title="Link to this definition">¶</a></dt>
+<dd><p>Gaussian fit (Least Squares Fitting)
+<a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.curve_fit.html">https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.curve_fit.html</a></p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="optibeam.evaluation.gaussian">
+<span class="sig-prename descclassname"><span class="pre">optibeam.evaluation.</span></span><span class="sig-name descname"><span class="pre">gaussian</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mu</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optibeam/evaluation.html#gaussian"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#optibeam.evaluation.gaussian" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="optibeam.evaluation.gaussian_2d">
+<span class="sig-prename descclassname"><span class="pre">optibeam.evaluation.</span></span><span class="sig-name descname"><span class="pre">gaussian_2d</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">A</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma_x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma_y</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optibeam/evaluation.html#gaussian_2d"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#optibeam.evaluation.gaussian_2d" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="optibeam.evaluation.plot_gaussian_fit">
+<span class="sig-prename descclassname"><span class="pre">optibeam.evaluation.</span></span><span class="sig-name descname"><span class="pre">plot_gaussian_fit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optibeam/evaluation.html#plot_gaussian_fit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#optibeam.evaluation.plot_gaussian_fit" title="Link to this definition">¶</a></dt>
+<dd><p>Plot the horizontal and vertical histograms of the image, and the Gaussian fit.
+input: 2d numpy array representing the image
+output: None</p>
+</dd></dl>
+
 </section>
-<section id="optibeam-training-module">
-<h2>optibeam.training module<a class="headerlink" href="#optibeam-training-module" title="Permalink to this heading">¶</a></h2>
+<section id="module-optibeam.simulation">
+<span id="optibeam-simulation-module"></span><h2>optibeam.simulation module<a class="headerlink" href="#module-optibeam.simulation" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="optibeam.simulation.Converter">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">optibeam.simulation.</span></span><span class="sig-name descname"><span class="pre">Converter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">function</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optibeam/simulation.html#Converter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#optibeam.simulation.Converter" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Class used to convert generated beam pattern (image) into different formats including Python objects and files.
+where divices like DMD, SLM can load the beam pattern.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="optibeam.simulation.Converter.convert">
+<span class="sig-name descname"><span class="pre">convert</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optibeam/simulation.html#Converter.convert"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#optibeam.simulation.Converter.convert" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="optibeam.simulation.Simulation">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">optibeam.simulation.</span></span><span class="sig-name descname"><span class="pre">Simulation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">beam_pattern</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optibeam/simulation.html#Simulation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#optibeam.simulation.Simulation" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+</dd></dl>
+
 </section>
-<section id="optibeam-utils-module">
-<h2>optibeam.utils module<a class="headerlink" href="#optibeam-utils-module" title="Permalink to this heading">¶</a></h2>
+<section id="module-optibeam.training">
+<span id="optibeam-training-module"></span><h2>optibeam.training module<a class="headerlink" href="#module-optibeam.training" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="optibeam.training.Logger">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">optibeam.training.</span></span><span class="sig-name descname"><span class="pre">Logger</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">log_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">history</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">info</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optibeam/training.html#Logger"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#optibeam.training.Logger" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Create folder and a log file in the specified directory, containing the experiment details (snapshot).
+After training, save the log content in the log file under the log directory.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="optibeam.training.Logger.log_parse">
+<span class="sig-name descname"><span class="pre">log_parse</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optibeam/training.html#Logger.log_parse"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#optibeam.training.Logger.log_parse" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="optibeam.training.Logger.register_dataset">
+<span class="sig-name descname"><span class="pre">register_dataset</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optibeam/training.html#Logger.register_dataset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#optibeam.training.Logger.register_dataset" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="optibeam.training.Logger.register_extra">
+<span class="sig-name descname"><span class="pre">register_extra</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">extra_info</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optibeam/training.html#Logger.register_extra"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#optibeam.training.Logger.register_extra" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="optibeam.training.Logger.register_model">
+<span class="sig-name descname"><span class="pre">register_model</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optibeam/training.html#Logger.register_model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#optibeam.training.Logger.register_model" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="optibeam.training.Logger.register_training">
+<span class="sig-name descname"><span class="pre">register_training</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optibeam/training.html#Logger.register_training"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#optibeam.training.Logger.register_training" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="optibeam.training.Logger.save">
+<span class="sig-name descname"><span class="pre">save</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optibeam/training.html#Logger.save"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#optibeam.training.Logger.save" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="optibeam.training.Logger.tf_model_summary">
+<span class="sig-name descname"><span class="pre">tf_model_summary</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optibeam/training.html#Logger.tf_model_summary"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#optibeam.training.Logger.tf_model_summary" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="optibeam.training.Logger.update">
+<span class="sig-name descname"><span class="pre">update</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optibeam/training.html#Logger.update"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#optibeam.training.Logger.update" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="optibeam.training.PlotPredictionImageCallback">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">optibeam.training.</span></span><span class="sig-name descname"><span class="pre">PlotPredictionImageCallback</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optibeam/training.html#PlotPredictionImageCallback"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#optibeam.training.PlotPredictionImageCallback" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Callback</span></code></p>
+<p>Callback to plot the true and predicted images on a random validation image
+input: x_data (np.array, (n x m), speckle pattern), y_data (np.array, (p x q), beam image)</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="optibeam.training.PlotPredictionImageCallback.on_epoch_end">
+<span class="sig-name descname"><span class="pre">on_epoch_end</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">epoch</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">['MMF</span> <span class="pre">Speckle</span> <span class="pre">Pattern</span> <span class="pre">(Input)',</span> <span class="pre">'Original</span> <span class="pre">Beam</span> <span class="pre">Distribution</span> <span class="pre">(Ground</span> <span class="pre">Truth)',</span> <span class="pre">'Reconstructed</span> <span class="pre">Image</span> <span class="pre">(Output)']</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optibeam/training.html#PlotPredictionImageCallback.on_epoch_end"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#optibeam.training.PlotPredictionImageCallback.on_epoch_end" title="Link to this definition">¶</a></dt>
+<dd><p>Called at the end of an epoch.</p>
+<p>Subclasses should override for any actions to run. This function should
+only be called during TRAIN mode.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>epoch</strong> – Integer, index of epoch.</p></li>
+<li><p><strong>logs</strong> – Dict, metric results for this training epoch, and for the
+validation epoch if validation is performed. Validation result
+keys are prefixed with <cite>val_</cite>. For training epoch, the values of
+the <cite>Model</cite>’s metrics are returned. Example:
+<cite>{‘loss’: 0.2, ‘accuracy’: 0.7}</cite>.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="optibeam.training.PlotPredictionParamsCallback">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">optibeam.training.</span></span><span class="sig-name descname"><span class="pre">PlotPredictionParamsCallback</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">val_images</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">val_labels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">val_beam_images</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optibeam/training.html#PlotPredictionParamsCallback"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#optibeam.training.PlotPredictionParamsCallback" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Callback</span></code></p>
+<p>Callback to plot the true and predicted beam parameters on a random validation image
+input: val_images (np.array, (m, n)), val_labels (np.array, (l, 1), normalized), val_beam_image (np.array, (p, q))</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="optibeam.training.PlotPredictionParamsCallback.on_epoch_begin">
+<span class="sig-name descname"><span class="pre">on_epoch_begin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">epoch</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optibeam/training.html#PlotPredictionParamsCallback.on_epoch_begin"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#optibeam.training.PlotPredictionParamsCallback.on_epoch_begin" title="Link to this definition">¶</a></dt>
+<dd><p>Called at the start of an epoch.</p>
+<p>Subclasses should override for any actions to run. This function should
+only be called during TRAIN mode.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>epoch</strong> – Integer, index of epoch.</p></li>
+<li><p><strong>logs</strong> – Dict. Currently no data is passed to this argument for this
+method but that may change in the future.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="optibeam.training.clean_tensor">
+<span class="sig-prename descclassname"><span class="pre">optibeam.training.</span></span><span class="sig-name descname"><span class="pre">clean_tensor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">narray</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optibeam/training.html#clean_tensor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#optibeam.training.clean_tensor" title="Link to this definition">¶</a></dt>
+<dd><p>Discard some problematic images based on beam parameters calculation.
+In future, need to develop a better evaluation function (beam_params) to handle this properly?</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="optibeam.training.seperate_img">
+<span class="sig-prename descclassname"><span class="pre">optibeam.training.</span></span><span class="sig-name descname"><span class="pre">seperate_img</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optibeam/training.html#seperate_img"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#optibeam.training.seperate_img" title="Link to this definition">¶</a></dt>
+<dd><p>temp functions for split orignal beam image and speckle pattern for later callback function use
+assume data consists of both beam image and speckle pattern</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="optibeam.training.split_dataset">
+<span class="sig-prename descclassname"><span class="pre">optibeam.training.</span></span><span class="sig-name descname"><span class="pre">split_dataset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">labels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">proportion</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(8,</span> <span class="pre">1,</span> <span class="pre">1)</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optibeam/training.html#split_dataset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#optibeam.training.split_dataset" title="Link to this definition">¶</a></dt>
+<dd><p>split dataset, Tensorflow only
+dimension: (n, 2, width, hight, channel), (n, beam parameters NO.)</p>
+</dd></dl>
+
 </section>
-<section id="optibeam-visualization-module">
-<h2>optibeam.visualization module<a class="headerlink" href="#optibeam-visualization-module" title="Permalink to this heading">¶</a></h2>
+<section id="module-optibeam.utils">
+<span id="optibeam-utils-module"></span><h2>optibeam.utils module<a class="headerlink" href="#module-optibeam.utils" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="optibeam.utils.ImageLoader">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">optibeam.utils.</span></span><span class="sig-name descname"><span class="pre">ImageLoader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">funcs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optibeam/utils.html#ImageLoader"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#optibeam.utils.ImageLoader" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="optibeam.utils.ImageLoader.load">
+<span class="sig-name descname"><span class="pre">load</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optibeam/utils.html#ImageLoader.load"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#optibeam.utils.ImageLoader.load" title="Link to this definition">¶</a></dt>
+<dd><p>Automatically decide whether to load a single image or multiple images based on the input type.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="optibeam.utils.ImageLoader.load_image">
+<span class="sig-name descname"><span class="pre">load_image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image_path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optibeam/utils.html#ImageLoader.load_image"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#optibeam.utils.ImageLoader.load_image" title="Link to this definition">¶</a></dt>
+<dd><p>Load an image from the specified path and apply the specified functions to the image sequentially.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="optibeam.utils.ImageLoader.load_images">
+<span class="sig-name descname"><span class="pre">load_images</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image_paths</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optibeam/utils.html#ImageLoader.load_images"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#optibeam.utils.ImageLoader.load_images" title="Link to this definition">¶</a></dt>
+<dd><p>Load multiple images and return a dataset in numpy array format.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="optibeam.utils.add_progress_bar">
+<span class="sig-prename descclassname"><span class="pre">optibeam.utils.</span></span><span class="sig-name descname"><span class="pre">add_progress_bar</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">iterable_arg_index</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optibeam/utils.html#add_progress_bar"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#optibeam.utils.add_progress_bar" title="Link to this definition">¶</a></dt>
+<dd><p>Decorator to add a progress bar to the specified iterable argument of a function.
+Parameters:
+- iterable_arg_index (int): The index of the iterable argument in the function’s argument list.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="optibeam.utils.apply_multiprocess">
+<span class="sig-prename descclassname"><span class="pre">optibeam.utils.</span></span><span class="sig-name descname"><span class="pre">apply_multiprocess</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">function</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optibeam/utils.html#apply_multiprocess"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#optibeam.utils.apply_multiprocess" title="Link to this definition">¶</a></dt>
+<dd><p>Decorator to apply multiprocess to a function that processes an iterable.
+Use multiprocess which is compatible with Jupyter notebook.
+Could select adding a progress indicator to the operation.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="optibeam.utils.apply_multiprocessing">
+<span class="sig-prename descclassname"><span class="pre">optibeam.utils.</span></span><span class="sig-name descname"><span class="pre">apply_multiprocessing</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">function</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optibeam/utils.html#apply_multiprocessing"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#optibeam.utils.apply_multiprocessing" title="Link to this definition">¶</a></dt>
+<dd><p>Decorator to apply multiprocessing to a function that processes an iterable.
+No progress indicator, can be used in the terminal.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="optibeam.utils.combine_functions">
+<span class="sig-prename descclassname"><span class="pre">optibeam.utils.</span></span><span class="sig-name descname"><span class="pre">combine_functions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">functions</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optibeam/utils.html#combine_functions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#optibeam.utils.combine_functions" title="Link to this definition">¶</a></dt>
+<dd><p>Combine a list of functions into a single function that processes
+data sequentially through each function in the list.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>functions</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.12)"><em>list</em></a><em>[</em><em>callable</em><em>]</em>) – A list of functions, where each function
+has the same type of input and output.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A combined function that is the composition of all the functions
+in the list. If the input list is empty, returns an identity function.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>callable</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="optibeam.utils.deprecated">
+<span class="sig-prename descclassname"><span class="pre">optibeam.utils.</span></span><span class="sig-name descname"><span class="pre">deprecated</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reason</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optibeam/utils.html#deprecated"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#optibeam.utils.deprecated" title="Link to this definition">¶</a></dt>
+<dd><p>Decorator to mark a function as deprecated.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="optibeam.utils.deprecated_class">
+<span class="sig-prename descclassname"><span class="pre">optibeam.utils.</span></span><span class="sig-name descname"><span class="pre">deprecated_class</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reason</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optibeam/utils.html#deprecated_class"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#optibeam.utils.deprecated_class" title="Link to this definition">¶</a></dt>
+<dd><p>Decorator to mark a class as deprecated.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="optibeam.utils.get_all_file_paths">
+<span class="sig-prename descclassname"><span class="pre">optibeam.utils.</span></span><span class="sig-name descname"><span class="pre">get_all_file_paths</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dirs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">types</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">['']</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.12)"><span class="pre">list</span></a></span></span><a class="reference internal" href="../_modules/optibeam/utils.html#get_all_file_paths"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#optibeam.utils.get_all_file_paths" title="Link to this definition">¶</a></dt>
+<dd><p>Get all file paths in the specified directories with the specified file types.
+input: dirs (list of strings or string of the root of dataset folder), types (list of strings)</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="optibeam.utils.get_system_info">
+<span class="sig-prename descclassname"><span class="pre">optibeam.utils.</span></span><span class="sig-name descname"><span class="pre">get_system_info</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optibeam/utils.html#get_system_info"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#optibeam.utils.get_system_info" title="Link to this definition">¶</a></dt>
+<dd><p>Get system information including the operating system, version, machine, processor, and Python version.
+Returns:
+dict: A dictionary containing the system information.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="optibeam.utils.image_normalize">
+<span class="sig-prename descclassname"><span class="pre">optibeam.utils.</span></span><span class="sig-name descname"><span class="pre">image_normalize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">narray_img</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">array</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optibeam/utils.html#image_normalize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#optibeam.utils.image_normalize" title="Link to this definition">¶</a></dt>
+<dd><p>Normalize the input image by scaling its pixel values to the range [0, 1].
+Parameters:
+image (np.ndarray): A NumPy array representing the input image.
+Returns:
+np.ndarray: The normalized image.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="optibeam.utils.is_jupyter">
+<span class="sig-prename descclassname"><span class="pre">optibeam.utils.</span></span><span class="sig-name descname"><span class="pre">is_jupyter</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optibeam/utils.html#is_jupyter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#optibeam.utils.is_jupyter" title="Link to this definition">¶</a></dt>
+<dd><p>Check if Python is running in Jupyter (notebook or lab) or in a command line.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="optibeam.utils.minmax_normalization">
+<span class="sig-prename descclassname"><span class="pre">optibeam.utils.</span></span><span class="sig-name descname"><span class="pre">minmax_normalization</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">arr</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optibeam/utils.html#minmax_normalization"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#optibeam.utils.minmax_normalization" title="Link to this definition">¶</a></dt>
+<dd><p>Min-max normalization</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="optibeam.utils.preset_kwargs">
+<span class="sig-prename descclassname"><span class="pre">optibeam.utils.</span></span><span class="sig-name descname"><span class="pre">preset_kwargs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">preset_kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optibeam/utils.html#preset_kwargs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#optibeam.utils.preset_kwargs" title="Link to this definition">¶</a></dt>
+<dd><p>A decorator to preset keyword arguments of any function. The first argument
+of the function is assumed to be the input data, and the rest are considered
+keyword arguments for tuning or controlling the function’s behavior.</p>
+<p>Parameters:
+- <a href="#id1"><span class="problematic" id="id2">**</span></a>preset_kwargs: Arbitrary keyword arguments that will be preset for the decorated function.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="optibeam.utils.process_list_in_parallel">
+<span class="sig-prename descclassname"><span class="pre">optibeam.utils.</span></span><span class="sig-name descname"><span class="pre">process_list_in_parallel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">function</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_list</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optibeam/utils.html#process_list_in_parallel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#optibeam.utils.process_list_in_parallel" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="optibeam.utils.rgb_to_grayscale">
+<span class="sig-prename descclassname"><span class="pre">optibeam.utils.</span></span><span class="sig-name descname"><span class="pre">rgb_to_grayscale</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">narray_img</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">array</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optibeam/utils.html#rgb_to_grayscale"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#optibeam.utils.rgb_to_grayscale" title="Link to this definition">¶</a></dt>
+<dd><p>input: image in numpy array format
+output: grayscale image in numpy array format by averaging all the colors</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="optibeam.utils.scale_image">
+<span class="sig-prename descclassname"><span class="pre">optibeam.utils.</span></span><span class="sig-name descname"><span class="pre">scale_image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">narray_img</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scaling_factor</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optibeam/utils.html#scale_image"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#optibeam.utils.scale_image" title="Link to this definition">¶</a></dt>
+<dd><p>Scales an image by a given scaling factor.</p>
+<p>Parameters:
+- image: ndarray, the input image to be scaled.
+- scaling_factor: float, the factor by which the image will be scaled.</p>
+<p>Returns:
+- scaled_image: ndarray, the scaled image.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="optibeam.utils.split_image">
+<span class="sig-prename descclassname"><span class="pre">optibeam.utils.</span></span><span class="sig-name descname"><span class="pre">split_image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">narray_img</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">select</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.12)"><span class="pre">Tuple</span></a><span class="p"><span class="pre">[</span></span><span class="pre">array</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">array</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/optibeam/utils.html#split_image"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#optibeam.utils.split_image" title="Link to this definition">¶</a></dt>
+<dd><p>input: image in numpy array format
+output: two images, split in the middle horizontally</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="optibeam.utils.subtract_minimum">
+<span class="sig-prename descclassname"><span class="pre">optibeam.utils.</span></span><span class="sig-name descname"><span class="pre">subtract_minimum</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">arr</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optibeam/utils.html#subtract_minimum"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#optibeam.utils.subtract_minimum" title="Link to this definition">¶</a></dt>
+<dd><p>Subtract the minimum value from each element in a 1D NumPy array.
+Parameters:
+arr (np.ndarray): A 1D numpy array.
+Returns:
+np.ndarray: The processed array with the minimum value subtracted from each element.</p>
+</dd></dl>
+
 </section>
-<section id="module-contents">
-<h2>Module contents<a class="headerlink" href="#module-contents" title="Permalink to this heading">¶</a></h2>
+<section id="module-optibeam.visualization">
+<span id="optibeam-visualization-module"></span><h2>optibeam.visualization module<a class="headerlink" href="#module-optibeam.visualization" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="optibeam.visualization.visualPCA">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">optibeam.visualization.</span></span><span class="sig-name descname"><span class="pre">visualPCA</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_components</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optibeam/visualization.html#visualPCA"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#optibeam.visualization.visualPCA" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="optibeam.visualization.visualPCA.create_gif">
+<span class="sig-name descname"><span class="pre">create_gif</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">save_to</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_angle</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end_angle</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">89</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nums</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">60</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">30</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reverse</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optibeam/visualization.html#visualPCA.create_gif"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#optibeam.visualization.visualPCA.create_gif" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="optibeam.visualization.visualPCA.fit">
+<span class="sig-name descname"><span class="pre">fit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">array</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optibeam/visualization.html#visualPCA.fit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#optibeam.visualization.visualPCA.fit" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="optibeam.visualization.visualPCA.plot_2d">
+<span class="sig-name descname"><span class="pre">plot_2d</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optibeam/visualization.html#visualPCA.plot_2d"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#optibeam.visualization.visualPCA.plot_2d" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="optibeam.visualization.visualPCA.plot_3d">
+<span class="sig-name descname"><span class="pre">plot_3d</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optibeam/visualization.html#visualPCA.plot_3d"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#optibeam.visualization.visualPCA.plot_3d" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="optibeam.visualization.visualPCA.plot_to_memory">
+<span class="sig-name descname"><span class="pre">plot_to_memory</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">angle</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.12)"><span class="pre">int</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">BytesIO</span></span></span><a class="reference internal" href="../_modules/optibeam/visualization.html#visualPCA.plot_to_memory"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#optibeam.visualization.visualPCA.plot_to_memory" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="optibeam.visualization.plot_narray">
+<span class="sig-prename descclassname"><span class="pre">optibeam.visualization.</span></span><span class="sig-name descname"><span class="pre">plot_narray</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">narray_img</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optibeam/visualization.html#plot_narray"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#optibeam.visualization.plot_narray" title="Link to this definition">¶</a></dt>
+<dd><p>Plot a 2D NumPy array as an image.
+Parameters:
+narray_img (np.ndarray): A 2D NumPy array to plot as an image.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="optibeam.visualization.plot_prediction_comparison">
+<span class="sig-prename descclassname"><span class="pre">optibeam.visualization.</span></span><span class="sig-name descname"><span class="pre">plot_prediction_comparison</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">real</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">predicted</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">param_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optibeam/visualization.html#plot_prediction_comparison"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#optibeam.visualization.plot_prediction_comparison" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-optibeam">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-optibeam" title="Link to this heading">¶</a></h2>
 </section>
 </section>
 
@@ -83,13 +482,91 @@
     <ul>
 <li><a class="reference internal" href="#">optibeam package</a><ul>
 <li><a class="reference internal" href="#submodules">Submodules</a></li>
-<li><a class="reference internal" href="#optibeam-camera-module">optibeam.camera module</a></li>
-<li><a class="reference internal" href="#optibeam-dmd-module">optibeam.dmd module</a></li>
-<li><a class="reference internal" href="#optibeam-evaluation-module">optibeam.evaluation module</a></li>
-<li><a class="reference internal" href="#optibeam-training-module">optibeam.training module</a></li>
-<li><a class="reference internal" href="#optibeam-utils-module">optibeam.utils module</a></li>
-<li><a class="reference internal" href="#optibeam-visualization-module">optibeam.visualization module</a></li>
-<li><a class="reference internal" href="#module-contents">Module contents</a></li>
+<li><a class="reference internal" href="#module-optibeam.camera">optibeam.camera module</a></li>
+<li><a class="reference internal" href="#module-optibeam.dmd">optibeam.dmd module</a></li>
+<li><a class="reference internal" href="#module-optibeam.evaluation">optibeam.evaluation module</a><ul>
+<li><a class="reference internal" href="#optibeam.evaluation.beam_params"><code class="docutils literal notranslate"><span class="pre">beam_params()</span></code></a></li>
+<li><a class="reference internal" href="#optibeam.evaluation.center_of_mass"><code class="docutils literal notranslate"><span class="pre">center_of_mass()</span></code></a></li>
+<li><a class="reference internal" href="#optibeam.evaluation.fit_2d_gaussian"><code class="docutils literal notranslate"><span class="pre">fit_2d_gaussian()</span></code></a></li>
+<li><a class="reference internal" href="#optibeam.evaluation.fit_gaussian"><code class="docutils literal notranslate"><span class="pre">fit_gaussian()</span></code></a></li>
+<li><a class="reference internal" href="#optibeam.evaluation.gaussian"><code class="docutils literal notranslate"><span class="pre">gaussian()</span></code></a></li>
+<li><a class="reference internal" href="#optibeam.evaluation.gaussian_2d"><code class="docutils literal notranslate"><span class="pre">gaussian_2d()</span></code></a></li>
+<li><a class="reference internal" href="#optibeam.evaluation.plot_gaussian_fit"><code class="docutils literal notranslate"><span class="pre">plot_gaussian_fit()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-optibeam.simulation">optibeam.simulation module</a><ul>
+<li><a class="reference internal" href="#optibeam.simulation.Converter"><code class="docutils literal notranslate"><span class="pre">Converter</span></code></a><ul>
+<li><a class="reference internal" href="#optibeam.simulation.Converter.convert"><code class="docutils literal notranslate"><span class="pre">Converter.convert()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#optibeam.simulation.Simulation"><code class="docutils literal notranslate"><span class="pre">Simulation</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-optibeam.training">optibeam.training module</a><ul>
+<li><a class="reference internal" href="#optibeam.training.Logger"><code class="docutils literal notranslate"><span class="pre">Logger</span></code></a><ul>
+<li><a class="reference internal" href="#optibeam.training.Logger.log_parse"><code class="docutils literal notranslate"><span class="pre">Logger.log_parse()</span></code></a></li>
+<li><a class="reference internal" href="#optibeam.training.Logger.register_dataset"><code class="docutils literal notranslate"><span class="pre">Logger.register_dataset()</span></code></a></li>
+<li><a class="reference internal" href="#optibeam.training.Logger.register_extra"><code class="docutils literal notranslate"><span class="pre">Logger.register_extra()</span></code></a></li>
+<li><a class="reference internal" href="#optibeam.training.Logger.register_model"><code class="docutils literal notranslate"><span class="pre">Logger.register_model()</span></code></a></li>
+<li><a class="reference internal" href="#optibeam.training.Logger.register_training"><code class="docutils literal notranslate"><span class="pre">Logger.register_training()</span></code></a></li>
+<li><a class="reference internal" href="#optibeam.training.Logger.save"><code class="docutils literal notranslate"><span class="pre">Logger.save()</span></code></a></li>
+<li><a class="reference internal" href="#optibeam.training.Logger.tf_model_summary"><code class="docutils literal notranslate"><span class="pre">Logger.tf_model_summary()</span></code></a></li>
+<li><a class="reference internal" href="#optibeam.training.Logger.update"><code class="docutils literal notranslate"><span class="pre">Logger.update()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#optibeam.training.PlotPredictionImageCallback"><code class="docutils literal notranslate"><span class="pre">PlotPredictionImageCallback</span></code></a><ul>
+<li><a class="reference internal" href="#optibeam.training.PlotPredictionImageCallback.on_epoch_end"><code class="docutils literal notranslate"><span class="pre">PlotPredictionImageCallback.on_epoch_end()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#optibeam.training.PlotPredictionParamsCallback"><code class="docutils literal notranslate"><span class="pre">PlotPredictionParamsCallback</span></code></a><ul>
+<li><a class="reference internal" href="#optibeam.training.PlotPredictionParamsCallback.on_epoch_begin"><code class="docutils literal notranslate"><span class="pre">PlotPredictionParamsCallback.on_epoch_begin()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#optibeam.training.clean_tensor"><code class="docutils literal notranslate"><span class="pre">clean_tensor()</span></code></a></li>
+<li><a class="reference internal" href="#optibeam.training.seperate_img"><code class="docutils literal notranslate"><span class="pre">seperate_img()</span></code></a></li>
+<li><a class="reference internal" href="#optibeam.training.split_dataset"><code class="docutils literal notranslate"><span class="pre">split_dataset()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-optibeam.utils">optibeam.utils module</a><ul>
+<li><a class="reference internal" href="#optibeam.utils.ImageLoader"><code class="docutils literal notranslate"><span class="pre">ImageLoader</span></code></a><ul>
+<li><a class="reference internal" href="#optibeam.utils.ImageLoader.load"><code class="docutils literal notranslate"><span class="pre">ImageLoader.load()</span></code></a></li>
+<li><a class="reference internal" href="#optibeam.utils.ImageLoader.load_image"><code class="docutils literal notranslate"><span class="pre">ImageLoader.load_image()</span></code></a></li>
+<li><a class="reference internal" href="#optibeam.utils.ImageLoader.load_images"><code class="docutils literal notranslate"><span class="pre">ImageLoader.load_images()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#optibeam.utils.add_progress_bar"><code class="docutils literal notranslate"><span class="pre">add_progress_bar()</span></code></a></li>
+<li><a class="reference internal" href="#optibeam.utils.apply_multiprocess"><code class="docutils literal notranslate"><span class="pre">apply_multiprocess()</span></code></a></li>
+<li><a class="reference internal" href="#optibeam.utils.apply_multiprocessing"><code class="docutils literal notranslate"><span class="pre">apply_multiprocessing()</span></code></a></li>
+<li><a class="reference internal" href="#optibeam.utils.combine_functions"><code class="docutils literal notranslate"><span class="pre">combine_functions()</span></code></a></li>
+<li><a class="reference internal" href="#optibeam.utils.deprecated"><code class="docutils literal notranslate"><span class="pre">deprecated()</span></code></a></li>
+<li><a class="reference internal" href="#optibeam.utils.deprecated_class"><code class="docutils literal notranslate"><span class="pre">deprecated_class()</span></code></a></li>
+<li><a class="reference internal" href="#optibeam.utils.get_all_file_paths"><code class="docutils literal notranslate"><span class="pre">get_all_file_paths()</span></code></a></li>
+<li><a class="reference internal" href="#optibeam.utils.get_system_info"><code class="docutils literal notranslate"><span class="pre">get_system_info()</span></code></a></li>
+<li><a class="reference internal" href="#optibeam.utils.image_normalize"><code class="docutils literal notranslate"><span class="pre">image_normalize()</span></code></a></li>
+<li><a class="reference internal" href="#optibeam.utils.is_jupyter"><code class="docutils literal notranslate"><span class="pre">is_jupyter()</span></code></a></li>
+<li><a class="reference internal" href="#optibeam.utils.minmax_normalization"><code class="docutils literal notranslate"><span class="pre">minmax_normalization()</span></code></a></li>
+<li><a class="reference internal" href="#optibeam.utils.preset_kwargs"><code class="docutils literal notranslate"><span class="pre">preset_kwargs()</span></code></a></li>
+<li><a class="reference internal" href="#optibeam.utils.process_list_in_parallel"><code class="docutils literal notranslate"><span class="pre">process_list_in_parallel()</span></code></a></li>
+<li><a class="reference internal" href="#optibeam.utils.rgb_to_grayscale"><code class="docutils literal notranslate"><span class="pre">rgb_to_grayscale()</span></code></a></li>
+<li><a class="reference internal" href="#optibeam.utils.scale_image"><code class="docutils literal notranslate"><span class="pre">scale_image()</span></code></a></li>
+<li><a class="reference internal" href="#optibeam.utils.split_image"><code class="docutils literal notranslate"><span class="pre">split_image()</span></code></a></li>
+<li><a class="reference internal" href="#optibeam.utils.subtract_minimum"><code class="docutils literal notranslate"><span class="pre">subtract_minimum()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-optibeam.visualization">optibeam.visualization module</a><ul>
+<li><a class="reference internal" href="#optibeam.visualization.visualPCA"><code class="docutils literal notranslate"><span class="pre">visualPCA</span></code></a><ul>
+<li><a class="reference internal" href="#optibeam.visualization.visualPCA.create_gif"><code class="docutils literal notranslate"><span class="pre">visualPCA.create_gif()</span></code></a></li>
+<li><a class="reference internal" href="#optibeam.visualization.visualPCA.fit"><code class="docutils literal notranslate"><span class="pre">visualPCA.fit()</span></code></a></li>
+<li><a class="reference internal" href="#optibeam.visualization.visualPCA.plot_2d"><code class="docutils literal notranslate"><span class="pre">visualPCA.plot_2d()</span></code></a></li>
+<li><a class="reference internal" href="#optibeam.visualization.visualPCA.plot_3d"><code class="docutils literal notranslate"><span class="pre">visualPCA.plot_3d()</span></code></a></li>
+<li><a class="reference internal" href="#optibeam.visualization.visualPCA.plot_to_memory"><code class="docutils literal notranslate"><span class="pre">visualPCA.plot_to_memory()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#optibeam.visualization.plot_narray"><code class="docutils literal notranslate"><span class="pre">plot_narray()</span></code></a></li>
+<li><a class="reference internal" href="#optibeam.visualization.plot_prediction_comparison"><code class="docutils literal notranslate"><span class="pre">plot_prediction_comparison()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-optibeam">Module contents</a></li>
 </ul>
 </li>
 </ul>
@@ -128,16 +605,19 @@
           <a href="../genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
           <a href="modules.html" title="optibeam"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../index.html">OptiBeam 0.1.38 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">OptiBeam 0.1.40 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="modules.html" >optibeam</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">optibeam package</a></li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
     &#169; Copyright 2024, Andrew Xu.
-      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.1.2.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.2.6.
     </div>
   </body>
 </html>

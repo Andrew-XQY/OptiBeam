@@ -28,6 +28,14 @@ optibeam.evaluation module
    :undoc-members:
    :show-inheritance:
 
+optibeam.simulation module
+--------------------------
+
+.. automodule:: optibeam.simulation
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 optibeam.training module
 ------------------------
 

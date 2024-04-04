@@ -4,11 +4,11 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>optibeam.training &#8212; OptiBeam 0.1.33 documentation</title>
+    <title>optibeam.training &#8212; OptiBeam 0.1.40 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=4848ba22" />
     <link rel="stylesheet" type="text/css" href="../../_static/pyramid.css?v=a5b9c134" />
     <link rel="stylesheet" type="text/css" href="../../_static/css/toc.css?v=72483682" />
-    <script src="../../_static/documentation_options.js?v=449df4d2"></script>
+    <script src="../../_static/documentation_options.js?v=967b4925"></script>
     <script src="../../_static/doctools.js?v=888ff710"></script>
     <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
@@ -30,7 +30,7 @@
         <li class="right" >
           <a href="../../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../../index.html">OptiBeam 0.1.33 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">OptiBeam 0.1.40 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Module code</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">optibeam.training</a></li> 
       </ul>
@@ -44,11 +44,14 @@
   <h1>Source code for optibeam.training</h1><div class="highlight"><pre>
 <span></span><span class="kn">from</span> <span class="nn">.utils</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="kn">from</span> <span class="nn">.evaluation</span> <span class="kn">import</span> <span class="o">*</span>
+
 <span class="kn">from</span> <span class="nn">tensorflow.keras.callbacks</span> <span class="kn">import</span> <span class="n">Callback</span>
 <span class="kn">from</span> <span class="nn">sklearn.model_selection</span> <span class="kn">import</span> <span class="n">train_test_split</span>
 <span class="kn">from</span> <span class="nn">IPython.display</span> <span class="kn">import</span> <span class="n">clear_output</span>
 <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
 <span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
 
 <span class="c1"># ------------------- callback functions for tensorflow fit -------------------</span>
 <div class="viewcode-block" id="PlotPredictionParamsCallback">
@@ -338,7 +341,7 @@
         <li class="right" >
           <a href="../../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../../index.html">OptiBeam 0.1.33 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">OptiBeam 0.1.40 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="../index.html" >Module code</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">optibeam.training</a></li> 
       </ul>

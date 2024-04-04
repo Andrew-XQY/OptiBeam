@@ -10,4 +10,4 @@ sphinx-apidoc -o source/modules/ ../../optibeam/
 make html && make deploy
 
 # Optionally, open the generated documentation in the default browser
-# open ../../docs/index.html
+open ../../docs/index.html
