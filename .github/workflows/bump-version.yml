@@ -24,6 +24,9 @@ jobs:
     - name: Install bump2version
       run: pip install bump2version
 
+    - name: Install Dependencies
+      run: pip install sphinx
+
     # Configure Git User (Optional, ensure your git config is correct)
     - name: Configure Git
       run: |
