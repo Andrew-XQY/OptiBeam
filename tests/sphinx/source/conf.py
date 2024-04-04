@@ -22,8 +22,8 @@ except ImportError:
     # optibeam is run from its source checkout
     # original_cwd = os.getcwd()
     # os.chdir(os.path.dirname(os.path.realpath(__file__)))
-    # full_path = os.path.abspath(os.path.join(os.getcwd(), "../../../"))
-    sys.path.insert(0, os.path.abspath(os.getcwd()))
+    full_path = os.path.abspath(os.path.join(os.getcwd(), "../../../"))
+    sys.path.insert(0, full_path)
     print(sys.path)
     # Mock heavy dependencies
     autodoc_mock_imports = ['numpy', 'pandas', 'scipy', 'moviepy', 'matplotlib', 'tensorflow', 'scikit-learn',
