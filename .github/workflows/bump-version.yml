@@ -24,14 +24,14 @@ jobs:
     - name: Install bump2version
       run: pip install bump2version
 
-    - name: Bump version
-      run: bump2version ${{ github.event.inputs.part }}
-
     # Configure Git User (Optional, ensure your git config is correct)
     - name: Configure Git
       run: |
         git config --global user.email "qiyuanxu95@gmail.com"
         git config --global user.name "Andrew-XQY"
+
+    - name: Bump version
+      run: bump2version ${{ github.event.inputs.part }}
 
     # Use git diff to check for changes (Optional, for debugging)
     - name: Check for changes
