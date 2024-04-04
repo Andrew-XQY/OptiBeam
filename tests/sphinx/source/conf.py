@@ -22,23 +22,10 @@ import sys, os
 #     sys.path.insert(0, os.path.abspath('../../../optibeam'))
 #     import optibeam
 
-package_path = os.path.abspath('../../../optibeam')
-
-# Insert the package path in sys.path
-if package_path not in sys.path:
-    sys.path.insert(0, package_path)
-
-try:
-    # Try to import optibeam after modifying sys.path
-    import optibeam
-except ImportError as e:
-    print(f"Failed to import optibeam: {e}")
-
-
 project = "OptiBeam"
-author = optibeam.__author__
-release = optibeam.__version__
-copyright = '2024, Andrew Xu'
+author = "Andrew Xu"
+release = "0.1.37"
+copyright = f'2024, {author}'
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
