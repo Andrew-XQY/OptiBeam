@@ -9,6 +9,47 @@
 # -- Path setup --------------------------------------------------------------
 
 import sys, os
+from unittest.mock import MagicMock
+
+class Mock(MagicMock):
+    @classmethod
+    def __getattr__(cls, name):
+        return MagicMock()
+
+# List all the modules you want to mock
+MOCK_MODULES = ['numpy', 
+                'pandas', 
+                'scipy', 
+                'matplotlib', 
+                'matplotlib.pyplot',
+                'matplotlib.colors',
+                'matplotlib.cbook',
+                'matplotlib.figure',
+                'matplotlib.collections',
+                'matplotlib.markers',
+                'matplotlib.patches',
+                'matplotlib.ticker',
+                'matplotlib.dates',
+                'matplotlib.axis',
+                'matplotlib.scale',
+                'matplotlib.transforms',
+                'scipy.optimize',
+                'sklearn.decomposition',
+                'plotly.graph_objects',
+                'tensorflow', 
+                'tensorflow.keras',
+                'tensorflow.keras.callbacks',
+                'sklearn', 
+                'sklearn.model_selection',
+                'IPython', 
+                'IPython.display',
+                'multiprocessing', 
+                'tqdm',
+                'PIL', 
+                'plotly'
+                ]
+
+sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
@@ -18,18 +59,11 @@ try:
     # optibeam is installed
     import optibeam
 except ImportError:
-    print("Running from source")
+    print("__Running from source__")
     # optibeam is run from its source checkout
-    # original_cwd = os.getcwd()
-    # os.chdir(os.path.dirname(os.path.realpath(__file__)))
     full_path = os.path.abspath(os.path.join(os.getcwd(), "../../../"))
     sys.path.insert(0, full_path)
-    print(sys.path)
-    # Mock heavy dependencies
-    autodoc_mock_imports = ['numpy', 'pandas', 'scipy', 'moviepy', 'matplotlib', 'tensorflow', 'scikit-learn',
-                            'IPython', 'multiprocess', 'tqdm', 'Pillow', 'plotly']
     import optibeam
-    # os.chdir(original_cwd)
 
 
 project = "OptiBeam"
