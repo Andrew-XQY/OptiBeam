@@ -1,47 +1,17 @@
-name: Bump Version Workflow
-
+name: Bump version
 on:
   workflow_dispatch:
-    inputs:
-      part:
-        description: 'Part of version to increase: major, minor, patch'
-        required: true
-        default: 'patch'
-
 jobs:
-  bump-version:
+  build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
-      with:
-        fetch-depth: 0
-
-    - name: Set up Python
-      uses: actions/setup-python@v2
-      with:
-        python-version: '3.8'
-
-    - name: Install bump2version
-      run: pip install bump2version
-
-    # Configure Git User (Optional, ensure your git config is correct)
-    - name: Configure Git
-      run: |
-        git config --global user.email "qiyuanxu95@gmail.com"
-        git config --global user.name "Andrew-XQY"
-
-    - name: Bump version
-      run: bump2version ${{ github.event.inputs.part }}
-
-    # Use git diff to check for changes (Optional, for debugging)
-    - name: Check for changes
-      run: git diff
-
-    - name: Commit changes (allow empty)
-      run: git commit --allow-empty -am "Bump version"
-
-    - name: Push changes
-      uses: ad-m/github-push-action@master
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        push_tags: true
+      - uses: actions/checkout@v2
+      - name: Bump version and push tag
+        uses: kuelumbus/github-bumpversion-action@v1.0.9
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Push changes
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          tags: true
