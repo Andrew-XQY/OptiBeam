@@ -1,0 +1,34 @@
+name: Bump Version Workflow
+
+on:
+  workflow_dispatch:
+    inputs:
+      part:
+        description: 'Part of version to increase: major, minor, patch'
+        required: true
+        default: 'patch'
+
+jobs:
+  bump-version:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.8'
+
+    - name: Install bump2version
+      run: pip install bump2version
+
+    - name: Bump version
+      run: bump2version ${{ github.event.inputs.part }}
+      
+    - name: Push changes
+      uses: ad-m/github-push-action@master
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        push_tags: true

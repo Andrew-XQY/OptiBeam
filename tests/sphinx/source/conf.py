@@ -22,10 +22,10 @@ except ImportError:
     import optibeam
 
 
-project = 'OptiBeam'
-copyright = '2024, Andrew Xu'
+project = optibeam.__name__
 author = optibeam.__author__
-release = '0.1.33'
+release = optibeam.__version__
+copyright = '2024, Andrew Xu'
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration

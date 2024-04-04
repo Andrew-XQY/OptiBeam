@@ -1,5 +1,5 @@
 import os
-import platform
+import platform, warnings
 import numpy as np
 import multiprocessing, multiprocess
 
@@ -48,6 +48,7 @@ def combine_functions(functions):
     return reduce(lambda f, g: lambda x: g(f(x)), functions)
 
 
+
 def preset_kwargs(**preset_kwargs):
     """
     A decorator to preset keyword arguments of any function. The first argument
@@ -67,6 +68,44 @@ def preset_kwargs(**preset_kwargs):
     return decorator
 
 
+
+def deprecated(reason):
+    """
+    Decorator to mark a function as deprecated.
+    """
+    def decorator(func):
+        @wraps(func)
+        def new_func(*args, **kwargs):
+            warnings.simplefilter('always', DeprecationWarning)  # turn off filter
+            warnings.warn(f"{func.__name__} is deprecated: {reason}",
+                          category=DeprecationWarning,
+                          stacklevel=2)
+            warnings.simplefilter('default', DeprecationWarning)  # reset filter
+            return func(*args, **kwargs)
+        return new_func
+    return decorator
+
+
+
+def deprecated_class(reason):
+    """
+    Decorator to mark a class as deprecated.
+    """
+    def class_rebuilder(cls):
+        orig_init = cls.__init__
+        @wraps(cls.__init__)
+        def new_init(self, *args, **kwargs):
+            warnings.simplefilter('always', DeprecationWarning)
+            warnings.warn(f"{cls.__name__} is deprecated: {reason}",
+                          category=DeprecationWarning,
+                          stacklevel=2)
+            warnings.simplefilter('default', DeprecationWarning)
+            orig_init(self, *args, **kwargs)
+        cls.__init__ = new_init
+        return cls
+    return class_rebuilder
+
+
 # ------------------- multiprocessing -------------------
 
 def process_list_in_parallel(function, data_list):
@@ -75,6 +114,7 @@ def process_list_in_parallel(function, data_list):
     return result
 
 
+@deprecated("Not updating anymore, use apply_multiprocess() instead.")
 def apply_multiprocessing(function):
     """
     Decorator to apply multiprocessing to a function that processes an iterable.
@@ -125,25 +165,27 @@ def get_all_file_paths(dirs, types=['']) -> list:
     return file_paths
 
 
+
 class ImageLoader:
     def __init__(self, funcs):
         if not isinstance(funcs, list):
             funcs = [funcs]
         self.funcs = funcs
-        
+    
+    @deprecated("Use ImageLoader.load instead.")
     def load_image(self, image_path):
         """
         Load an image from the specified path and apply the specified functions to the image sequentially.
-        example: load_image(image_path, funcs=[np.array, rgb_to_grayscale, split_image, lambda x: x[0].flatten()])
         """
         with Image.open(image_path) as img:
             for func in self.funcs:
                 img = func(img)
         return img
 
+    @deprecated("Use ImageLoader.load instead.")
     def load_images(self, image_paths):
         """
-        Load images and return a dataset in numpy array format.
+        Load multiple images and return a dataset in numpy array format.
         """
         temp = []
         for image_path in image_paths:
@@ -151,7 +193,17 @@ class ImageLoader:
         dataset = np.array(temp)
         print(f"Loaded dataset shape: {dataset.shape}")
         return dataset
-
+    
+    def load(self, input):
+        """
+        Automatically decide whether to load a single image or multiple images based on the input type.
+        """
+        if isinstance(input, str):  # Single image path
+            return self.load_image(input)
+        elif isinstance(input, list):  # Assuming a list of image paths
+            return self.load_images(input)
+        else:
+            raise TypeError("Unsupported input type. Expected a string or a list of strings.")
 
 
 
@@ -211,7 +263,7 @@ def image_normalize(narray_img: np.array):
     return narray_img.astype('float32') / 255.
 
 
-def scale_image(image, scaling_factor):
+def scale_image(narray_img, scaling_factor):
     """
     Scales an image by a given scaling factor.
     
@@ -223,18 +275,18 @@ def scale_image(image, scaling_factor):
     - scaled_image: ndarray, the scaled image.
     """
     # Calculate the new dimensions
-    new_height = int(image.shape[0] * scaling_factor)
-    new_width = int(image.shape[1] * scaling_factor)
+    new_height = int(narray_img.shape[0] * scaling_factor)
+    new_width = int(narray_img.shape[1] * scaling_factor)
     new_dimensions = (new_height, new_width)
     
     # Resize the image
-    scaled_image = resize(image, new_dimensions, anti_aliasing=True)
+    scaled_image = resize(narray_img, new_dimensions, anti_aliasing=True)
     
     return scaled_image
 
 
 
-# ------------------- system/enviornment info -------------------
+# ------------------- system/enviornment -------------------
 
 def is_jupyter():
     """Check if Python is running in Jupyter (notebook or lab) or in a command line."""
