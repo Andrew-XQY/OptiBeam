@@ -38,6 +38,7 @@ MOCK_MODULES = ['numpy',
                 'sklearn', 
                 'sklearn.model_selection',
                 'skimage',
+                'skimage.transform',
                 'scipy.optimize',
                 'scikit-learn',
                 'sklearn.decomposition',
@@ -54,8 +55,10 @@ MOCK_MODULES = ['numpy',
                 'Pillow',
                 'seaborn'
                 ]
+# sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
 
-sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
+
+
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the

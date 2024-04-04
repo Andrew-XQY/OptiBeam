@@ -1,4 +1,6 @@
 from .utils import *
+from matplotlib.animation import FuncAnimation
+
 
 
 class Converter:
@@ -17,5 +19,7 @@ class Converter:
 
 
 class Simulation:
-    def __init__(self, beam_pattern, converter):
+    def __init__(self, beam_pattern):
         self.beam_pattern = beam_pattern
+        
+        
