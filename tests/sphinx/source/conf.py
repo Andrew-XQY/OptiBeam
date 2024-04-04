@@ -77,7 +77,7 @@ except ImportError:
 
 project = "OptiBeam"
 author = optibeam.__author__
-release = "0.1.39"
+release = "0.1.40"
 copyright = f'2024, {author}'
 
 # -- General configuration ---------------------------------------------------
