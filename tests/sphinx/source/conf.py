@@ -24,13 +24,13 @@ except ImportError:
     # os.chdir(os.path.dirname(os.path.realpath(__file__)))
     # full_path = os.path.abspath(os.path.join(os.getcwd(), "../../../"))
     sys.path.insert(0, os.path.abspath(os.getcwd()))
+    print(sys.path)
     # Mock heavy dependencies
     autodoc_mock_imports = ['numpy', 'pandas', 'scipy', 'moviepy', 'matplotlib', 'tensorflow', 'scikit-learn',
                             'IPython', 'multiprocess', 'tqdm', 'Pillow', 'plotly']
     import optibeam
     # os.chdir(original_cwd)
 
-print(sys.path)
 
 project = "OptiBeam"
 author = optibeam.__author__
