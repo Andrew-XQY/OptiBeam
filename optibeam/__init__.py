@@ -8,6 +8,6 @@ from . import dmd
 from . import camera
 
 __all__ = ['utils', 'evaluation', 'visualization', 'training', 'dmd', 'camera']
-__author__ = "Andrew Xu"
-__version__ = "0.1.37"
-__package_name__ = "OptiBeam"
+__author__ = 'Andrew Xu'
+__version__ = '0.1.37'
+__package_name__ = 'OptiBeam'
