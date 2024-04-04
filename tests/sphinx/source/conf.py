@@ -14,15 +14,18 @@ import sys, os
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 try:
-    # Sequentia is installed
+    # optibeam is installed
     import optibeam
 except ImportError:
     # optibeam is run from its source checkout
-    sys.path.insert(0, os.path.abspath('../optibeam'))
+    sys.path.insert(0, os.path.abspath('../../../optibeam'))
     import optibeam
 
+print(optibeam.__author__)
+print(optibeam.__version__)
 
-project = optibeam.__name__
+
+project = optibeam.__package_name__
 author = optibeam.__author__
 release = optibeam.__version__
 copyright = '2024, Andrew Xu'
