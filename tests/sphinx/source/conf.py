@@ -14,16 +14,21 @@ import sys, os
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 
-# try:
-#     # optibeam is installed
-#     import optibeam
-# except ImportError:
-#     # optibeam is run from its source checkout
-#     sys.path.insert(0, os.path.abspath('../../../optibeam'))
-#     import optibeam
+try:
+    # optibeam is installed
+    import optibeam
+except ImportError:
+    # optibeam is run from its source checkout
+    original_cwd = os.getcwd()
+    os.chdir(os.path.dirname(os.path.realpath(__file__)))
+    full_path = os.path.abspath(os.path.join(os.getcwd(), "../../../"))
+    sys.path.insert(0, full_path)
+    import optibeam
+    os.chdir(original_cwd)
+
 
 project = "OptiBeam"
-author = "Andrew Xu"
+author = optibeam.__author__
 release = "0.1.39"
 copyright = f'2024, {author}'
 
