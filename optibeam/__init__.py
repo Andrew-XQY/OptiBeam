@@ -9,5 +9,5 @@ from . import camera
 
 __all__ = ['utils', 'evaluation', 'visualization', 'training', 'dmd', 'camera']
 __author__ = 'Andrew Xu'
+__email__ = 'qiyuanxu95@gmail.com'
 __version__ = '0.1.37'
-__package_name__ = 'OptiBeam'

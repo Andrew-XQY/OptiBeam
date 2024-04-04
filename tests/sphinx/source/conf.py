@@ -13,19 +13,29 @@ import sys, os
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
+
+# try:
+#     # optibeam is installed
+#     import optibeam
+# except ImportError:
+#     # optibeam is run from its source checkout
+#     sys.path.insert(0, os.path.abspath('../../../optibeam'))
+#     import optibeam
+
+package_path = os.path.abspath('../../../optibeam')
+
+# Insert the package path in sys.path
+if package_path not in sys.path:
+    sys.path.insert(0, package_path)
+
 try:
-    # optibeam is installed
+    # Try to import optibeam after modifying sys.path
     import optibeam
-except ImportError:
-    # optibeam is run from its source checkout
-    sys.path.insert(0, os.path.abspath('../../../optibeam'))
-    import optibeam
-
-print(optibeam.__author__)
-print(optibeam.__version__)
+except ImportError as e:
+    print(f"Failed to import optibeam: {e}")
 
 
-project = optibeam.__package_name__
+project = "OptiBeam"
 author = optibeam.__author__
 release = optibeam.__version__
 copyright = '2024, Andrew Xu'
