@@ -11,4 +11,4 @@ from . import simulation
 __all__ = ['utils', 'evaluation', 'visualization', 'training', 'dmd', 'camera', 'simulation']
 __author__ = 'Andrew Xu'
 __email__ = 'qiyuanxu95@gmail.com'
-__version__ = '0.1.40'
+__version__ = '0.1.41'
