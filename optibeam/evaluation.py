@@ -2,6 +2,7 @@ from .utils import *
 import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
 
+'''TODO: This module needs to be refactored and tested'''
 
 # ------------------- Image to Parameters Metrics -------------------
 
