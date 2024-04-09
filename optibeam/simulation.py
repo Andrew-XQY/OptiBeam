@@ -10,8 +10,8 @@ class DynamicPatterns:
     def __init__(self, length: int=256, width: int=256):
         self._length = self._validate_and_convert(length)  # number of rows
         self._width = self._validate_and_convert(width)  # number of columns
+        self._distributions = []
         self.canvas = np.zeros((self._length, self._width))
-        self.distributions = []
         
     def __repr__(self):
         return f"DynamicPatterns with Canvas sides of: {self.canvas.shape}"
@@ -49,13 +49,13 @@ class DynamicPatterns:
         self.canvas = np.zeros((self._length, self._width))
 
     def apply_distribution(self, max_pixel_value: int=255):
-        for dst in self.distributions:
+        for dst in self._distributions:
             self.canvas += dst.pattern
             self.canvas = np.clip(self.canvas, 0, max_pixel_value)
             
     def update(self):
         self.clear_canvas()
-        for dst in self.distributions:
+        for dst in self._distributions:
             dst.update()
         self.apply_distribution()
     
@@ -66,14 +66,15 @@ class DynamicPatterns:
         pass
     
     def append(self, distribution):
-        self.distributions.append(distribution)
+        self._distributions.append(distribution)
     
     def export(self, type="narray"):
         pass
     
-    def transform(self, transformations : list):
+    def transform(self, transformations : List[Callable[[np.ndarray], np.ndarray]]):
         """
         Apply a series of transformations to the distribution's pattern on the canvas level.
+        Do not actually change the distribution's data (_pattern property) but change the final appearance on the canvas.
         """
         pass
     
@@ -93,6 +94,7 @@ class Distribution(ABC):
         self._length = canvas.length
         self._width = canvas.width
         self._pattern = np.zeros((canvas.length, canvas.width))
+        self._transformations = []
 
     @property
     def pattern(self) -> np.ndarray:
@@ -103,137 +105,96 @@ class Distribution(ABC):
     def update(self):
         """Update the distribution's state."""
         pass
+    
+    def add_transformation(self, transformation: callable):
+        """Add a transformation function to the list."""
+        self._transformations.append(transformation)
+
+    def transform(self):
+        """Apply transformations (matrix) to the pattern. such as rotation, scaling, etc."""
+        for func in self._transformations:
+            self._pattern = func(self._pattern)
 
 class GaussianDistribution(Distribution):
     """
     Class for generating a 2D Gaussian distribution.
     """
     def __init__(self, canvas: DynamicPatterns, mean_x: float=0.5, mean_y: float=0.5, std_x: float=0.1,
-                 std_y: float=0.1, x_velocity: float=0, y_velocity: float=0, momentum_factor: float=0.9):
+                 std_y: float=0.1, x_velocity: float=0, y_velocity: float=0, momentum_factor: float=0.9,
+                 rotation_radians: float=0, rotation_velocity: float=0, rotation_momentum: float=0.95):
         super().__init__(canvas)
         self.mean_x = mean_x
         self.mean_y = mean_y
         self.std_x = std_x
         self.std_y = std_y
+        # dynamics, for smooth transition
         self.x_velocity = x_velocity
         self.y_velocity = y_velocity
         self.momentum_factor = momentum_factor  # Momentum factor controls the influence of previous changes
-        self.transformations = []
+        self.rotation_radians = rotation_radians
+        self.rotation_velocity = rotation_velocity
+        self.rotation_momentum = rotation_momentum
+
+    def change_state(self, vol_scale: float=0.01, std_scale: float=0.02):
+        # Calculate new velocity (momentum) for each means
+        self.x_velocity = self.momentum_factor * self.x_velocity + np.random.uniform(-vol_scale, vol_scale)
+        self.y_velocity = self.momentum_factor * self.y_velocity + np.random.uniform(-vol_scale, vol_scale)
+        # Update parameters
+        self.mean_x = np.clip(self.mean_x + self.x_velocity, 0.05, 0.95)
+        self.mean_y = np.clip(self.mean_y + self.y_velocity, 0.05, 0.95)
+        self.std_x = np.clip(self.std_x + np.random.uniform(-std_scale * self.std_x, std_scale * self.std_x), 0, 0.3)
+        self.std_y = np.clip(self.std_y + np.random.uniform(-std_scale * self.std_y, std_scale * self.std_y), 0, 0.3)
 
     def generate_2d_gaussian(self) -> np.ndarray:
         """
-        Generate a 2D Gaussian distribution based on the current state of the distribution.
+        Generate a rotated 2D Gaussian distribution based on the current state of the distribution.
         """
+        # Coordinate grid
+        x = np.linspace(0, self._width - 1, self._width)
+        y = np.linspace(0, self._length - 1, self._length)
+        X, Y = np.meshgrid(x, y)
+        # Adjust coordinates relative to center
+        X_centered = X - self._width / 2
+        Y_centered = Y - self._length / 2
+        
+        # Pre-compute cos and sin of rotation angle
+        cos_theta, sin_theta = np.cos(self.rotation_radians), np.sin(self.rotation_radians)
+        # Apply rotation
+        X_rot = cos_theta * X_centered + sin_theta * Y_centered + self._width / 2
+        Y_rot = -sin_theta * X_centered + cos_theta * Y_centered + self._length / 2
+        # Gaussian distribution on rotated grid
         mean_x = self.mean_x * self._width
         mean_y = self.mean_y * self._length
         std_x = self.std_x * self._width
         std_y = self.std_y * self._length
-        x = np.linspace(0, self._width - 1, self._width)
-        y = np.linspace(0, self._length - 1, self._length)
-        x, y = np.meshgrid(x, y)
-        return np.exp(-(((x - mean_x) ** 2) / (2 * std_x ** 2) + ((y - mean_y) ** 2) / (2 * std_y ** 2)))
-
-    def change_state(self, vol_scale: float=0.01, std_scale: float=0.01):
-        # Calculate new velocity (momentum) for each parameter
-        self.x_velocity = self.momentum_factor * self.x_velocity + np.random.uniform(-vol_scale, vol_scale)
-        self.y_velocity = self.momentum_factor * self.y_velocity + np.random.uniform(-vol_scale, vol_scale)
-        # Update parameters by their velocities
-        self.mean_x = np.clip(self.mean_x + self.x_velocity, 0, 1)
-        self.mean_y = np.clip(self.mean_y + self.y_velocity, 0, 1)
-        self.std_x = np.clip(self.std_x + np.random.uniform(-std_scale * self.std_x, std_scale * self.std_x), 0, 1)
-        self.std_y = np.clip(self.std_y + np.random.uniform(-std_scale * self.std_y, std_scale * self.std_y), 0, 1)
-
+        return np.exp(-(((X_rot - mean_x) ** 2) / (2 * std_x ** 2) + ((Y_rot - mean_y) ** 2) / (2 * std_y ** 2)))
+    
+    def rotate(self):
+        rotational_adjustment = np.random.uniform(-np.pi/180, np.pi/180)  # Between -1 and +1 degree in radians
+        self.rotation_velocity = self.rotation_velocity * self.rotation_momentum + rotational_adjustment
+        self.rotation_radians = (self.rotation_radians + self.rotation_velocity) % (2 * np.pi)
+        
     def update(self):
         self.change_state()
         self._pattern = self.generate_2d_gaussian()
-        self.transform(self.transformations)
+        self.transform()
+        if self.rotation_radians != 0:
+            self.rotate()
+    
         
-    def add_transformation(self, transformation: callable):
-        self.transformations.append(transformation)
-        
-    def transform(self, transformations : list):
-        """
-        Apply a series of transformations to the distribution's pattern.
-        """
-        for func in transformations:
-            self._pattern = func(self._pattern)
 
 class MaxwellBoltzmannDistribution(Distribution):
     """
     Class for generating a 2D Maxwell-Boltzmann distribution.
     """
-    def __init__(self, canvas: DynamicPatterns, mean_x: float=0.5, mean_y: float=0.5, std_x: float=0.1,
-                 std_y: float=0.1, x_velocity: float=0, y_velocity: float=0, momentum_factor: float=0.9):
-        super().__init__(canvas)
-        self.mean_x = mean_x
-        self.mean_y = mean_y
-        self.std_x = std_x
-        self.std_y = std_y
-        self.x_velocity = x_velocity
-        self.y_velocity = y_velocity
-        self.momentum_factor = momentum_factor  # Momentum factor controls the influence of previous changes
-        self.transformations = []
+    pass
 
-    def generate_2d_maxwell_boltzmann(self) -> np.ndarray:
-        """
-        Generate a 2D Maxwell-Boltzmann distribution based on the current state of the distribution.
-        """
-        mean_x = self.mean_x * self._width
-        mean_y = self.mean_y * self._length
-        std_x = self.std_x * self._width
-        std_y = self.std_y * self._length
-        x = np.linspace(0, self._width - 1, self._width)
-        y = np.linspace(0, self._length - 1, self._length)
-        x, y = np.meshgrid(x, y)
-        return np.exp(-(((x - mean_x) ** 2) / (2 * std_x ** 2) + ((y - mean_y) ** 2) / (2 * std_y ** 2)))
 
-    def change_state(self, vol_scale: float=0.01, std_scale: float=0.01):
-        # Calculate new velocity (momentum) for each parameter
-        self.x_velocity = self.momentum_factor * self.x_velocity + np.random.uniform(-vol_scale, vol_scale)
-        self.y_velocity = self.momentum_factor * self.y_velocity + np.random.uniform(-vol_scale, vol_scale)
-        # Update parameters by their velocities
-        self.mean_x = np.clip(self.mean_x + self.x_velocity, 0, 1)
-        self.mean_y = np.clip(self.mean_y + self.y_velocity, 0, 1)
-        self.std_x = np
-
-def quadrupole_transform(data, focus_strength=0.01, defocus_strength=0.01):
+class CauchyDistribution(Distribution):
     """
-    Apply a quadrupole-like transformation to a 2D data distribution.
-
-    Parameters:
-    - data: 2D numpy array representing the data distribution.
-    - focus_strength: Strength of focusing effect.
-    - defocus_strength: Strength of defocusing effect.
-
-    Returns:
-    - Transformed 2D numpy array.
+    Class for generating a 2D Cauchy distribution.
     """
-    # Get the center of the data
-    center_x, center_y = data.shape[1] / 2, data.shape[0] / 2
-
-    # Prepare the transformed data array
-    transformed_data = np.zeros_like(data)
-
-    for x in range(data.shape[1]):
-        for y in range(data.shape[0]):
-            # Calculate distance from the center
-            distance = np.sqrt((x - center_x)**2 + (y - center_y)**2)
-            if distance == 0:
-                continue  # Avoid division by zero at the center
-
-            # Calculate scaling factors according to the inverse-square law
-            focus_scale = focus_strength / distance**2
-            defocus_scale = defocus_strength / distance**2
-
-            # Apply focusing/defocusing transformations
-            new_x = int(center_x + (x - center_x) * focus_scale)
-            new_y = int(center_y + (y - center_y) * defocus_scale)
-
-            # Ensure the new indices are within bounds
-            if 0 <= new_x < data.shape[1] and 0 <= new_y < data.shape[0]:
-                transformed_data[new_y, new_x] += data[y, x]
-
-    return transformed_data
+    pass
     
     
 class Converter:

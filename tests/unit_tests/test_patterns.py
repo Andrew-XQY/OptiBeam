@@ -10,11 +10,12 @@ with ChangeDirToFileLocation():
 
 dim = (256, 256)
 canvas = simulation.DynamicPatterns(*dim)
-guassian = simulation.GaussianDistribution(canvas)
-# canvas.distributions = [simulation.GaussianDistribution(canvas) for _ in range(20)]
 
-guassian.add_transformation(simulation.quadrupole_transform)
-canvas.distributions = [guassian]
+# guassian = simulation.GaussianDistribution(canvas)
+# guassian.add_transformation(simulation.quadrupole_transform)
+# canvas.distributions = [guassian]
+
+canvas._distributions = [simulation.GaussianDistribution(canvas, rotation_radians=0.003) for _ in range(15)]
 
 for _ in range(1000):
     canvas.update()
