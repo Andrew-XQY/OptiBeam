@@ -7,10 +7,9 @@ import matplotlib.pyplot as plt
 class DynamicPatterns:
     """
     Class for generating and managing dynamic patterns on a 2D canvas.
+    Focusing on image pattern generation only.
     """
-    def __init__(self, display, height: int=64, width: int=64):
-        self._max_height = display.get_height()
-        self._max_width = display.get_width()
+    def __init__(self, height: int=64, width: int=64):
         self._height = self._validate_and_convert(height)  # canvas height
         self._width = self._validate_and_convert(width) 
         self.clear_canvas()  # Update canvas size
@@ -43,10 +42,9 @@ class DynamicPatterns:
                 value = int(value)
             except ValueError:
                 raise ValueError("Value must be convertible to an integer.")
-        MAX = max(self._max_height, self._max_width)
-        if not (0 <= value <= MAX):
-            value = MAX if value > MAX else 0
-            print(f"Value must be between 0 and {MAX}.")
+        if not (0 <= value <= 4096):
+            value = 4096 if value > 4096 else 0
+            print(f"Value must be between 0 and {4096}.")
         return value
     
     def clear_canvas(self):
@@ -67,22 +65,16 @@ class DynamicPatterns:
         """
         Expand a 2D numpy array (image) to a macro pixel (size, size) array.
         e.g. If canvas is 64x64, and input size is 8, then it will return a 512x512 pixel matrix. 
-        If size overflows the display dimension, it will automatically rezised to the maximum possible one.
         
         Parameters:
         - size: The size of the macro pixel.
         
         Returns:
-        - A 2D numpy array representing the expanded image.
+        - A 2D numpy array expanded image.
         """
-        # Calculate the potential new dimensions
+        # Calculate the new dimensions
         new_height = self._height * size
         new_width = self._width * size
-        # Adjust macro_pixel_size if new dimensions exceed max_dimension
-        if new_height > self._max_height or new_width > self._max_width:
-            size = max(self._max_height, self._max_width) // max(self._height, self._width)
-            new_height = self._height * size
-            new_width = self._width * size
         # Create a new array for the expanded image
         expanded_image = np.zeros((new_height, new_width))
         for i in range(self._height):

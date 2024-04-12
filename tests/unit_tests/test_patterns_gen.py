@@ -1,7 +1,6 @@
 from conftest import *
 
-dim = (128, 128)
-canvas = simulation.DynamicPatterns(dmd.ViALUXDMD(), *dim)
+canvas = simulation.DynamicPatterns()
 canvas._distributions = [simulation.GaussianDistribution(canvas, rotation_radians=0.003) for _ in range(20)] # rotation_radians=0.003
 
 for _ in range(1000):
