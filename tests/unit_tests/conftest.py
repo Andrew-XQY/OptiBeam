@@ -1,3 +1,4 @@
+import sys
 import os
 from contextlib import ContextDecorator
 
@@ -12,3 +13,12 @@ class ChangeDirToFileLocation(ContextDecorator):
     def __exit__(self, exc_type, exc_val, exc_tb):
         # Reset the working directory back to its original location
         os.chdir(self.original_cwd)
+
+
+with ChangeDirToFileLocation():
+    full_path = os.path.abspath(os.path.join(os.getcwd(), "../../"))
+    sys.path.insert(0, full_path)
+    import optibeam.simulation as simulation
+    import optibeam.visualization as visualization
+    import optibeam.dmd as dmd
+
