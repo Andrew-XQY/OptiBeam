@@ -1,5 +1,6 @@
 from .utils import *
 from .evaluation import *
+from .visualization import *
 
 from tensorflow.keras.callbacks import Callback
 from sklearn.model_selection import train_test_split
@@ -29,34 +30,8 @@ class PlotPredictionParamsCallback(Callback):
         true_label = self.val_labels[idx]
         # Predict the output using the current model state
         pred_label = self.model.predict(self.val_images[idx][np.newaxis, :])[0]
-        fig, ax = plt.subplots()
-        ax.imshow(image.squeeze(), cmap='gray')  # Assuming grayscale images, remove .squeeze() if not applicable
+        img_2_params_evaluation(image, true_label, pred_label)
         
-        # plot the true and predicted beam parameters
-        # Plot true centroids
-        ax.plot(true_label[0] * image.shape[1], true_label[1] * image.shape[0],
-                'ro', label='True Centroid', markersize=1)
-        # Plot predicted centroids
-        ax.plot(pred_label[0] * image.shape[1], pred_label[1] * image.shape[0],
-                'go', label='Predicted Centroid', markersize=1)
-        # Plot ellipses for true widths
-        true_ellipse = plt.matplotlib.patches.Ellipse((true_label[0] * image.shape[1], true_label[1] * image.shape[0]),
-                                                      width=true_label[2] * image.shape[1] * 2, 
-                                                      height=true_label[3] * image.shape[0] * 2,
-                                                      edgecolor='r', facecolor='none',
-                                                      label='True Widths', linestyle=':')
-        ax.add_patch(true_ellipse)
-        # Plot ellipses for predicted widths
-        pred_ellipse = plt.matplotlib.patches.Ellipse((pred_label[0] * image.shape[1], pred_label[1] * image.shape[0]),
-                                                      width=pred_label[2] * image.shape[1] * 2,
-                                                      height=pred_label[3] * image.shape[0] * 2,
-                                                      edgecolor='g', facecolor='none', 
-                                                      label='Predicted Widths', linestyle=':')
-        ax.add_patch(pred_ellipse)
-        plt.legend()
-        plt.show()
-
-
 
 class PlotPredictionImageCallback(Callback):
     """
@@ -94,7 +69,7 @@ def clean_tensor(narray):
     Discard some problematic images based on beam parameters calculation.
     In future, need to develop a better evaluation function (beam_params) to handle this properly?
     """
-    labels = list(beam_params(np.squeeze(narray[0]), normalize=True).values())
+    labels = list(beam_params(narray, normalize=True).values())
     for i in labels:
         if i >= 1 or i <=0:
             return None, None
