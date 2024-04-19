@@ -7,11 +7,11 @@ from conftest import *
 # mimic simplified quadrapole transform in the canvas (develop some possible transformations on canvas level)
 # other distributions implementation (Maxwell-Boltzmann, etc)
 
-dim = (128, 128)
+dim = (256, 256)
 canvas = simulation.DynamicPatterns(*dim)
-canvas._distributions = [simulation.GaussianDistribution(canvas, rotation_radians=0.003) for _ in range(20)] # rotation_radians=0.003
+canvas._distributions = [simulation.GaussianDistribution(canvas, rotation_radians=0.003) for _ in range(15)] # rotation_radians=0.003
 
-for _ in range(1000):
+for _ in range(5000):
     canvas.update()
     canvas.plot_canvas()
 

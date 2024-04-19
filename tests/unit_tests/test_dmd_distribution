@@ -3,21 +3,21 @@ from ALP4 import *
 import time
 import numpy as np
 
-
 # Load the Vialux .dll
 DMD = ALP4(version = '4.3')
 # Initialize the device
 DMD.Initialize()
 
+canvas = simulation.DynamicPatterns(*(64, 64))
+canvas._distributions = [simulation.GaussianDistribution(canvas, rotation_radians=0.003) for _ in range(20)]
 
 
-
-for i in range(720):
+for i in range(1000):
     # Generate the mosaic image
-    img = simulation.create_mosaic_image(size=1024)
-    M = simulation.compile_transformation_matrix(image=img, radians= i*np.pi/180)
-    img = simulation.apply_transformation_matrix(img, M)
-
+    canvas.update()
+    img = canvas.get_image()
+    img = simulation.pixel_value_remap(img, 255)
+    img = simulation.macro_pixel(img, size=16)
     img = dmd.pad_image(img, DMD.nSizeY, DMD.nSizeX)
     # Binary amplitude image (0 or 1)
     bitDepth = 8    
@@ -30,14 +30,9 @@ for i in range(720):
     # Set image rate to 50 Hz
     DMD.SetTiming(pictureTime = 20000) # in microseconds
 
-    print("Image demo started")
-    # Run the sequence in an infinite loop
+    # Run the sequence in a loop
     DMD.Run()
     time.sleep(0.01)
-    print("Image demo finished")
-
-
-
 
 
 # Stop the sequence display
