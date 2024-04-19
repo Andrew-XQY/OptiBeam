@@ -1,3 +1,5 @@
+from optibeam import *
+
 """ plot 3D PCA with camera perspective change motion"""
 if __name__ == "__main__":
     image_paths = get_all_file_paths("C:\\Users\\qiyuanxu\\Documents\\DataWarehouse\\MMF\\procIMGs\\processed\\")
@@ -26,4 +28,4 @@ def func(x):
     return x * 2
 
 test = [i for i in range(10000)]
-func(test);
+func(test)

@@ -11,7 +11,6 @@ DMD.Initialize()
 
 
 
-
 for i in range(720):
     # Generate the mosaic image
     img = simulation.create_mosaic_image(size=1024)
@@ -30,13 +29,9 @@ for i in range(720):
     # Set image rate to 50 Hz
     DMD.SetTiming(pictureTime = 20000) # in microseconds
 
-    print("Image demo started")
     # Run the sequence in an infinite loop
     DMD.Run()
     time.sleep(0.01)
-    print("Image demo finished")
-
-
 
 
 

@@ -262,8 +262,8 @@ def compile_transformation_matrix(image: np.ndarray, translate : tuple=(0, 0), r
     cos_a = np.cos(radians)
     sin_a = np.sin(radians)
     rotation_matrix = np.array([
-        [cos_a, -sin_a, cx * (1 - cos_a) + cy * sin_a],  # Third element recalculated
-        [sin_a,  cos_a, cy * (1 - cos_a) - cx * sin_a],  # Third element recalculated
+        [cos_a, -sin_a, cx * (1 - cos_a) + cy * sin_a],  
+        [sin_a,  cos_a, cy * (1 - cos_a) - cx * sin_a],  
         [0,     0,                                  1]
     ])
     # Scaling matrix with separate x and y scaling, centered at image middle
