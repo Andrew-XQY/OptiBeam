@@ -32,6 +32,7 @@ class DMD(ABC):
         """
         pass
     
+    @abstractmethod
     def display_image(self, image: np.ndarray, bitDepth: int=8) -> None:
         """
         Display an image on the DMD.
@@ -90,22 +91,22 @@ class ViALUXDMD(DMD):
         self.dmd.Initialize()
     
     def get_height(self) -> int:
-        return DMD.nSizeY
+        return self.dmd.nSizeY
 
     def get_width(self) -> int:
-        return DMD.nSizeX
+        return self.dmd.nSizeX
     
     def display_image(self, image: np.ndarray, bitDepth: int=8) -> None:
         image = self.adjust_image(image)
         imgSeq = image.ravel()
         # Allocate the onboard memory for the image sequence
-        DMD.SeqAlloc(nbImg = 1, bitDepth = bitDepth)
+        self.dmd.SeqAlloc(nbImg = 1, bitDepth = bitDepth)
         # Send the image sequence as a 1D list/array/numpy array
-        DMD.SeqPut(imgData = imgSeq)
+        self.dmd.SeqPut(imgData = imgSeq)
         # Set image rate to 50 Hz
-        DMD.SetTiming(pictureTime = 20000) # in microseconds
+        self.dmd.SetTiming(pictureTime = 20000) # in microseconds
         # Run the sequence in a loop
-        DMD.Run()
+        self.dmd.Run()
         time.sleep(0.01)
 
     
@@ -117,7 +118,6 @@ class ViALUXDMD(DMD):
         self.dmd.FreeSeq()  # Free the sequence from the onboard memory
         self.dmd.Free()  # De-allocate the device
         print("Device deallocated, program finished")
-
 
 
 

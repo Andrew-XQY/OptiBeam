@@ -1,50 +1,19 @@
 from conftest import *
 from ALP4 import *
-import time
-import numpy as np
 
-# # Load the Vialux .dll
-# DMD = ALP4(version = '4.3')
-# # Initialize the device
-# DMD.Initialize()
+# Load the Vialux .dll
+DMD = dmd.ViALUXDMD(ALP4(version = '4.3'))
+canvas = simulation.DynamicPatterns(*(64, 64))
+canvas._distributions = [simulation.GaussianDistribution(canvas) for _ in range(20)]
 
-# canvas = simulation.DynamicPatterns(*(64, 64))
-# canvas._distributions = [simulation.GaussianDistribution(canvas, rotation_radians=0.003) for _ in range(20)]
-
-
-# for i in range(1000):
-#     # Generate the mosaic image
-#     canvas.update()
-#     img = canvas.get_image()
-#     img = simulation.pixel_value_remap(img, 255)
-#     img = simulation.macro_pixel(img, size=16)
-#     img = dmd.pad_image(img, DMD.nSizeY, DMD.nSizeX)
-#     # Binary amplitude image (0 or 1)
-#     bitDepth = 8    
-#     imgSeq = img.ravel()
-
-#     # Allocate the onboard memory for the image sequence
-#     DMD.SeqAlloc(nbImg = 1, bitDepth = bitDepth)
-#     # Send the image sequence as a 1D list/array/numpy array
-#     DMD.SeqPut(imgData = imgSeq)
-#     # Set image rate to 50 Hz
-#     DMD.SetTiming(pictureTime = 20000) # in microseconds
-
-#     # Run the sequence in a loop
-#     DMD.Run()
-#     time.sleep(0.01)
-
-
-# # Stop the sequence display
-# DMD.Halt()
-# # Free the sequence from the onboard memory
-# DMD.FreeSeq()
-# # De-allocate the device
-# DMD.Free()
-
-# print("Device deallocated, program finished")
-
-
+for i in range(1000):
+    canvas.update()
+    img = canvas.get_image()
+    img = simulation.pixel_value_remap(img)
+    img = simulation.macro_pixel(img, size=16)
+    DMD.display_image(img)
+    
+DMD.end()
 
 
 

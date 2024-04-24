@@ -11,7 +11,7 @@ class DynamicPatterns:
     Class for generating and managing dynamic patterns on a 2D canvas.
     Focusing on image pattern generation only.
     """
-    def __init__(self, height: int=64, width: int=64):
+    def __init__(self, height: int=128, width: int=128):
         self._height = self._validate_and_convert(height)  # canvas height
         self._width = self._validate_and_convert(width) 
         self.clear_canvas()  # Update canvas size
@@ -59,14 +59,14 @@ class DynamicPatterns:
             self.canvas += dst.pattern
             self.canvas = np.clip(self.canvas, 0, self.max_pixel_value)
             
-    def update(self):
+    def update(self, *args, **kwargs):
         """
         Update the canvas by updating all the distributions.
         Need distribution objects have the update method implemented.
         """
         self.clear_canvas()
         for dst in self._distributions:
-            dst.update()
+            dst.update(*args, **kwargs)
         self.apply_distribution()
     
     def append(self, distribution):
@@ -109,7 +109,7 @@ class Distribution(ABC):
         return self._pattern
 
     @abstractmethod
-    def update(self):
+    def update(self, *args, **kwargs):
         """Update the distribution's state."""
         pass
 
@@ -135,7 +135,7 @@ class GaussianDistribution(Distribution):
         self.speed_momentum = speed_momentum  # Momentum factor controls the influence of previous changes
         self.rotation_momentum = rotation_momentum
 
-    def change_distribution_params(self, vol_scale: float=0.01, std_scale: float=0.01):
+    def change_distribution_params(self, vol_scale: float=0.01, std_scale: float=0.01, rot_scale: float=0.01):
         upper_bound = 1
         lower_bound = 0
         # Calculate new velocity (momentum) for each means
@@ -157,33 +157,39 @@ class GaussianDistribution(Distribution):
         change_factor_y = np.random.uniform(-std_scale * self.std_y, std_scale * self.std_y) * (1 - self.std_y / 0.3)
         self.std_x = np.clip(self.std_x + change_factor_x, 0.01, 0.3)
         self.std_y = np.clip(self.std_y + change_factor_y, 0.01, 0.3)
-
-
+        # Update rotation angle with momentum
+        rotational_adjustment = np.random.uniform(-np.pi*rot_scale, np.pi*rot_scale)  # in radians
+        self.rotation_velocity = self.rotation_velocity * self.rotation_momentum + rotational_adjustment
+        self.rotation_radians = (self.rotation_radians + self.rotation_velocity) % (2 * np.pi)
+        
     def generate_2d_gaussian(self) -> np.ndarray:
         """
         Generate a rotated 2D Gaussian distribution based on the current state of the distribution.
+        The rotation is centered around the mean of the distribution.
         """
         # Coordinate grid
         x = np.linspace(0, self._width - 1, self._width)
         y = np.linspace(0, self._height - 1, self._height)
         X, Y = np.meshgrid(x, y)
-        # Adjust coordinates relative to center
-        X_centered = X - self._width / 2
-        Y_centered = Y - self._height / 2
-        # Pre-compute cos and sin of rotation angle
-        cos_theta, sin_theta = np.cos(self.rotation_radians), np.sin(self.rotation_radians)
-        # Apply rotation
-        X_rot = cos_theta * X_centered + sin_theta * Y_centered + self._width / 2
-        Y_rot = -sin_theta * X_centered + cos_theta * Y_centered + self._height / 2
-        
+        # Mean coordinates scaled to grid
         mean_x = self.mean_x * self._width
         mean_y = self.mean_y * self._height
+        # Adjust coordinates relative to distribution center (mean)
+        X_centered = X - mean_x
+        Y_centered = Y - mean_y
+        # Pre-compute cos and sin of rotation angle
+        cos_theta = np.cos(self.rotation_radians)
+        sin_theta = np.sin(self.rotation_radians)
+        # Apply rotation around the distribution center
+        X_rot = cos_theta * X_centered - sin_theta * Y_centered + mean_x
+        Y_rot = sin_theta * X_centered + cos_theta * Y_centered + mean_y
+        # Compute Gaussian distribution
         std_x = self.std_x * self._width
         std_y = self.std_y * self._height
         return np.exp(-(((X_rot - mean_x) ** 2) / (2 * std_x ** 2) + ((Y_rot - mean_y) ** 2) / (2 * std_y ** 2)))
         
-    def update(self):
-        self.change_distribution_params()
+    def update(self, *args, **kwargs):
+        self.change_distribution_params(*args, **kwargs)
         self._pattern = self.generate_2d_gaussian()
 
     
@@ -313,7 +319,7 @@ def pixel_value_remap(narray: np.ndarray, max_pixel_value: int=255) -> np.ndarra
     return remapped_matrix.astype(np.uint8)
 
 
-def macro_pixel(narray, size: int=8) -> np.ndarray:
+def macro_pixel(narray: np.ndarray, size: int=8) -> np.ndarray:
     """
     Expand a 2D numpy array (image) to a macro pixel (size, size) array.
     e.g. If canvas is 64x64, and input size is 8, then it will return a 512x512 pixel matrix. 
