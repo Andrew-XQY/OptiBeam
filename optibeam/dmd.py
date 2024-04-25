@@ -42,6 +42,13 @@ class DMD(ABC):
         """
         pass
     
+    @abstractmethod
+    def end(self) -> None:
+        """
+        Stop the sequence display and deallocate the device.
+        """
+        pass
+    
     def pad_image(self, img, padding_value=0):
         # Calculate the padding sizes
         pad_height = self.get_height() - img.shape[0]
