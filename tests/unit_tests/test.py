@@ -1,31 +1,41 @@
-from conftest import *
+from PIL import Image, ImageDraw, ImageFont
 
-# for i in range(360):
-#     # Generate the mosaic image
-#     img = simulation.create_mosaic_image(size=512)
-#     M = simulation.compile_transformation_matrix(image=img, radians= i*np.pi/180)
-#     img = simulation.apply_transformation_matrix(img, M)
-
-#     img = dmd.pad_image(img, 1024, 1024)
-#     plt.imshow(img, cmap='gray')
-#     plt.draw()
-#     plt.pause(0.01)
-#     plt.clf()
-
-
-canvas = simulation.DynamicPatterns(*(64, 64))
-canvas._distributions = [simulation.GaussianDistribution(canvas, rotation_radians=0.003) for _ in range(10)] # rotation_radians=0.003
+def create_counting_gif(filename, frame_duration, start=0, end=999):
+    frames = []
     
-for i in range(100):
-    # Generate the mosaic image
-    canvas.update()
-    img = simulation.pixel_value_remap(canvas.get_image(), 255)
-    img = simulation.macro_pixel(img, size=16)
-    img = dmd.pad_image(img, 1024, 1920)
-    plt.imshow(img, cmap='gray')
-    plt.draw()
-    plt.pause(0.01)
-    plt.clf()
+    # Set a larger image size to enhance clarity with the default font
+    image_size = (300, 150)
+    
+    # Use the default font provided by PIL
+    font = ImageFont.load_default()
+
+    for i in range(start, end + 1):
+        image = Image.new('RGB', image_size, color=(255, 255, 255))
+        d = ImageDraw.Draw(image)
+        text = str(i)
+        # Calculate text width and height using textbbox
+        left, top, right, bottom = d.textbbox((0, 0), text, font=font)
+        textwidth = right - left
+        textheight = bottom - top
+        x = (image.width - textwidth) / 2
+        y = (image.height - textheight) / 2
+        d.text((x, y), text, fill=(0, 0, 0), font=font)
+        frames.append(image)
+    
+    frames[0].save(
+        filename,
+        save_all=True,
+        append_images=frames[1:],
+        optimize=False,
+        duration=frame_duration,
+        loop=0
+    )
+
+create_counting_gif('../../ResultsCenter/counting_test_10ms.gif', frame_duration=10)
 
 
-print(np.max(img), np.min(img))    
+
+
+
+
+
