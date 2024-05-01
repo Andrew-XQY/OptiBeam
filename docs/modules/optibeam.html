@@ -5,11 +5,11 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>optibeam package &#8212; OptiBeam 0.1.40 documentation</title>
+    <title>optibeam package &#8212; OptiBeam 0.1.42 documentation</title>
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=4848ba22" />
     <link rel="stylesheet" type="text/css" href="../_static/pyramid.css?v=a5b9c134" />
     <link rel="stylesheet" type="text/css" href="../_static/css/toc.css?v=72483682" />
-    <script src="../_static/documentation_options.js?v=967b4925"></script>
+    <script src="../_static/documentation_options.js?v=05fb4756"></script>
     <script src="../_static/doctools.js?v=888ff710"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -35,7 +35,7 @@
         <li class="right" >
           <a href="modules.html" title="optibeam"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../index.html">OptiBeam 0.1.40 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">OptiBeam 0.1.42 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="modules.html" accesskey="U">optibeam</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">optibeam package</a></li> 
       </ul>
@@ -53,9 +53,208 @@
 </section>
 <section id="module-optibeam.camera">
 <span id="optibeam-camera-module"></span><h2>optibeam.camera module<a class="headerlink" href="#module-optibeam.camera" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="optibeam.camera.BaslerCamera">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">optibeam.camera.</span></span><span class="sig-name descname"><span class="pre">BaslerCamera</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">camera</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">InstantCamera</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.12)"><span class="pre">dict</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">{}</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optibeam/camera.html#BaslerCamera"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#optibeam.camera.BaslerCamera" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#optibeam.camera.Camera" title="optibeam.camera.Camera"><code class="xref py py-class docutils literal notranslate"><span class="pre">Camera</span></code></a></p>
+<p>Class representing a Basler camera.
+<a class="reference external" href="https://docs.baslerweb.com/precision-time-protocol#checking-the-status-of-the-ptp-clock-synchronization">https://docs.baslerweb.com/precision-time-protocol#checking-the-status-of-the-ptp-clock-synchronization</a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="optibeam.camera.BaslerCamera.capture">
+<span class="sig-name descname"><span class="pre">capture</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Generator" title="(in Python v3.12)"><span class="pre">Generator</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.26)"><span class="pre">ndarray</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.12)"><span class="pre">None</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.12)"><span class="pre">None</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/optibeam/camera.html#BaslerCamera.capture"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#optibeam.camera.BaslerCamera.capture" title="Link to this definition">¶</a></dt>
+<dd><p>Captures an image using the camera.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>An array representing the captured image.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="optibeam.camera.BaslerCamera.close">
+<span class="sig-name descname"><span class="pre">close</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optibeam/camera.html#BaslerCamera.close"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#optibeam.camera.BaslerCamera.close" title="Link to this definition">¶</a></dt>
+<dd><p>Closes the camera after capturing images. release resources.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="optibeam.camera.BaslerCamera.demo_video">
+<span class="sig-name descname"><span class="pre">demo_video</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optibeam/camera.html#BaslerCamera.demo_video"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#optibeam.camera.BaslerCamera.demo_video" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="optibeam.camera.BaslerCamera.enable_ptp">
+<span class="sig-name descname"><span class="pre">enable_ptp</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.12)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../_modules/optibeam/camera.html#BaslerCamera.enable_ptp"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#optibeam.camera.BaslerCamera.enable_ptp" title="Link to this definition">¶</a></dt>
+<dd><p>Enables the Precision Time Protocol (PTP) on the camera. (if supported)</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="optibeam.camera.BaslerCamera.get_info">
+<span class="sig-name descname"><span class="pre">get_info</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.12)"><span class="pre">dict</span></a></span></span><a class="reference internal" href="../_modules/optibeam/camera.html#BaslerCamera.get_info"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#optibeam.camera.BaslerCamera.get_info" title="Link to this definition">¶</a></dt>
+<dd><p>Retrieves information about the Basler camera.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A dictionary containing camera details such as model, serial number, etc.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.12)">dict</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="optibeam.camera.BaslerCamera.open">
+<span class="sig-name descname"><span class="pre">open</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optibeam/camera.html#BaslerCamera.open"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#optibeam.camera.BaslerCamera.open" title="Link to this definition">¶</a></dt>
+<dd><p>Opens the camera for capturing images.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="optibeam.camera.BaslerCamera.ptp_status">
+<span class="sig-name descname"><span class="pre">ptp_status</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.12)"><span class="pre">bool</span></a></span></span><a class="reference internal" href="../_modules/optibeam/camera.html#BaslerCamera.ptp_status"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#optibeam.camera.BaslerCamera.ptp_status" title="Link to this definition">¶</a></dt>
+<dd><p>Checks the status of the Precision Time Protocol (PTP) on the camera.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>True if PTP is enabled, False otherwise.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.12)">bool</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="optibeam.camera.BaslerCamera.set_camera_params">
+<span class="sig-name descname"><span class="pre">set_camera_params</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.12)"><span class="pre">dict</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optibeam/camera.html#BaslerCamera.set_camera_params"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#optibeam.camera.BaslerCamera.set_camera_params" title="Link to this definition">¶</a></dt>
+<dd><p>Resets the camera parameters based on the input dictionary.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>params</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.12)"><em>dict</em></a>) – A dictionary containing camera parameter settings such as exposure, ISO, etc.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="optibeam.camera.Camera">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">optibeam.camera.</span></span><span class="sig-name descname"><span class="pre">Camera</span></span><a class="reference internal" href="../_modules/optibeam/camera.html#Camera"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#optibeam.camera.Camera" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/abc.html#abc.ABC" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ABC</span></code></a></p>
+<p>Abstract base class for a camera, providing a blueprint for camera operations.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="optibeam.camera.Camera.capture">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">capture</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.26)"><span class="pre">ndarray</span></a></span></span><a class="reference internal" href="../_modules/optibeam/camera.html#Camera.capture"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#optibeam.camera.Camera.capture" title="Link to this definition">¶</a></dt>
+<dd><p>Captures an image using the camera.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>An array representing the captured image.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="optibeam.camera.Camera.close">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">close</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.12)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../_modules/optibeam/camera.html#Camera.close"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#optibeam.camera.Camera.close" title="Link to this definition">¶</a></dt>
+<dd><p>Closes the camera after capturing images. release resources.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="optibeam.camera.Camera.enable_ptp">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">enable_ptp</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.12)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../_modules/optibeam/camera.html#Camera.enable_ptp"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#optibeam.camera.Camera.enable_ptp" title="Link to this definition">¶</a></dt>
+<dd><p>Enables the Precision Time Protocol (PTP) on the camera. (if supported)</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="optibeam.camera.Camera.get_info">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_info</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.12)"><span class="pre">dict</span></a></span></span><a class="reference internal" href="../_modules/optibeam/camera.html#Camera.get_info"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#optibeam.camera.Camera.get_info" title="Link to this definition">¶</a></dt>
+<dd><p>Retrieves information about the camera.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A dictionary containing camera details such as model, resolution, and other relevant parameters.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.12)">dict</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="optibeam.camera.Camera.open">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">open</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.12)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../_modules/optibeam/camera.html#Camera.open"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#optibeam.camera.Camera.open" title="Link to this definition">¶</a></dt>
+<dd><p>Opens the camera for capturing images.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="optibeam.camera.Camera.ptp_status">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ptp_status</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.12)"><span class="pre">bool</span></a></span></span><a class="reference internal" href="../_modules/optibeam/camera.html#Camera.ptp_status"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#optibeam.camera.Camera.ptp_status" title="Link to this definition">¶</a></dt>
+<dd><p>Checks the status of the Precision Time Protocol (PTP) on the camera.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>True if PTP is enabled, False otherwise.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.12)">bool</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="optibeam.camera.Camera.set_camera_params">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">set_camera_params</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.12)"><span class="pre">dict</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optibeam/camera.html#Camera.set_camera_params"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#optibeam.camera.Camera.set_camera_params" title="Link to this definition">¶</a></dt>
+<dd><p>Resets the camera parameters based on the input dictionary.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>params</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.12)"><em>dict</em></a>) – A dictionary containing camera parameter settings such as exposure, ISO, etc.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="optibeam.camera.Synchronizer">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">optibeam.camera.</span></span><span class="sig-name descname"><span class="pre">Synchronizer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cameras</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.12)"><span class="pre">List</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#optibeam.camera.Camera" title="optibeam.camera.Camera"><span class="pre">Camera</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optibeam/camera.html#Synchronizer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#optibeam.camera.Synchronizer" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Class to handle synchronization and simultaneous image capturing from multiple camera objects using PTP.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="optibeam.camera.Synchronizer.camera_registration">
+<span class="sig-name descname"><span class="pre">camera_registration</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optibeam/camera.html#Synchronizer.camera_registration"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#optibeam.camera.Synchronizer.camera_registration" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="optibeam.camera.Synchronizer.initialize_ptp">
+<span class="sig-name descname"><span class="pre">initialize_ptp</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optibeam/camera.html#Synchronizer.initialize_ptp"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#optibeam.camera.Synchronizer.initialize_ptp" title="Link to this definition">¶</a></dt>
+<dd><p>Initializes PTP on all cameras to synchronize them.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="optibeam.camera.Synchronizer.take_images">
+<span class="sig-name descname"><span class="pre">take_images</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optibeam/camera.html#Synchronizer.take_images"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#optibeam.camera.Synchronizer.take_images" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="optibeam.camera.num_of_cameras_detected">
+<span class="sig-prename descclassname"><span class="pre">optibeam.camera.</span></span><span class="sig-name descname"><span class="pre">num_of_cameras_detected</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optibeam/camera.html#num_of_cameras_detected"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#optibeam.camera.num_of_cameras_detected" title="Link to this definition">¶</a></dt>
+<dd><p>Returns the detected number of cameras that connected to the computer</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The number of cameras detected.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.12)">int</a></p>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
-<section id="module-optibeam.dmd">
-<span id="optibeam-dmd-module"></span><h2>optibeam.dmd module<a class="headerlink" href="#module-optibeam.dmd" title="Link to this heading">¶</a></h2>
+<section id="optibeam-dmd-module">
+<h2>optibeam.dmd module<a class="headerlink" href="#optibeam-dmd-module" title="Link to this heading">¶</a></h2>
 </section>
 <section id="module-optibeam.evaluation">
 <span id="optibeam-evaluation-module"></span><h2>optibeam.evaluation module<a class="headerlink" href="#module-optibeam.evaluation" title="Link to this heading">¶</a></h2>
@@ -105,22 +304,166 @@ output: None</p>
 <section id="module-optibeam.simulation">
 <span id="optibeam-simulation-module"></span><h2>optibeam.simulation module<a class="headerlink" href="#module-optibeam.simulation" title="Link to this heading">¶</a></h2>
 <dl class="py class">
-<dt class="sig sig-object py" id="optibeam.simulation.Converter">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">optibeam.simulation.</span></span><span class="sig-name descname"><span class="pre">Converter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">function</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optibeam/simulation.html#Converter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#optibeam.simulation.Converter" title="Link to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
-<p>Class used to convert generated beam pattern (image) into different formats including Python objects and files.
-where divices like DMD, SLM can load the beam pattern.</p>
+<dt class="sig sig-object py" id="optibeam.simulation.CauchyDistribution">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">optibeam.simulation.</span></span><span class="sig-name descname"><span class="pre">CauchyDistribution</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">canvas</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#optibeam.simulation.DynamicPatterns" title="optibeam.simulation.DynamicPatterns"><span class="pre">DynamicPatterns</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optibeam/simulation.html#CauchyDistribution"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#optibeam.simulation.CauchyDistribution" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#optibeam.simulation.Distribution" title="optibeam.simulation.Distribution"><code class="xref py py-class docutils literal notranslate"><span class="pre">Distribution</span></code></a></p>
+<p>Class for generating a 2D Cauchy distribution.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="optibeam.simulation.Distribution">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">optibeam.simulation.</span></span><span class="sig-name descname"><span class="pre">Distribution</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">canvas</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#optibeam.simulation.DynamicPatterns" title="optibeam.simulation.DynamicPatterns"><span class="pre">DynamicPatterns</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optibeam/simulation.html#Distribution"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#optibeam.simulation.Distribution" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/abc.html#abc.ABC" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ABC</span></code></a></p>
+<p>Abstract class for defining the distribution of different beam patterns.</p>
 <dl class="py method">
-<dt class="sig sig-object py" id="optibeam.simulation.Converter.convert">
-<span class="sig-name descname"><span class="pre">convert</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optibeam/simulation.html#Converter.convert"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#optibeam.simulation.Converter.convert" title="Link to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="optibeam.simulation.Distribution.update">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">update</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optibeam/simulation.html#Distribution.update"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#optibeam.simulation.Distribution.update" title="Link to this definition">¶</a></dt>
+<dd><p>Update the distribution’s state.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="optibeam.simulation.Distribution.pattern">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">pattern</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.26)"><span class="pre">ndarray</span></a></em><a class="headerlink" href="#optibeam.simulation.Distribution.pattern" title="Link to this definition">¶</a></dt>
+<dd><p>Return the distribution’s current pattern.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="optibeam.simulation.DynamicPatterns">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">optibeam.simulation.</span></span><span class="sig-name descname"><span class="pre">DynamicPatterns</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">height</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.12)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">128</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">width</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.12)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">128</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optibeam/simulation.html#DynamicPatterns"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#optibeam.simulation.DynamicPatterns" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Class for generating and managing dynamic patterns on a 2D canvas.
+Focusing on image pattern generation only.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="optibeam.simulation.DynamicPatterns.append">
+<span class="sig-name descname"><span class="pre">append</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">distribution</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optibeam/simulation.html#DynamicPatterns.append"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#optibeam.simulation.DynamicPatterns.append" title="Link to this definition">¶</a></dt>
+<dd><p>Append a distribution object to the list of distributions.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="optibeam.simulation.DynamicPatterns.apply_distribution">
+<span class="sig-name descname"><span class="pre">apply_distribution</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optibeam/simulation.html#DynamicPatterns.apply_distribution"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#optibeam.simulation.DynamicPatterns.apply_distribution" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="optibeam.simulation.DynamicPatterns.clear_canvas">
+<span class="sig-name descname"><span class="pre">clear_canvas</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optibeam/simulation.html#DynamicPatterns.clear_canvas"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#optibeam.simulation.DynamicPatterns.clear_canvas" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="optibeam.simulation.DynamicPatterns.get_image">
+<span class="sig-name descname"><span class="pre">get_image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'narray'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optibeam/simulation.html#DynamicPatterns.get_image"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#optibeam.simulation.DynamicPatterns.get_image" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="optibeam.simulation.DynamicPatterns.plot_canvas">
+<span class="sig-name descname"><span class="pre">plot_canvas</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cmap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'viridis'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pause</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.01</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optibeam/simulation.html#DynamicPatterns.plot_canvas"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#optibeam.simulation.DynamicPatterns.plot_canvas" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="optibeam.simulation.DynamicPatterns.transform">
+<span class="sig-name descname"><span class="pre">transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">transformations</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.12)"><span class="pre">List</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Callable" title="(in Python v3.12)"><span class="pre">Callable</span></a><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.26)"><span class="pre">ndarray</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.26)"><span class="pre">ndarray</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optibeam/simulation.html#DynamicPatterns.transform"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#optibeam.simulation.DynamicPatterns.transform" title="Link to this definition">¶</a></dt>
+<dd><p>Apply a series of transformations on the final image (), not on the canvas.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="optibeam.simulation.DynamicPatterns.update">
+<span class="sig-name descname"><span class="pre">update</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optibeam/simulation.html#DynamicPatterns.update"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#optibeam.simulation.DynamicPatterns.update" title="Link to this definition">¶</a></dt>
+<dd><p>Update the canvas by updating all the distributions.
+Need distribution objects have the update method implemented.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="optibeam.simulation.DynamicPatterns.height">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">height</span></span><a class="headerlink" href="#optibeam.simulation.DynamicPatterns.height" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="optibeam.simulation.DynamicPatterns.width">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">width</span></span><a class="headerlink" href="#optibeam.simulation.DynamicPatterns.width" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="py class">
-<dt class="sig sig-object py" id="optibeam.simulation.Simulation">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">optibeam.simulation.</span></span><span class="sig-name descname"><span class="pre">Simulation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">beam_pattern</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optibeam/simulation.html#Simulation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#optibeam.simulation.Simulation" title="Link to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dt class="sig sig-object py" id="optibeam.simulation.GaussianDistribution">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">optibeam.simulation.</span></span><span class="sig-name descname"><span class="pre">GaussianDistribution</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">canvas</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#optibeam.simulation.DynamicPatterns" title="optibeam.simulation.DynamicPatterns"><span class="pre">DynamicPatterns</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">mean_x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.12)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mean_y</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.12)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">std_x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.12)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">std_y</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.12)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x_velocity</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.12)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_velocity</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.12)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">speed_momentum</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.12)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.9</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rotation_radians</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.12)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rotation_velocity</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.12)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rotation_momentum</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.12)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.95</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optibeam/simulation.html#GaussianDistribution"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#optibeam.simulation.GaussianDistribution" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#optibeam.simulation.Distribution" title="optibeam.simulation.Distribution"><code class="xref py py-class docutils literal notranslate"><span class="pre">Distribution</span></code></a></p>
+<p>Class for generating a 2D Gaussian distribution.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="optibeam.simulation.GaussianDistribution.change_distribution_params">
+<span class="sig-name descname"><span class="pre">change_distribution_params</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vol_scale</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.12)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.01</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">std_scale</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.12)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.01</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rot_scale</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.12)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.01</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optibeam/simulation.html#GaussianDistribution.change_distribution_params"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#optibeam.simulation.GaussianDistribution.change_distribution_params" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="optibeam.simulation.GaussianDistribution.generate_2d_gaussian">
+<span class="sig-name descname"><span class="pre">generate_2d_gaussian</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.26)"><span class="pre">ndarray</span></a></span></span><a class="reference internal" href="../_modules/optibeam/simulation.html#GaussianDistribution.generate_2d_gaussian"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#optibeam.simulation.GaussianDistribution.generate_2d_gaussian" title="Link to this definition">¶</a></dt>
+<dd><p>Generate a rotated 2D Gaussian distribution based on the current state of the distribution.
+The rotation is centered around the mean of the distribution.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="optibeam.simulation.GaussianDistribution.update">
+<span class="sig-name descname"><span class="pre">update</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optibeam/simulation.html#GaussianDistribution.update"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#optibeam.simulation.GaussianDistribution.update" title="Link to this definition">¶</a></dt>
+<dd><p>Update the distribution’s state.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="optibeam.simulation.MaxwellBoltzmannDistribution">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">optibeam.simulation.</span></span><span class="sig-name descname"><span class="pre">MaxwellBoltzmannDistribution</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">canvas</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#optibeam.simulation.DynamicPatterns" title="optibeam.simulation.DynamicPatterns"><span class="pre">DynamicPatterns</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optibeam/simulation.html#MaxwellBoltzmannDistribution"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#optibeam.simulation.MaxwellBoltzmannDistribution" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#optibeam.simulation.Distribution" title="optibeam.simulation.Distribution"><code class="xref py py-class docutils literal notranslate"><span class="pre">Distribution</span></code></a></p>
+<p>Class for generating a 2D Maxwell-Boltzmann distribution.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="optibeam.simulation.apply_transformation_matrix">
+<span class="sig-prename descclassname"><span class="pre">optibeam.simulation.</span></span><span class="sig-name descname"><span class="pre">apply_transformation_matrix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.26)"><span class="pre">ndarray</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">transformation_matrix</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.26)"><span class="pre">ndarray</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.26)"><span class="pre">ndarray</span></a></span></span><a class="reference internal" href="../_modules/optibeam/simulation.html#apply_transformation_matrix"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#optibeam.simulation.apply_transformation_matrix" title="Link to this definition">¶</a></dt>
+<dd><p>Applies a 3x3 transformation matrix to a 2D numpy array image.</p>
+<p>Args:
+- image (numpy.ndarray): The input image as a 2D numpy array.
+- transformation_matrix (numpy.ndarray): The 3x3 transformation matrix.</p>
+<p>Returns:
+- numpy.ndarray: The transformed image.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="optibeam.simulation.compile_transformation_matrix">
+<span class="sig-prename descclassname"><span class="pre">optibeam.simulation.</span></span><span class="sig-name descname"><span class="pre">compile_transformation_matrix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.26)"><span class="pre">ndarray</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">translate</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.12)"><span class="pre">tuple</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">(0,</span> <span class="pre">0)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">radians</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.12)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale_x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.12)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale_y</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.12)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.26)"><span class="pre">ndarray</span></a></span></span><a class="reference internal" href="../_modules/optibeam/simulation.html#compile_transformation_matrix"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#optibeam.simulation.compile_transformation_matrix" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="optibeam.simulation.create_mosaic_image">
+<span class="sig-prename descclassname"><span class="pre">optibeam.simulation.</span></span><span class="sig-name descname"><span class="pre">create_mosaic_image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.12)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1024</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.12)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">3</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.26)"><span class="pre">ndarray</span></a></span></span><a class="reference internal" href="../_modules/optibeam/simulation.html#create_mosaic_image"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#optibeam.simulation.create_mosaic_image" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="optibeam.simulation.macro_pixel">
+<span class="sig-prename descclassname"><span class="pre">optibeam.simulation.</span></span><span class="sig-name descname"><span class="pre">macro_pixel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">narray</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.26)"><span class="pre">ndarray</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.12)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">8</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.26)"><span class="pre">ndarray</span></a></span></span><a class="reference internal" href="../_modules/optibeam/simulation.html#macro_pixel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#optibeam.simulation.macro_pixel" title="Link to this definition">¶</a></dt>
+<dd><p>Expand a 2D numpy array (image) to a macro pixel (size, size) array.
+e.g. If canvas is 64x64, and input size is 8, then it will return a 512x512 pixel matrix.</p>
+<p>Parameters:
+- size: The size of the macro pixel.</p>
+<p>Returns:
+- A 2D numpy array expanded image.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="optibeam.simulation.pixel_value_remap">
+<span class="sig-prename descclassname"><span class="pre">optibeam.simulation.</span></span><span class="sig-name descname"><span class="pre">pixel_value_remap</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">narray</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.26)"><span class="pre">ndarray</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_pixel_value</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.12)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">255</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.26)"><span class="pre">ndarray</span></a></span></span><a class="reference internal" href="../_modules/optibeam/simulation.html#pixel_value_remap"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#optibeam.simulation.pixel_value_remap" title="Link to this definition">¶</a></dt>
+<dd><p>Rescale the pixel values of the canvas to a new maximum value.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="optibeam.simulation.transform_image">
+<span class="sig-prename descclassname"><span class="pre">optibeam.simulation.</span></span><span class="sig-name descname"><span class="pre">transform_image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rotate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">translate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(0,</span> <span class="pre">0)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">implementation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'opencv'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optibeam/simulation.html#transform_image"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#optibeam.simulation.transform_image" title="Link to this definition">¶</a></dt>
+<dd><p>Transforms a 2D numpy array image according to the specified parameters.
+- rotate: Rotation angle in degrees (counterclockwise)
+- scale: Scaling factor
+- translate: Tuple (tx, ty) representing translation in pixels
+- implementation: Choice of implementation (‘opencv’ or ‘custom’)</p>
 </dd></dl>
 
 </section>
@@ -452,6 +795,11 @@ np.ndarray: The processed array with the minimum value subtracted from each elem
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="optibeam.visualization.img_2_params_evaluation">
+<span class="sig-prename descclassname"><span class="pre">optibeam.visualization.</span></span><span class="sig-name descname"><span class="pre">img_2_params_evaluation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">true_label</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pred_label</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optibeam/visualization.html#img_2_params_evaluation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#optibeam.visualization.img_2_params_evaluation" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="optibeam.visualization.plot_narray">
 <span class="sig-prename descclassname"><span class="pre">optibeam.visualization.</span></span><span class="sig-name descname"><span class="pre">plot_narray</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">narray_img</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optibeam/visualization.html#plot_narray"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#optibeam.visualization.plot_narray" title="Link to this definition">¶</a></dt>
 <dd><p>Plot a 2D NumPy array as an image.
@@ -482,8 +830,38 @@ narray_img (np.ndarray): A 2D NumPy array to plot as an image.</p>
     <ul>
 <li><a class="reference internal" href="#">optibeam package</a><ul>
 <li><a class="reference internal" href="#submodules">Submodules</a></li>
-<li><a class="reference internal" href="#module-optibeam.camera">optibeam.camera module</a></li>
-<li><a class="reference internal" href="#module-optibeam.dmd">optibeam.dmd module</a></li>
+<li><a class="reference internal" href="#module-optibeam.camera">optibeam.camera module</a><ul>
+<li><a class="reference internal" href="#optibeam.camera.BaslerCamera"><code class="docutils literal notranslate"><span class="pre">BaslerCamera</span></code></a><ul>
+<li><a class="reference internal" href="#optibeam.camera.BaslerCamera.capture"><code class="docutils literal notranslate"><span class="pre">BaslerCamera.capture()</span></code></a></li>
+<li><a class="reference internal" href="#optibeam.camera.BaslerCamera.close"><code class="docutils literal notranslate"><span class="pre">BaslerCamera.close()</span></code></a></li>
+<li><a class="reference internal" href="#optibeam.camera.BaslerCamera.demo_video"><code class="docutils literal notranslate"><span class="pre">BaslerCamera.demo_video()</span></code></a></li>
+<li><a class="reference internal" href="#optibeam.camera.BaslerCamera.enable_ptp"><code class="docutils literal notranslate"><span class="pre">BaslerCamera.enable_ptp()</span></code></a></li>
+<li><a class="reference internal" href="#optibeam.camera.BaslerCamera.get_info"><code class="docutils literal notranslate"><span class="pre">BaslerCamera.get_info()</span></code></a></li>
+<li><a class="reference internal" href="#optibeam.camera.BaslerCamera.open"><code class="docutils literal notranslate"><span class="pre">BaslerCamera.open()</span></code></a></li>
+<li><a class="reference internal" href="#optibeam.camera.BaslerCamera.ptp_status"><code class="docutils literal notranslate"><span class="pre">BaslerCamera.ptp_status()</span></code></a></li>
+<li><a class="reference internal" href="#optibeam.camera.BaslerCamera.set_camera_params"><code class="docutils literal notranslate"><span class="pre">BaslerCamera.set_camera_params()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#optibeam.camera.Camera"><code class="docutils literal notranslate"><span class="pre">Camera</span></code></a><ul>
+<li><a class="reference internal" href="#optibeam.camera.Camera.capture"><code class="docutils literal notranslate"><span class="pre">Camera.capture()</span></code></a></li>
+<li><a class="reference internal" href="#optibeam.camera.Camera.close"><code class="docutils literal notranslate"><span class="pre">Camera.close()</span></code></a></li>
+<li><a class="reference internal" href="#optibeam.camera.Camera.enable_ptp"><code class="docutils literal notranslate"><span class="pre">Camera.enable_ptp()</span></code></a></li>
+<li><a class="reference internal" href="#optibeam.camera.Camera.get_info"><code class="docutils literal notranslate"><span class="pre">Camera.get_info()</span></code></a></li>
+<li><a class="reference internal" href="#optibeam.camera.Camera.open"><code class="docutils literal notranslate"><span class="pre">Camera.open()</span></code></a></li>
+<li><a class="reference internal" href="#optibeam.camera.Camera.ptp_status"><code class="docutils literal notranslate"><span class="pre">Camera.ptp_status()</span></code></a></li>
+<li><a class="reference internal" href="#optibeam.camera.Camera.set_camera_params"><code class="docutils literal notranslate"><span class="pre">Camera.set_camera_params()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#optibeam.camera.Synchronizer"><code class="docutils literal notranslate"><span class="pre">Synchronizer</span></code></a><ul>
+<li><a class="reference internal" href="#optibeam.camera.Synchronizer.camera_registration"><code class="docutils literal notranslate"><span class="pre">Synchronizer.camera_registration()</span></code></a></li>
+<li><a class="reference internal" href="#optibeam.camera.Synchronizer.initialize_ptp"><code class="docutils literal notranslate"><span class="pre">Synchronizer.initialize_ptp()</span></code></a></li>
+<li><a class="reference internal" href="#optibeam.camera.Synchronizer.take_images"><code class="docutils literal notranslate"><span class="pre">Synchronizer.take_images()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#optibeam.camera.num_of_cameras_detected"><code class="docutils literal notranslate"><span class="pre">num_of_cameras_detected()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#optibeam-dmd-module">optibeam.dmd module</a></li>
 <li><a class="reference internal" href="#module-optibeam.evaluation">optibeam.evaluation module</a><ul>
 <li><a class="reference internal" href="#optibeam.evaluation.beam_params"><code class="docutils literal notranslate"><span class="pre">beam_params()</span></code></a></li>
 <li><a class="reference internal" href="#optibeam.evaluation.center_of_mass"><code class="docutils literal notranslate"><span class="pre">center_of_mass()</span></code></a></li>
@@ -495,11 +873,37 @@ narray_img (np.ndarray): A 2D NumPy array to plot as an image.</p>
 </ul>
 </li>
 <li><a class="reference internal" href="#module-optibeam.simulation">optibeam.simulation module</a><ul>
-<li><a class="reference internal" href="#optibeam.simulation.Converter"><code class="docutils literal notranslate"><span class="pre">Converter</span></code></a><ul>
-<li><a class="reference internal" href="#optibeam.simulation.Converter.convert"><code class="docutils literal notranslate"><span class="pre">Converter.convert()</span></code></a></li>
+<li><a class="reference internal" href="#optibeam.simulation.CauchyDistribution"><code class="docutils literal notranslate"><span class="pre">CauchyDistribution</span></code></a></li>
+<li><a class="reference internal" href="#optibeam.simulation.Distribution"><code class="docutils literal notranslate"><span class="pre">Distribution</span></code></a><ul>
+<li><a class="reference internal" href="#optibeam.simulation.Distribution.update"><code class="docutils literal notranslate"><span class="pre">Distribution.update()</span></code></a></li>
+<li><a class="reference internal" href="#optibeam.simulation.Distribution.pattern"><code class="docutils literal notranslate"><span class="pre">Distribution.pattern</span></code></a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#optibeam.simulation.Simulation"><code class="docutils literal notranslate"><span class="pre">Simulation</span></code></a></li>
+<li><a class="reference internal" href="#optibeam.simulation.DynamicPatterns"><code class="docutils literal notranslate"><span class="pre">DynamicPatterns</span></code></a><ul>
+<li><a class="reference internal" href="#optibeam.simulation.DynamicPatterns.append"><code class="docutils literal notranslate"><span class="pre">DynamicPatterns.append()</span></code></a></li>
+<li><a class="reference internal" href="#optibeam.simulation.DynamicPatterns.apply_distribution"><code class="docutils literal notranslate"><span class="pre">DynamicPatterns.apply_distribution()</span></code></a></li>
+<li><a class="reference internal" href="#optibeam.simulation.DynamicPatterns.clear_canvas"><code class="docutils literal notranslate"><span class="pre">DynamicPatterns.clear_canvas()</span></code></a></li>
+<li><a class="reference internal" href="#optibeam.simulation.DynamicPatterns.get_image"><code class="docutils literal notranslate"><span class="pre">DynamicPatterns.get_image()</span></code></a></li>
+<li><a class="reference internal" href="#optibeam.simulation.DynamicPatterns.plot_canvas"><code class="docutils literal notranslate"><span class="pre">DynamicPatterns.plot_canvas()</span></code></a></li>
+<li><a class="reference internal" href="#optibeam.simulation.DynamicPatterns.transform"><code class="docutils literal notranslate"><span class="pre">DynamicPatterns.transform()</span></code></a></li>
+<li><a class="reference internal" href="#optibeam.simulation.DynamicPatterns.update"><code class="docutils literal notranslate"><span class="pre">DynamicPatterns.update()</span></code></a></li>
+<li><a class="reference internal" href="#optibeam.simulation.DynamicPatterns.height"><code class="docutils literal notranslate"><span class="pre">DynamicPatterns.height</span></code></a></li>
+<li><a class="reference internal" href="#optibeam.simulation.DynamicPatterns.width"><code class="docutils literal notranslate"><span class="pre">DynamicPatterns.width</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#optibeam.simulation.GaussianDistribution"><code class="docutils literal notranslate"><span class="pre">GaussianDistribution</span></code></a><ul>
+<li><a class="reference internal" href="#optibeam.simulation.GaussianDistribution.change_distribution_params"><code class="docutils literal notranslate"><span class="pre">GaussianDistribution.change_distribution_params()</span></code></a></li>
+<li><a class="reference internal" href="#optibeam.simulation.GaussianDistribution.generate_2d_gaussian"><code class="docutils literal notranslate"><span class="pre">GaussianDistribution.generate_2d_gaussian()</span></code></a></li>
+<li><a class="reference internal" href="#optibeam.simulation.GaussianDistribution.update"><code class="docutils literal notranslate"><span class="pre">GaussianDistribution.update()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#optibeam.simulation.MaxwellBoltzmannDistribution"><code class="docutils literal notranslate"><span class="pre">MaxwellBoltzmannDistribution</span></code></a></li>
+<li><a class="reference internal" href="#optibeam.simulation.apply_transformation_matrix"><code class="docutils literal notranslate"><span class="pre">apply_transformation_matrix()</span></code></a></li>
+<li><a class="reference internal" href="#optibeam.simulation.compile_transformation_matrix"><code class="docutils literal notranslate"><span class="pre">compile_transformation_matrix()</span></code></a></li>
+<li><a class="reference internal" href="#optibeam.simulation.create_mosaic_image"><code class="docutils literal notranslate"><span class="pre">create_mosaic_image()</span></code></a></li>
+<li><a class="reference internal" href="#optibeam.simulation.macro_pixel"><code class="docutils literal notranslate"><span class="pre">macro_pixel()</span></code></a></li>
+<li><a class="reference internal" href="#optibeam.simulation.pixel_value_remap"><code class="docutils literal notranslate"><span class="pre">pixel_value_remap()</span></code></a></li>
+<li><a class="reference internal" href="#optibeam.simulation.transform_image"><code class="docutils literal notranslate"><span class="pre">transform_image()</span></code></a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#module-optibeam.training">optibeam.training module</a><ul>
@@ -562,6 +966,7 @@ narray_img (np.ndarray): A 2D NumPy array to plot as an image.</p>
 <li><a class="reference internal" href="#optibeam.visualization.visualPCA.plot_to_memory"><code class="docutils literal notranslate"><span class="pre">visualPCA.plot_to_memory()</span></code></a></li>
 </ul>
 </li>
+<li><a class="reference internal" href="#optibeam.visualization.img_2_params_evaluation"><code class="docutils literal notranslate"><span class="pre">img_2_params_evaluation()</span></code></a></li>
 <li><a class="reference internal" href="#optibeam.visualization.plot_narray"><code class="docutils literal notranslate"><span class="pre">plot_narray()</span></code></a></li>
 <li><a class="reference internal" href="#optibeam.visualization.plot_prediction_comparison"><code class="docutils literal notranslate"><span class="pre">plot_prediction_comparison()</span></code></a></li>
 </ul>
@@ -610,7 +1015,7 @@ narray_img (np.ndarray): A 2D NumPy array to plot as an image.</p>
         <li class="right" >
           <a href="modules.html" title="optibeam"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../index.html">OptiBeam 0.1.40 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">OptiBeam 0.1.42 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="modules.html" >optibeam</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">optibeam package</a></li> 
       </ul>

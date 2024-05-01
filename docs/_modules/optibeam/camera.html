@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>optibeam.camera &#8212; OptiBeam 0.1.42 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=4848ba22" />
+    <link rel="stylesheet" type="text/css" href="../../_static/pyramid.css?v=a5b9c134" />
+    <link rel="stylesheet" type="text/css" href="../../_static/css/toc.css?v=72483682" />
+    <script src="../../_static/documentation_options.js?v=05fb4756"></script>
+    <script src="../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Neuton&amp;subset=latin" type="text/css" media="screen" charset="utf-8" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Nobile:regular,italic,bold,bolditalic&amp;subset=latin" type="text/css" media="screen" charset="utf-8" />
+<!--[if lte IE 6]>
+<link rel="stylesheet" href="../../_static/ie6.css" type="text/css" media="screen" charset="utf-8" />
+<![endif]-->
+
+  </head><body>
+
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">OptiBeam 0.1.42 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">optibeam.camera</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for optibeam.camera</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">.utils</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">abc</span> <span class="kn">import</span> <span class="n">ABC</span><span class="p">,</span> <span class="n">abstractmethod</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">cv2</span>
+<span class="kn">from</span> <span class="nn">pypylon</span> <span class="kn">import</span> <span class="n">pylon</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
+
+
+<div class="viewcode-block" id="Camera">
+<a class="viewcode-back" href="../../modules/optibeam.html#optibeam.camera.Camera">[docs]</a>
+<span class="k">class</span> <span class="nc">Camera</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Abstract base class for a camera, providing a blueprint for camera operations.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+<div class="viewcode-block" id="Camera.get_info">
+<a class="viewcode-back" href="../../modules/optibeam.html#optibeam.camera.Camera.get_info">[docs]</a>
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">get_info</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Retrieves information about the camera.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            dict: A dictionary containing camera details such as model, resolution, and other relevant parameters.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span></div>
+
+    
+<div class="viewcode-block" id="Camera.set_camera_params">
+<a class="viewcode-back" href="../../modules/optibeam.html#optibeam.camera.Camera.set_camera_params">[docs]</a>
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">set_camera_params</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Resets the camera parameters based on the input dictionary.</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">            params (dict): A dictionary containing camera parameter settings such as exposure, ISO, etc.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span></div>
+
+    
+<div class="viewcode-block" id="Camera.ptp_status">
+<a class="viewcode-back" href="../../modules/optibeam.html#optibeam.camera.Camera.ptp_status">[docs]</a>
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">ptp_status</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Checks the status of the Precision Time Protocol (PTP) on the camera.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            bool: True if PTP is enabled, False otherwise.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span></div>
+
+    
+<div class="viewcode-block" id="Camera.enable_ptp">
+<a class="viewcode-back" href="../../modules/optibeam.html#optibeam.camera.Camera.enable_ptp">[docs]</a>
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">enable_ptp</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Enables the Precision Time Protocol (PTP) on the camera. (if supported)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span></div>
+
+    
+<div class="viewcode-block" id="Camera.open">
+<a class="viewcode-back" href="../../modules/optibeam.html#optibeam.camera.Camera.open">[docs]</a>
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">open</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Opens the camera for capturing images.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span></div>
+
+    
+<div class="viewcode-block" id="Camera.close">
+<a class="viewcode-back" href="../../modules/optibeam.html#optibeam.camera.Camera.close">[docs]</a>
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Closes the camera after capturing images. release resources.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span></div>
+
+    
+<div class="viewcode-block" id="Camera.capture">
+<a class="viewcode-back" href="../../modules/optibeam.html#optibeam.camera.Camera.capture">[docs]</a>
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">capture</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Captures an image using the camera.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            np.ndarray: An array representing the captured image.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="BaslerCamera">
+<a class="viewcode-back" href="../../modules/optibeam.html#optibeam.camera.BaslerCamera">[docs]</a>
+<span class="k">class</span> <span class="nc">BaslerCamera</span><span class="p">(</span><span class="n">Camera</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Class representing a Basler camera.</span>
+<span class="sd">    https://docs.baslerweb.com/precision-time-protocol#checking-the-status-of-the-ptp-clock-synchronization</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">camera</span><span class="p">:</span> <span class="n">pylon</span><span class="o">.</span><span class="n">InstantCamera</span><span class="p">,</span> <span class="n">params</span><span class="p">:</span> <span class="nb">dict</span><span class="o">=</span><span class="p">{}):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initializes a Basler camera object with a given camera ID.</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">            camera_id (int): The ID of the camera.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">camera</span> <span class="o">=</span> <span class="n">camera</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">open</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_camera_params</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
+
+<div class="viewcode-block" id="BaslerCamera.open">
+<a class="viewcode-back" href="../../modules/optibeam.html#optibeam.camera.BaslerCamera.open">[docs]</a>
+    <span class="k">def</span> <span class="nf">open</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">camera</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">camera</span><span class="o">.</span><span class="n">Close</span><span class="p">()</span>
+            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                <span class="k">pass</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">camera</span><span class="o">.</span><span class="n">Open</span><span class="p">()</span></div>
+
+        
+<div class="viewcode-block" id="BaslerCamera.close">
+<a class="viewcode-back" href="../../modules/optibeam.html#optibeam.camera.BaslerCamera.close">[docs]</a>
+    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">camera</span><span class="o">.</span><span class="n">IsGrabbing</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">camera</span><span class="o">.</span><span class="n">StopGrabbing</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">camera</span><span class="o">.</span><span class="n">Close</span><span class="p">()</span></div>
+
+    
+<div class="viewcode-block" id="BaslerCamera.get_info">
+<a class="viewcode-back" href="../../modules/optibeam.html#optibeam.camera.BaslerCamera.get_info">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_info</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Retrieves information about the Basler camera.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            dict: A dictionary containing camera details such as model, serial number, etc.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">info</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">camera</span><span class="o">.</span><span class="n">GetDeviceInfo</span><span class="p">()</span>
+        <span class="k">return</span> <span class="p">{</span>
+                <span class="s2">&quot;Camera ID&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">camera_id</span><span class="p">,</span>
+                <span class="s2">&quot;Camera Information&quot;</span><span class="p">:</span> <span class="n">info</span><span class="o">.</span><span class="n">GetModelName</span><span class="p">(),</span> 
+                <span class="s2">&quot;Camera Serial Number&quot;</span><span class="p">:</span> <span class="n">info</span><span class="o">.</span><span class="n">GetSerialNumber</span><span class="p">(),</span>
+                <span class="s2">&quot;Camera Device Version&quot;</span><span class="p">:</span> <span class="n">info</span><span class="o">.</span><span class="n">GetDeviceVersion</span><span class="p">(),</span>
+                <span class="s2">&quot;Camera Device Class&quot;</span><span class="p">:</span> <span class="n">info</span><span class="o">.</span><span class="n">GetDeviceClass</span><span class="p">(),</span>
+                <span class="s2">&quot;Camera Resolution&quot;</span><span class="p">:</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">camera</span><span class="o">.</span><span class="n">Width</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">camera</span><span class="o">.</span><span class="n">Height</span><span class="p">())</span>
+                <span class="p">}</span></div>
+
+    
+<div class="viewcode-block" id="BaslerCamera.set_camera_params">
+<a class="viewcode-back" href="../../modules/optibeam.html#optibeam.camera.BaslerCamera.set_camera_params">[docs]</a>
+    <span class="k">def</span> <span class="nf">set_camera_params</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Resets the camera parameters based on the input dictionary.</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">            params (dict): A dictionary containing camera parameter settings such as exposure, ISO, etc.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">converter</span> <span class="o">=</span> <span class="n">pylon</span><span class="o">.</span><span class="n">ImageFormatConverter</span><span class="p">()</span>
+        <span class="c1"># Setting the converter to output mono8 images for simplicity</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">converter</span><span class="o">.</span><span class="n">OutputPixelFormat</span> <span class="o">=</span> <span class="n">pylon</span><span class="o">.</span><span class="n">PixelType_Mono8</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">output_dim</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">camera</span><span class="o">.</span><span class="n">Width</span><span class="o">.</span><span class="n">GetValue</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">camera</span><span class="o">.</span><span class="n">Height</span><span class="o">.</span><span class="n">GetValue</span><span class="p">()]</span>
+        
+        <span class="c1"># Ensure the camera exposure, gain, and gamma are set to manual mode before adjusting</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">camera</span><span class="o">.</span><span class="n">ExposureAuto</span><span class="o">.</span><span class="n">SetValue</span><span class="p">(</span><span class="s1">&#39;Off&#39;</span><span class="p">)</span>  <span class="c1"># Turn off auto exposure</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">camera</span><span class="o">.</span><span class="n">GainAuto</span><span class="o">.</span><span class="n">SetValue</span><span class="p">(</span><span class="s1">&#39;Off&#39;</span><span class="p">)</span>      <span class="c1"># Turn off auto gain</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">camera</span><span class="o">.</span><span class="n">GammaEnable</span><span class="o">.</span><span class="n">SetValue</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>    <span class="c1"># Enable gamma correction if supported</span>
+        
+        <span class="c1"># Adjust camera settings - these values are examples and should be adjusted based on your needs and camera capabilities</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">camera</span><span class="o">.</span><span class="n">ExposureTimeRaw</span><span class="o">.</span><span class="n">SetValue</span><span class="p">(</span><span class="mi">100000</span><span class="p">)</span>  <span class="c1"># Set exposure time to 40000 microseconds</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">camera</span><span class="o">.</span><span class="n">GainRaw</span><span class="o">.</span><span class="n">SetValue</span><span class="p">(</span><span class="mi">100</span><span class="p">)</span>            <span class="c1"># Set gain</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">camera</span><span class="o">.</span><span class="n">Gamma</span><span class="o">.</span><span class="n">SetValue</span><span class="p">(</span><span class="mf">1.0</span><span class="p">)</span>              <span class="c1"># Set gamma value to 1.0 (if supported)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">camera</span><span class="o">.</span><span class="n">StartGrabbing</span><span class="p">(</span><span class="n">pylon</span><span class="o">.</span><span class="n">GrabStrategy_LatestImageOnly</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Resetting camera parameters: </span><span class="si">{</span><span class="n">params</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+    
+<div class="viewcode-block" id="BaslerCamera.capture">
+<a class="viewcode-back" href="../../modules/optibeam.html#optibeam.camera.BaslerCamera.capture">[docs]</a>
+    <span class="k">def</span> <span class="nf">capture</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Generator</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">]:</span>
+        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>  <span class="c1"># Change this to a more reliable condition if necessary</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">camera</span><span class="o">.</span><span class="n">IsGrabbing</span><span class="p">():</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">open_camera</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">camera</span><span class="o">.</span><span class="n">StartGrabbing</span><span class="p">(</span><span class="n">pylon</span><span class="o">.</span><span class="n">GrabStrategy_LatestImageOnly</span><span class="p">)</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">grabResult</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">camera</span><span class="o">.</span><span class="n">RetrieveResult</span><span class="p">(</span><span class="mi">5000</span><span class="p">,</span> <span class="n">pylon</span><span class="o">.</span><span class="n">TimeoutHandling_ThrowException</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">grabResult</span><span class="o">.</span><span class="n">GrabSucceeded</span><span class="p">():</span>
+                    <span class="c1"># Convert to OpenCV format</span>
+                    <span class="n">image</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">converter</span><span class="o">.</span><span class="n">Convert</span><span class="p">(</span><span class="n">grabResult</span><span class="p">)</span>
+                    <span class="n">img</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">GetArray</span><span class="p">()</span>
+                    <span class="k">yield</span> <span class="n">img</span>
+                <span class="n">grabResult</span><span class="o">.</span><span class="n">Release</span><span class="p">()</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Error encountered: &quot;</span><span class="p">,</span> <span class="n">e</span><span class="p">)</span>
+                <span class="c1"># Optionally, attempt to reconnect or handle error</span>
+                <span class="n">img</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">putText</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">output_dim</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_dim</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">),</span>
+                                  <span class="s2">&quot;No Image Input&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="mi">240</span><span class="p">),</span> <span class="n">cv2</span><span class="o">.</span><span class="n">FONT_HERSHEY_SIMPLEX</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="p">(</span><span class="mi">255</span><span class="p">,</span> <span class="mi">255</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span> <span class="mi">2</span><span class="p">)</span>
+                <span class="k">yield</span> <span class="n">img</span></div>
+
+                <span class="c1"># No need to break here; let it attempt to reconnect in the next iteration</span>
+                
+<div class="viewcode-block" id="BaslerCamera.demo_video">
+<a class="viewcode-back" href="../../modules/optibeam.html#optibeam.camera.BaslerCamera.demo_video">[docs]</a>
+    <span class="k">def</span> <span class="nf">demo_video</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">save_to</span> <span class="o">=</span> <span class="s2">&quot;../../ResultsCenter/images&quot;</span>
+        <span class="n">cv2</span><span class="o">.</span><span class="n">namedWindow</span><span class="p">(</span><span class="s1">&#39;Camera Output&#39;</span><span class="p">)</span>
+        <span class="n">cv2</span><span class="o">.</span><span class="n">createTrackbar</span><span class="p">(</span><span class="s1">&#39;Exposure time (ms)&#39;</span><span class="p">,</span> <span class="s1">&#39;Camera Output&#39;</span><span class="p">,</span> <span class="mi">50</span><span class="p">,</span> <span class="mi">1000</span><span class="p">,</span> 
+                            <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">camera</span><span class="o">.</span><span class="n">ExposureTimeRaw</span><span class="o">.</span><span class="n">SetValue</span><span class="p">(</span><span class="n">x</span><span class="o">*</span><span class="mi">1000</span><span class="p">))</span>  <span class="c1"># miniseconds</span>
+        <span class="k">for</span> <span class="n">img</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">capture</span><span class="p">():</span>
+            <span class="n">cv2</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="s1">&#39;Camera Output&#39;</span><span class="p">,</span> <span class="n">img</span><span class="p">)</span>
+            <span class="n">key</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">waitKey</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">key</span> <span class="o">==</span> <span class="mi">27</span><span class="p">:</span>  <span class="c1"># ESC key to exit</span>
+                <span class="k">break</span>
+            <span class="k">elif</span> <span class="n">key</span> <span class="o">==</span> <span class="nb">ord</span><span class="p">(</span><span class="s1">&#39;s&#39;</span><span class="p">):</span>  <span class="c1"># &#39;s&#39; key to save the image</span>
+                <span class="n">timestamp</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%Y%m</span><span class="si">%d</span><span class="s1">_%H%M%S&#39;</span><span class="p">)</span>
+                <span class="n">filename</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">save_to</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">timestamp</span><span class="si">}</span><span class="s2">.png&quot;</span>
+                <span class="n">cv2</span><span class="o">.</span><span class="n">imwrite</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">img</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Image saved as </span><span class="si">{</span><span class="n">filename</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+        
+<div class="viewcode-block" id="BaslerCamera.ptp_status">
+<a class="viewcode-back" href="../../modules/optibeam.html#optibeam.camera.BaslerCamera.ptp_status">[docs]</a>
+    <span class="k">def</span> <span class="nf">ptp_status</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">pass</span></div>
+
+    
+<div class="viewcode-block" id="BaslerCamera.enable_ptp">
+<a class="viewcode-back" href="../../modules/optibeam.html#optibeam.camera.BaslerCamera.enable_ptp">[docs]</a>
+    <span class="k">def</span> <span class="nf">enable_ptp</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">pass</span></div>
+</div>
+
+
+
+
+<div class="viewcode-block" id="Synchronizer">
+<a class="viewcode-back" href="../../modules/optibeam.html#optibeam.camera.Synchronizer">[docs]</a>
+<span class="k">class</span> <span class="nc">Synchronizer</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Class to handle synchronization and simultaneous image capturing from multiple camera objects using PTP.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cameras</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Camera</span><span class="p">]):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initializes the Synchronizer with a list of Camera objects.</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">            cameras (List[Camera]): A list of camera objects to be synchronized and managed.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cameras</span> <span class="o">=</span> <span class="n">cameras</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">initialize_ptp</span><span class="p">()</span>
+    
+<div class="viewcode-block" id="Synchronizer.camera_registration">
+<a class="viewcode-back" href="../../modules/optibeam.html#optibeam.camera.Synchronizer.camera_registration">[docs]</a>
+    <span class="k">def</span> <span class="nf">camera_registration</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="Synchronizer.initialize_ptp">
+<a class="viewcode-back" href="../../modules/optibeam.html#optibeam.camera.Synchronizer.initialize_ptp">[docs]</a>
+    <span class="k">def</span> <span class="nf">initialize_ptp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initializes PTP on all cameras to synchronize them.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span></div>
+
+    
+<div class="viewcode-block" id="Synchronizer.take_images">
+<a class="viewcode-back" href="../../modules/optibeam.html#optibeam.camera.Synchronizer.take_images">[docs]</a>
+    <span class="k">def</span> <span class="nf">take_images</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">pass</span></div>
+</div>
+
+
+
+<span class="c1"># ------------------- other functionalities -------------------</span>
+
+<div class="viewcode-block" id="num_of_cameras_detected">
+<a class="viewcode-back" href="../../modules/optibeam.html#optibeam.camera.num_of_cameras_detected">[docs]</a>
+<span class="k">def</span> <span class="nf">num_of_cameras_detected</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns the detected number of cameras that connected to the computer</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        int: The number of cameras detected.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Get the transport layer factory</span>
+    <span class="n">tl_factory</span> <span class="o">=</span> <span class="n">pylon</span><span class="o">.</span><span class="n">TlFactory</span><span class="o">.</span><span class="n">GetInstance</span><span class="p">()</span>
+    <span class="c1"># Get all attached devices</span>
+    <span class="n">devices</span> <span class="o">=</span> <span class="n">tl_factory</span><span class="o">.</span><span class="n">EnumerateDevices</span><span class="p">()</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">devices</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;No cameras detected.&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Number of cameras detected:&quot;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">devices</span><span class="p">))</span>
+        <span class="c1"># Print out the device info for each detected camera</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">device</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">devices</span><span class="p">):</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Camera </span><span class="si">{</span><span class="n">i</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">device</span><span class="o">.</span><span class="n">GetModelName</span><span class="p">()</span><span class="si">}</span><span class="s2"> - Serial Number: </span><span class="si">{</span><span class="n">device</span><span class="o">.</span><span class="n">GetSerialNumber</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="n">devices</span><span class="p">)</span></div>
+
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">OptiBeam 0.1.42 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">optibeam.camera</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2024, Andrew Xu.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.2.6.
+    </div>
+  </body>
+</html>

@@ -17,45 +17,52 @@ class Mock(MagicMock):
         return MagicMock()
 
 # List all the modules you want to mock
-MOCK_MODULES = ['numpy', 
-                'pandas', 
-                'scipy', 
-                'matplotlib', 
-                'matplotlib.pyplot',
-                'matplotlib.colors',
-                'matplotlib.cbook',
-                'matplotlib.figure',
-                'matplotlib.collections',
-                'matplotlib.markers',
-                'matplotlib.patches',
-                'matplotlib.ticker',
-                'matplotlib.dates',
-                'matplotlib.axis',
-                'matplotlib.scale',
-                'matplotlib.transforms',
-                'moviepy',
-                'moviepy.editor',
-                'sklearn', 
-                'sklearn.model_selection',
-                'skimage',
-                'skimage.transform',
-                'scipy.optimize',
-                'scikit-learn',
-                'sklearn.decomposition',
-                'plotly',
-                'plotly.graph_objects',
-                'tensorflow', 
-                'tensorflow.keras',
-                'tensorflow.keras.callbacks',
-                'IPython', 
-                'IPython.display',
-                'multiprocessing', 
-                'multiprocess',
-                'tqdm',
-                'Pillow',
-                'seaborn'
-                ]
+# MOCK_MODULES = ['numpy', 
+#                 'pandas', 
+#                 'scipy', 
+#                 'matplotlib', 
+#                 'matplotlib.pyplot',
+#                 'matplotlib.colors',
+#                 'matplotlib.cbook',
+#                 'matplotlib.figure',
+#                 'matplotlib.collections',
+#                 'matplotlib.markers',
+#                 'matplotlib.patches',
+#                 'matplotlib.ticker',
+#                 'matplotlib.dates',
+#                 'matplotlib.axis',
+#                 'matplotlib.scale',
+#                 'matplotlib.transforms',
+#                 'moviepy',
+#                 'moviepy.editor',
+#                 'sklearn', 
+#                 'sklearn.model_selection',
+#                 'skimage',
+#                 'skimage.transform',
+#                 'scipy.optimize',
+#                 'scikit-learn',
+#                 'sklearn.decomposition',
+#                 'plotly',
+#                 'plotly.graph_objects',
+#                 'tensorflow', 
+#                 'tensorflow.keras',
+#                 'tensorflow.keras.callbacks',
+#                 'IPython', 
+#                 'IPython.display',
+#                 'multiprocessing', 
+#                 'multiprocess',
+#                 'tqdm',
+#                 'Pillow',
+#                 'seaborn',
+#                 'winreg',
+#                 ]
+
+# MOCK_MODULES = [
+#                 'winreg',
+#                 ]
 # sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
+
+
 
 
 
@@ -91,6 +98,10 @@ extensions = [
     'sphinx.ext.intersphinx',
     # ... any other extensions need
 ]
+
+
+# Exclude patterns: specify the file to be ignored
+exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', 'dmd.py', 'dmd']  # Adding 'dmd.py' to be excluded
 
 
 intersphinx_mapping = {

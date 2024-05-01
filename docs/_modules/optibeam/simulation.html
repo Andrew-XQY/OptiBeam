@@ -4,11 +4,11 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>optibeam.simulation &#8212; OptiBeam 0.1.40 documentation</title>
+    <title>optibeam.simulation &#8212; OptiBeam 0.1.42 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=4848ba22" />
     <link rel="stylesheet" type="text/css" href="../../_static/pyramid.css?v=a5b9c134" />
     <link rel="stylesheet" type="text/css" href="../../_static/css/toc.css?v=72483682" />
-    <script src="../../_static/documentation_options.js?v=967b4925"></script>
+    <script src="../../_static/documentation_options.js?v=05fb4756"></script>
     <script src="../../_static/doctools.js?v=888ff710"></script>
     <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
@@ -30,7 +30,7 @@
         <li class="right" >
           <a href="../../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../../index.html">OptiBeam 0.1.40 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">OptiBeam 0.1.42 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Module code</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">optibeam.simulation</a></li> 
       </ul>
@@ -42,40 +42,432 @@
           <div class="body" role="main">
             
   <h1>Source code for optibeam.simulation</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">.utils</span> <span class="kn">import</span> <span class="o">*</span>
-<span class="kn">from</span> <span class="nn">matplotlib.animation</span> <span class="kn">import</span> <span class="n">FuncAnimation</span>
+<span></span><span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">cv2</span>
+
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">abc</span> <span class="kn">import</span> <span class="n">ABC</span><span class="p">,</span> <span class="n">abstractmethod</span>
 
 
-
-<div class="viewcode-block" id="Converter">
-<a class="viewcode-back" href="../../modules/optibeam.html#optibeam.simulation.Converter">[docs]</a>
-<span class="k">class</span> <span class="nc">Converter</span><span class="p">:</span>
+<div class="viewcode-block" id="DynamicPatterns">
+<a class="viewcode-back" href="../../modules/optibeam.html#optibeam.simulation.DynamicPatterns">[docs]</a>
+<span class="k">class</span> <span class="nc">DynamicPatterns</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Class used to convert generated beam pattern (image) into different formats including Python objects and files.</span>
-<span class="sd">    where divices like DMD, SLM can load the beam pattern.</span>
+<span class="sd">    Class for generating and managing dynamic patterns on a 2D canvas.</span>
+<span class="sd">    Focusing on image pattern generation only.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">input_type</span><span class="p">,</span> <span class="n">output_type</span><span class="p">,</span> <span class="n">function</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">input_type</span> <span class="o">=</span> <span class="n">input_type</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">output_type</span> <span class="o">=</span> <span class="n">output_type</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">function</span> <span class="o">=</span> <span class="n">function</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">height</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="mi">128</span><span class="p">,</span> <span class="n">width</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="mi">128</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_height</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_validate_and_convert</span><span class="p">(</span><span class="n">height</span><span class="p">)</span>  <span class="c1"># canvas height</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_width</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_validate_and_convert</span><span class="p">(</span><span class="n">width</span><span class="p">)</span> 
+        <span class="bp">self</span><span class="o">.</span><span class="n">clear_canvas</span><span class="p">()</span>  <span class="c1"># Update canvas size</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">image</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># a copy and representation of the canvas</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_distributions</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_pixel_value</span> <span class="o">=</span> <span class="mi">255</span>  <span class="c1"># Maximum pixel value for the canvas</span>
+        
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;DynamicPatterns with Canvas sides of: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">canvas</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">&quot;</span>
+    
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">height</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_height</span>
 
-<div class="viewcode-block" id="Converter.convert">
-<a class="viewcode-back" href="../../modules/optibeam.html#optibeam.simulation.Converter.convert">[docs]</a>
-    <span class="k">def</span> <span class="nf">convert</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">function</span><span class="p">(</span><span class="n">value</span><span class="p">)</span></div>
+    <span class="nd">@height</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">height</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_height</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_validate_and_convert</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">clear_canvas</span><span class="p">()</span>  
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">width</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_width</span>
+
+    <span class="nd">@width</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">width</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_width</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_validate_and_convert</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">clear_canvas</span><span class="p">()</span>  
+        
+    <span class="k">def</span> <span class="nf">_validate_and_convert</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span> 
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">value</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Value must be convertible to an integer.&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">value</span> <span class="o">&lt;=</span> <span class="mi">4096</span><span class="p">):</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="mi">4096</span> <span class="k">if</span> <span class="n">value</span> <span class="o">&gt;</span> <span class="mi">4096</span> <span class="k">else</span> <span class="mi">0</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Value must be between 0 and </span><span class="si">{</span><span class="mi">4096</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">value</span>
+    
+<div class="viewcode-block" id="DynamicPatterns.clear_canvas">
+<a class="viewcode-back" href="../../modules/optibeam.html#optibeam.simulation.DynamicPatterns.clear_canvas">[docs]</a>
+    <span class="k">def</span> <span class="nf">clear_canvas</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">canvas</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">_height</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_width</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="DynamicPatterns.apply_distribution">
+<a class="viewcode-back" href="../../modules/optibeam.html#optibeam.simulation.DynamicPatterns.apply_distribution">[docs]</a>
+    <span class="k">def</span> <span class="nf">apply_distribution</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">dst</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_distributions</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">canvas</span> <span class="o">+=</span> <span class="n">dst</span><span class="o">.</span><span class="n">pattern</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">canvas</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">canvas</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_pixel_value</span><span class="p">)</span></div>
+
+            
+<div class="viewcode-block" id="DynamicPatterns.update">
+<a class="viewcode-back" href="../../modules/optibeam.html#optibeam.simulation.DynamicPatterns.update">[docs]</a>
+    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Update the canvas by updating all the distributions.</span>
+<span class="sd">        Need distribution objects have the update method implemented.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">clear_canvas</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">dst</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_distributions</span><span class="p">:</span>
+            <span class="n">dst</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">apply_distribution</span><span class="p">()</span></div>
+
+    
+<div class="viewcode-block" id="DynamicPatterns.append">
+<a class="viewcode-back" href="../../modules/optibeam.html#optibeam.simulation.DynamicPatterns.append">[docs]</a>
+    <span class="k">def</span> <span class="nf">append</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">distribution</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Append a distribution object to the list of distributions.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_distributions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">distribution</span><span class="p">)</span></div>
+
+    
+<div class="viewcode-block" id="DynamicPatterns.get_image">
+<a class="viewcode-back" href="../../modules/optibeam.html#optibeam.simulation.DynamicPatterns.get_image">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_image</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;narray&quot;</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">canvas</span></div>
+
+    
+<div class="viewcode-block" id="DynamicPatterns.transform">
+<a class="viewcode-back" href="../../modules/optibeam.html#optibeam.simulation.DynamicPatterns.transform">[docs]</a>
+    <span class="k">def</span> <span class="nf">transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">transformations</span> <span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Callable</span><span class="p">[[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]]):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Apply a series of transformations on the final image (), not on the canvas. </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">transformation</span> <span class="ow">in</span> <span class="n">transformations</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">canvas</span> <span class="o">=</span> <span class="n">transformation</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">canvas</span><span class="p">)</span></div>
+
+    
+<div class="viewcode-block" id="DynamicPatterns.plot_canvas">
+<a class="viewcode-back" href="../../modules/optibeam.html#optibeam.simulation.DynamicPatterns.plot_canvas">[docs]</a>
+    <span class="k">def</span> <span class="nf">plot_canvas</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;viridis&#39;</span><span class="p">,</span> <span class="n">pause</span><span class="o">=</span><span class="mf">0.01</span><span class="p">):</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">clf</span><span class="p">()</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">canvas</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="n">cmap</span><span class="p">)</span> <span class="c1"># cmap=&#39;gray&#39; for black and white, and &#39;viridis&#39; for color</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span>  
+        <span class="n">plt</span><span class="o">.</span><span class="n">pause</span><span class="p">(</span><span class="n">pause</span><span class="p">)</span>  <span class="c1"># Pause for a short period, allowing the plot to be updated</span></div>
 </div>
 
 
 
-<div class="viewcode-block" id="Simulation">
-<a class="viewcode-back" href="../../modules/optibeam.html#optibeam.simulation.Simulation">[docs]</a>
-<span class="k">class</span> <span class="nc">Simulation</span><span class="p">:</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">beam_pattern</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">beam_pattern</span> <span class="o">=</span> <span class="n">beam_pattern</span></div>
+
+<div class="viewcode-block" id="Distribution">
+<a class="viewcode-back" href="../../modules/optibeam.html#optibeam.simulation.Distribution">[docs]</a>
+<span class="k">class</span> <span class="nc">Distribution</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Abstract class for defining the distribution of different beam patterns.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">canvas</span><span class="p">:</span> <span class="n">DynamicPatterns</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_height</span> <span class="o">=</span> <span class="n">canvas</span><span class="o">.</span><span class="n">height</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_width</span> <span class="o">=</span> <span class="n">canvas</span><span class="o">.</span><span class="n">width</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_pattern</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">canvas</span><span class="o">.</span><span class="n">height</span><span class="p">,</span> <span class="n">canvas</span><span class="o">.</span><span class="n">width</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_transformations</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">pattern</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the distribution&#39;s current pattern.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pattern</span>
+
+<div class="viewcode-block" id="Distribution.update">
+<a class="viewcode-back" href="../../modules/optibeam.html#optibeam.simulation.Distribution.update">[docs]</a>
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Update the distribution&#39;s state.&quot;&quot;&quot;</span>
+        <span class="k">pass</span></div>
+</div>
+
+
+
+
+<div class="viewcode-block" id="GaussianDistribution">
+<a class="viewcode-back" href="../../modules/optibeam.html#optibeam.simulation.GaussianDistribution">[docs]</a>
+<span class="k">class</span> <span class="nc">GaussianDistribution</span><span class="p">(</span><span class="n">Distribution</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Class for generating a 2D Gaussian distribution.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">canvas</span><span class="p">:</span> <span class="n">DynamicPatterns</span><span class="p">,</span> <span class="n">mean_x</span><span class="p">:</span> <span class="nb">float</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">mean_y</span><span class="p">:</span> <span class="nb">float</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">std_x</span><span class="p">:</span> <span class="nb">float</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
+                 <span class="n">std_y</span><span class="p">:</span> <span class="nb">float</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">x_velocity</span><span class="p">:</span> <span class="nb">float</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">y_velocity</span><span class="p">:</span> <span class="nb">float</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">speed_momentum</span><span class="p">:</span> <span class="nb">float</span><span class="o">=</span><span class="mf">0.9</span><span class="p">,</span>
+                 <span class="n">rotation_radians</span><span class="p">:</span> <span class="nb">float</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">rotation_velocity</span><span class="p">:</span> <span class="nb">float</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">rotation_momentum</span><span class="p">:</span> <span class="nb">float</span><span class="o">=</span><span class="mf">0.95</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">canvas</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mean_x</span> <span class="o">=</span> <span class="n">mean_x</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mean_y</span> <span class="o">=</span> <span class="n">mean_y</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">std_x</span> <span class="o">=</span> <span class="n">std_x</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">std_y</span> <span class="o">=</span> <span class="n">std_y</span>
+        <span class="c1"># dynamics, for smooth transition and animation</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">x_velocity</span> <span class="o">=</span> <span class="n">x_velocity</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">y_velocity</span> <span class="o">=</span> <span class="n">y_velocity</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rotation_radians</span> <span class="o">=</span> <span class="n">rotation_radians</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rotation_velocity</span> <span class="o">=</span> <span class="n">rotation_velocity</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">speed_momentum</span> <span class="o">=</span> <span class="n">speed_momentum</span>  <span class="c1"># Momentum factor controls the influence of previous changes</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rotation_momentum</span> <span class="o">=</span> <span class="n">rotation_momentum</span>
+
+<div class="viewcode-block" id="GaussianDistribution.change_distribution_params">
+<a class="viewcode-back" href="../../modules/optibeam.html#optibeam.simulation.GaussianDistribution.change_distribution_params">[docs]</a>
+    <span class="k">def</span> <span class="nf">change_distribution_params</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vol_scale</span><span class="p">:</span> <span class="nb">float</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span> <span class="n">std_scale</span><span class="p">:</span> <span class="nb">float</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span> <span class="n">rot_scale</span><span class="p">:</span> <span class="nb">float</span><span class="o">=</span><span class="mf">0.01</span><span class="p">):</span>
+        <span class="n">upper_bound</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="n">lower_bound</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="c1"># Calculate new velocity (momentum) for each means</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">x_velocity</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">speed_momentum</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">x_velocity</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="o">-</span><span class="n">vol_scale</span><span class="p">,</span> <span class="n">vol_scale</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">y_velocity</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">speed_momentum</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_velocity</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="o">-</span><span class="n">vol_scale</span><span class="p">,</span> <span class="n">vol_scale</span><span class="p">)</span>
+        <span class="c1"># Proposed updates for mean positions</span>
+        <span class="n">new_mean_x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mean_x</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">x_velocity</span>
+        <span class="n">new_mean_y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mean_y</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_velocity</span>
+        <span class="c1"># Boundary reflection logic</span>
+        <span class="k">if</span> <span class="n">new_mean_x</span> <span class="o">&lt;</span> <span class="n">lower_bound</span> <span class="ow">or</span> <span class="n">new_mean_x</span> <span class="o">&gt;</span> <span class="n">upper_bound</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">x_velocity</span> <span class="o">*=</span> <span class="o">-</span><span class="mi">1</span>  <span class="c1"># Reverse and dampen velocity</span>
+        <span class="k">if</span> <span class="n">new_mean_y</span> <span class="o">&lt;</span> <span class="n">lower_bound</span> <span class="ow">or</span> <span class="n">new_mean_y</span> <span class="o">&gt;</span> <span class="n">upper_bound</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">y_velocity</span> <span class="o">*=</span> <span class="o">-</span><span class="mi">1</span>  <span class="c1"># Reverse and dampen velocity</span>
+        <span class="c1"># Update means with possible velocity adjustments</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mean_x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">new_mean_x</span><span class="p">,</span> <span class="n">lower_bound</span><span class="p">,</span> <span class="n">upper_bound</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mean_y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">new_mean_y</span><span class="p">,</span> <span class="n">lower_bound</span><span class="p">,</span> <span class="n">upper_bound</span><span class="p">)</span>
+        <span class="c1"># Update standard deviations with probabilistic modulation</span>
+        <span class="n">change_factor_x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="o">-</span><span class="n">std_scale</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">std_x</span><span class="p">,</span> <span class="n">std_scale</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">std_x</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">std_x</span> <span class="o">/</span> <span class="mf">0.3</span><span class="p">)</span>
+        <span class="n">change_factor_y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="o">-</span><span class="n">std_scale</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">std_y</span><span class="p">,</span> <span class="n">std_scale</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">std_y</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">std_y</span> <span class="o">/</span> <span class="mf">0.3</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">std_x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">std_x</span> <span class="o">+</span> <span class="n">change_factor_x</span><span class="p">,</span> <span class="mf">0.01</span><span class="p">,</span> <span class="mf">0.3</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">std_y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">std_y</span> <span class="o">+</span> <span class="n">change_factor_y</span><span class="p">,</span> <span class="mf">0.01</span><span class="p">,</span> <span class="mf">0.3</span><span class="p">)</span>
+        <span class="c1"># Update rotation angle with momentum</span>
+        <span class="n">rotational_adjustment</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="n">rot_scale</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="n">rot_scale</span><span class="p">)</span>  <span class="c1"># in radians</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rotation_velocity</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rotation_velocity</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">rotation_momentum</span> <span class="o">+</span> <span class="n">rotational_adjustment</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rotation_radians</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rotation_radians</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">rotation_velocity</span><span class="p">)</span> <span class="o">%</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span></div>
 
         
+<div class="viewcode-block" id="GaussianDistribution.generate_2d_gaussian">
+<a class="viewcode-back" href="../../modules/optibeam.html#optibeam.simulation.GaussianDistribution.generate_2d_gaussian">[docs]</a>
+    <span class="k">def</span> <span class="nf">generate_2d_gaussian</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generate a rotated 2D Gaussian distribution based on the current state of the distribution.</span>
+<span class="sd">        The rotation is centered around the mean of the distribution.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Coordinate grid</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_width</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_width</span><span class="p">)</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_height</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_height</span><span class="p">)</span>
+        <span class="n">X</span><span class="p">,</span> <span class="n">Y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+        <span class="c1"># Mean coordinates scaled to grid</span>
+        <span class="n">mean_x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mean_x</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_width</span>
+        <span class="n">mean_y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mean_y</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_height</span>
+        <span class="c1"># Adjust coordinates relative to distribution center (mean)</span>
+        <span class="n">X_centered</span> <span class="o">=</span> <span class="n">X</span> <span class="o">-</span> <span class="n">mean_x</span>
+        <span class="n">Y_centered</span> <span class="o">=</span> <span class="n">Y</span> <span class="o">-</span> <span class="n">mean_y</span>
+        <span class="c1"># Pre-compute cos and sin of rotation angle</span>
+        <span class="n">cos_theta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rotation_radians</span><span class="p">)</span>
+        <span class="n">sin_theta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rotation_radians</span><span class="p">)</span>
+        <span class="c1"># Apply rotation around the distribution center</span>
+        <span class="n">X_rot</span> <span class="o">=</span> <span class="n">cos_theta</span> <span class="o">*</span> <span class="n">X_centered</span> <span class="o">-</span> <span class="n">sin_theta</span> <span class="o">*</span> <span class="n">Y_centered</span> <span class="o">+</span> <span class="n">mean_x</span>
+        <span class="n">Y_rot</span> <span class="o">=</span> <span class="n">sin_theta</span> <span class="o">*</span> <span class="n">X_centered</span> <span class="o">+</span> <span class="n">cos_theta</span> <span class="o">*</span> <span class="n">Y_centered</span> <span class="o">+</span> <span class="n">mean_y</span>
+        <span class="c1"># Compute Gaussian distribution</span>
+        <span class="n">std_x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">std_x</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_width</span>
+        <span class="n">std_y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">std_y</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_height</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="p">(((</span><span class="n">X_rot</span> <span class="o">-</span> <span class="n">mean_x</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">std_x</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span> <span class="o">+</span> <span class="p">((</span><span class="n">Y_rot</span> <span class="o">-</span> <span class="n">mean_y</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">std_y</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)))</span></div>
+
         
+<div class="viewcode-block" id="GaussianDistribution.update">
+<a class="viewcode-back" href="../../modules/optibeam.html#optibeam.simulation.GaussianDistribution.update">[docs]</a>
+    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">change_distribution_params</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_pattern</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">generate_2d_gaussian</span><span class="p">()</span></div>
+</div>
+
+
+    
+        
+
+<div class="viewcode-block" id="MaxwellBoltzmannDistribution">
+<a class="viewcode-back" href="../../modules/optibeam.html#optibeam.simulation.MaxwellBoltzmannDistribution">[docs]</a>
+<span class="k">class</span> <span class="nc">MaxwellBoltzmannDistribution</span><span class="p">(</span><span class="n">Distribution</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Class for generating a 2D Maxwell-Boltzmann distribution.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">pass</span></div>
+
+
+
+<div class="viewcode-block" id="CauchyDistribution">
+<a class="viewcode-back" href="../../modules/optibeam.html#optibeam.simulation.CauchyDistribution">[docs]</a>
+<span class="k">class</span> <span class="nc">CauchyDistribution</span><span class="p">(</span><span class="n">Distribution</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Class for generating a 2D Cauchy distribution.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">pass</span></div>
+
+    
+
+
+<span class="c1"># ----------------- 2D narray affine transformation -----------------</span>
+
+
+<span class="c1"># class Transformation:</span>
+<span class="c1">#     @staticmethod</span>
+<span class="c1">#     def transformation_matrix_opencv(center, angle, scale, translate):</span>
+<span class="c1">#         M = cv2.getRotationMatrix2D(center, angle, scale)</span>
+<span class="c1">#         M[0, 2] += translate[0]</span>
+<span class="c1">#         M[1, 2] += translate[1]</span>
+<span class="c1">#         return M</span>
+
+<span class="c1">#     def apply_transform(self, image, translate=(0, 0), angle=0, scale=1):</span>
+<span class="c1">#         rows, cols = image.shape[:2]</span>
+<span class="c1">#         center = (cols / 2, rows / 2)</span>
+<span class="c1">#         M = ImageTransformer.transformation_matrix_opencv(center, angle, scale, translate)</span>
+<span class="c1">#         return cv2.warpAffine(image, M, (cols, rows)) </span>
+    
+    
+<div class="viewcode-block" id="transform_image">
+<a class="viewcode-back" href="../../modules/optibeam.html#optibeam.simulation.transform_image">[docs]</a>
+<span class="k">def</span> <span class="nf">transform_image</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">rotate</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">translate</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">implementation</span><span class="o">=</span><span class="s1">&#39;opencv&#39;</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Transforms a 2D numpy array image according to the specified parameters.</span>
+<span class="sd">    - rotate: Rotation angle in degrees (counterclockwise)</span>
+<span class="sd">    - scale: Scaling factor</span>
+<span class="sd">    - translate: Tuple (tx, ty) representing translation in pixels</span>
+<span class="sd">    - implementation: Choice of implementation (&#39;opencv&#39; or &#39;custom&#39;)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">implementation</span> <span class="o">==</span> <span class="s1">&#39;opencv&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">_transform_image_opencv</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">rotate</span><span class="p">,</span> <span class="n">scale</span><span class="p">,</span> <span class="n">translate</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">_transform_image_custom</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">rotate</span><span class="p">,</span> <span class="n">scale</span><span class="p">,</span> <span class="n">translate</span><span class="p">)</span></div>
+
+
+<span class="k">def</span> <span class="nf">_transform_image_custom</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">rotate</span><span class="p">,</span> <span class="n">scale</span><span class="p">,</span> <span class="n">translate</span><span class="p">):</span>
+    <span class="n">maxtrix</span> <span class="o">=</span> <span class="n">compile_transformation_matrix</span> 
+
+
+<span class="k">def</span> <span class="nf">_transform_image_opencv</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">translate</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">angle</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+    <span class="n">rows</span><span class="p">,</span> <span class="n">cols</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span>
+    <span class="c1"># Calculate the center for rotation</span>
+    <span class="n">center</span> <span class="o">=</span> <span class="p">(</span><span class="n">cols</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span> <span class="n">rows</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="c1"># Combine rotation and scaling into one matrix</span>
+    <span class="n">M</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">getRotationMatrix2D</span><span class="p">(</span><span class="n">center</span><span class="p">,</span> <span class="n">angle</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
+    <span class="c1"># Adjust the translation part of the transformation matrix</span>
+    <span class="n">M</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">+=</span> <span class="n">translate</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">M</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">+=</span> <span class="n">translate</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="c1"># Apply the transformation</span>
+    <span class="k">return</span> <span class="n">cv2</span><span class="o">.</span><span class="n">warpAffine</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">M</span><span class="p">,</span> <span class="p">(</span><span class="n">cols</span><span class="p">,</span> <span class="n">rows</span><span class="p">))</span>
+    
+
+
+<div class="viewcode-block" id="compile_transformation_matrix">
+<a class="viewcode-back" href="../../modules/optibeam.html#optibeam.simulation.compile_transformation_matrix">[docs]</a>
+<span class="k">def</span> <span class="nf">compile_transformation_matrix</span><span class="p">(</span><span class="n">image</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">translate</span> <span class="p">:</span> <span class="nb">tuple</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">radians</span><span class="p">:</span> <span class="nb">float</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                                  <span class="n">scale_x</span><span class="p">:</span> <span class="nb">float</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">scale_y</span><span class="p">:</span> <span class="nb">float</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+    <span class="n">rows</span><span class="p">,</span> <span class="n">cols</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">shape</span>
+    <span class="c1"># Center of the image (conceptual origin)</span>
+    <span class="n">cx</span><span class="p">,</span> <span class="n">cy</span> <span class="o">=</span> <span class="n">cols</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span> <span class="n">rows</span> <span class="o">/</span> <span class="mi">2</span>
+    <span class="c1"># Rotation matrix using radians, centered at image middle</span>
+    <span class="n">cos_a</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">radians</span><span class="p">)</span>
+    <span class="n">sin_a</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">radians</span><span class="p">)</span>
+    <span class="n">rotation_matrix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
+        <span class="p">[</span><span class="n">cos_a</span><span class="p">,</span> <span class="o">-</span><span class="n">sin_a</span><span class="p">,</span> <span class="n">cx</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">cos_a</span><span class="p">)</span> <span class="o">+</span> <span class="n">cy</span> <span class="o">*</span> <span class="n">sin_a</span><span class="p">],</span>  
+        <span class="p">[</span><span class="n">sin_a</span><span class="p">,</span>  <span class="n">cos_a</span><span class="p">,</span> <span class="n">cy</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">cos_a</span><span class="p">)</span> <span class="o">-</span> <span class="n">cx</span> <span class="o">*</span> <span class="n">sin_a</span><span class="p">],</span>  
+        <span class="p">[</span><span class="mi">0</span><span class="p">,</span>     <span class="mi">0</span><span class="p">,</span>                                  <span class="mi">1</span><span class="p">]</span>
+    <span class="p">])</span>
+    <span class="c1"># Scaling matrix with separate x and y scaling, centered at image middle</span>
+    <span class="n">scaling_matrix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
+        <span class="p">[</span><span class="n">scale_x</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span>      <span class="n">cx</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">scale_x</span><span class="p">)],</span>
+        <span class="p">[</span><span class="mi">0</span><span class="p">,</span>      <span class="n">scale_y</span><span class="p">,</span> <span class="n">cy</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">scale_y</span><span class="p">)],</span>
+        <span class="p">[</span><span class="mi">0</span><span class="p">,</span>      <span class="mi">0</span><span class="p">,</span>                        <span class="mi">1</span><span class="p">]</span>
+    <span class="p">])</span>
+    <span class="c1"># Translation matrix</span>
+    <span class="n">translation_matrix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
+        <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">translate</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span>
+        <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">translate</span><span class="p">[</span><span class="mi">1</span><span class="p">]],</span>
+        <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span>            <span class="mi">1</span><span class="p">]</span>
+    <span class="p">])</span>
+    <span class="c1"># Matrix multiplication order: scale, rotate, then translate</span>
+    <span class="k">return</span> <span class="n">translation_matrix</span> <span class="o">@</span> <span class="n">rotation_matrix</span> <span class="o">@</span> <span class="n">scaling_matrix</span></div>
+
+
+
+<div class="viewcode-block" id="apply_transformation_matrix">
+<a class="viewcode-back" href="../../modules/optibeam.html#optibeam.simulation.apply_transformation_matrix">[docs]</a>
+<span class="k">def</span> <span class="nf">apply_transformation_matrix</span><span class="p">(</span><span class="n">image</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> 
+                                <span class="n">transformation_matrix</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Applies a 3x3 transformation matrix to a 2D numpy array image.</span>
+<span class="sd">    </span>
+<span class="sd">    Args:</span>
+<span class="sd">    - image (numpy.ndarray): The input image as a 2D numpy array.</span>
+<span class="sd">    - transformation_matrix (numpy.ndarray): The 3x3 transformation matrix.</span>
+<span class="sd">    </span>
+<span class="sd">    Returns:</span>
+<span class="sd">    - numpy.ndarray: The transformed image.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">rows</span><span class="p">,</span> <span class="n">cols</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">cv2</span><span class="o">.</span><span class="n">warpPerspective</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">transformation_matrix</span><span class="p">,</span> <span class="p">(</span><span class="n">cols</span><span class="p">,</span> <span class="n">rows</span><span class="p">))</span></div>
+
+
+
+
+<span class="c1"># ----------------- image processing functions -----------------</span>
+
+<div class="viewcode-block" id="pixel_value_remap">
+<a class="viewcode-back" href="../../modules/optibeam.html#optibeam.simulation.pixel_value_remap">[docs]</a>
+<span class="k">def</span> <span class="nf">pixel_value_remap</span><span class="p">(</span><span class="n">narray</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">max_pixel_value</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="mi">255</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Rescale the pixel values of the canvas to a new maximum value.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Find the minimum and maximum values in the matrix</span>
+    <span class="n">min_val</span><span class="p">,</span> <span class="n">max_val</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">narray</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">narray</span><span class="p">)</span>
+    <span class="c1"># Remap the matrix values to the range [0, 255]</span>
+    <span class="n">remapped_matrix</span> <span class="o">=</span> <span class="p">(</span><span class="n">narray</span> <span class="o">-</span> <span class="n">min_val</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">max_val</span> <span class="o">-</span> <span class="n">min_val</span><span class="p">)</span> <span class="o">*</span> <span class="n">max_pixel_value</span>
+    <span class="c1"># Ensure the output is of integer type suitable for image representation</span>
+    <span class="k">return</span> <span class="n">remapped_matrix</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="macro_pixel">
+<a class="viewcode-back" href="../../modules/optibeam.html#optibeam.simulation.macro_pixel">[docs]</a>
+<span class="k">def</span> <span class="nf">macro_pixel</span><span class="p">(</span><span class="n">narray</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">size</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Expand a 2D numpy array (image) to a macro pixel (size, size) array.</span>
+<span class="sd">    e.g. If canvas is 64x64, and input size is 8, then it will return a 512x512 pixel matrix. </span>
+<span class="sd">    </span>
+<span class="sd">    Parameters:</span>
+<span class="sd">    - size: The size of the macro pixel.</span>
+<span class="sd">    </span>
+<span class="sd">    Returns:</span>
+<span class="sd">    - A 2D numpy array expanded image.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Calculate the new dimensions</span>
+    <span class="n">height</span><span class="p">,</span> <span class="n">width</span> <span class="o">=</span> <span class="n">narray</span><span class="o">.</span><span class="n">shape</span>
+    <span class="n">new_height</span> <span class="o">=</span> <span class="n">height</span> <span class="o">*</span> <span class="n">size</span>
+    <span class="n">new_width</span> <span class="o">=</span> <span class="n">width</span> <span class="o">*</span> <span class="n">size</span>
+    <span class="c1"># Create a new array for the expanded image</span>
+    <span class="n">expanded_image</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">new_height</span><span class="p">,</span> <span class="n">new_width</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">height</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">width</span><span class="p">):</span>
+            <span class="n">expanded_image</span><span class="p">[</span><span class="n">i</span> <span class="o">*</span> <span class="n">size</span> <span class="p">:</span> <span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">size</span><span class="p">,</span> 
+                           <span class="n">j</span> <span class="o">*</span> <span class="n">size</span> <span class="p">:</span> <span class="p">(</span><span class="n">j</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">size</span><span class="p">]</span> <span class="o">=</span> <span class="n">narray</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">expanded_image</span>    </div>
+
+
+
+<span class="c1"># ----------------- Test functions -----------------</span>
+
+<div class="viewcode-block" id="create_mosaic_image">
+<a class="viewcode-back" href="../../modules/optibeam.html#optibeam.simulation.create_mosaic_image">[docs]</a>
+<span class="k">def</span> <span class="nf">create_mosaic_image</span><span class="p">(</span><span class="n">size</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="mi">1024</span><span class="p">,</span> <span class="n">n</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+    <span class="n">image</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">size</span><span class="p">,</span> <span class="n">size</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="n">values</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">255</span><span class="p">,</span> <span class="n">n</span><span class="o">**</span><span class="mi">2</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+    <span class="n">block_size</span> <span class="o">=</span> <span class="n">size</span> <span class="o">//</span> <span class="n">n</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+            <span class="n">value_index</span> <span class="o">=</span> <span class="n">i</span> <span class="o">*</span> <span class="n">n</span> <span class="o">+</span> <span class="n">j</span>
+            <span class="n">image</span><span class="p">[</span><span class="n">i</span> <span class="o">*</span> <span class="n">block_size</span><span class="p">:(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">block_size</span><span class="p">,</span>
+                  <span class="n">j</span> <span class="o">*</span> <span class="n">block_size</span><span class="p">:(</span><span class="n">j</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">block_size</span><span class="p">]</span> <span class="o">=</span> <span class="n">values</span><span class="p">[</span><span class="n">value_index</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">image</span></div>
+
+
+
+    
 </pre></div>
 
             <div class="clearer"></div>
@@ -107,7 +499,7 @@
         <li class="right" >
           <a href="../../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../../index.html">OptiBeam 0.1.40 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">OptiBeam 0.1.42 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="../index.html" >Module code</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">optibeam.simulation</a></li> 
       </ul>
