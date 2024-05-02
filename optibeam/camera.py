@@ -138,7 +138,7 @@ class BaslerCamera(Camera):
         self.camera.GammaEnable.SetValue(True)    # Enable gamma correction if supported
         
         # Adjust camera settings - these values are examples and should be adjusted based on your needs and camera capabilities
-        self.camera.ExposureTimeRaw.SetValue(5000)  # Set exposure time in microseconds
+        self.camera.ExposureTimeRaw.SetValue(1000)  # Set exposure time in microseconds
         self.camera.GainRaw.SetValue(100)            # Set gain
         self.camera.Gamma.SetValue(1.0)              # Set gamma value (if supported)
         

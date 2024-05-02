@@ -285,7 +285,6 @@ def scale_image(narray_img, scaling_factor):
     return scaled_image
 
 
-
 # ------------------- system/enviornment -------------------
 
 def is_jupyter():

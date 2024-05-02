@@ -6,14 +6,19 @@ from conftest import *
 # mimic simplified quadrapole transform in the canvas? (develop some possible transformations on the canvas level)
 # other distributions implementation (Maxwell-Boltzmann, etc)
 
-dim = (256, 128)
+dim = (256, 256)
 canvas = simulation.DynamicPatterns(*dim)
-canvas._distributions = [simulation.GaussianDistribution(canvas) for _ in range(1)] 
+canvas._distributions = [simulation.GaussianDistribution(canvas) for _ in range(20)] 
 
-for _ in range(5000):
+image_arrays = []
+for _ in range(300):
     canvas.update()
     canvas.plot_canvas()
+    img = canvas.get_image()
+    image_arrays.append(img)
 
+
+visualization.save_as_matplotlib_style_gif(image_arrays, frame_rate=60, save_path='../../ResultsCenter/animation.gif')
 
 
 
