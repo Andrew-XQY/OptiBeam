@@ -76,7 +76,7 @@ class Camera(ABC):
 class BaslerCamera(Camera):
     """
     Class representing a Basler camera.
-    https://docs.baslerweb.com/precision-time-protocol#checking-the-status-of-the-ptp-clock-synchronization
+    https://docs.baslerweb.com/pylonapi/pylon-sdk-samples-manual
     """
     
     def __init__(self, camera: pylon.InstantCamera, params: dict={}):
@@ -138,11 +138,18 @@ class BaslerCamera(Camera):
         self.camera.GammaEnable.SetValue(True)    # Enable gamma correction if supported
         
         # Adjust camera settings - these values are examples and should be adjusted based on your needs and camera capabilities
-        self.camera.ExposureTimeRaw.SetValue(100000)  # Set exposure time to 40000 microseconds
+        self.camera.ExposureTimeRaw.SetValue(5000)  # Set exposure time in microseconds
         self.camera.GainRaw.SetValue(100)            # Set gain
-        self.camera.Gamma.SetValue(1.0)              # Set gamma value to 1.0 (if supported)
+        self.camera.Gamma.SetValue(1.0)              # Set gamma value (if supported)
+        
+        # # Set the camera to software trigger mode.
+        # self.camera.TriggerMode.SetValue('On')
+        # self.camera.TriggerSource.SetValue('Software')
+        
+        # Set the acquisition frame rate
+        self.camera.AcquisitionFrameRateEnable.Value = True
+        self.camera.AcquisitionFrameRateAbs.Value = 10.0 # Set frame rate in fps
 
-        self.camera.StartGrabbing(pylon.GrabStrategy_LatestImageOnly)
         print(f"Resetting camera parameters: {params}")
     
     def capture(self) -> Generator[np.ndarray, None, None]:
@@ -183,6 +190,9 @@ class BaslerCamera(Camera):
                 print(f"Image saved as {filename}")
         
     def ptp_status(self) -> bool:
+        """
+        https://docs.baslerweb.com/precision-time-protocol#checking-the-status-of-the-ptp-clock-synchronization
+        """
         pass
     
     def enable_ptp(self) -> None:
