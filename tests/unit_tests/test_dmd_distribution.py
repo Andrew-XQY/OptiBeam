@@ -4,7 +4,7 @@ from ALP4 import *
 # Load the Vialux .dll
 DMD = dmd.ViALUXDMD(ALP4(version = '4.3'))
 canvas = simulation.DynamicPatterns(*(64, 64))
-canvas._distributions = [simulation.GaussianDistribution(canvas) for _ in range(20)]
+canvas._distributions = [simulation.GaussianDistribution(canvas) for _ in range(10)]
 
 for i in range(1000):
     canvas.update()

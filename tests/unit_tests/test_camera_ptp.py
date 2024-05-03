@@ -25,7 +25,6 @@ for i, cam in enumerate(cameras):
         pylon.RegistrationMode_Append,
         pylon.Cleanup_Delete
         )
-    
     cam.Open()
     cam.ExposureTimeRaw.SetValue(5000)
 

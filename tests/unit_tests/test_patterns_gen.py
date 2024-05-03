@@ -8,7 +8,7 @@ from conftest import *
 
 dim = (256, 256)
 canvas = simulation.DynamicPatterns(*dim)
-canvas._distributions = [simulation.GaussianDistribution(canvas) for _ in range(20)] 
+canvas._distributions = [simulation.GaussianDistribution(canvas) for _ in range(1)] 
 
 image_arrays = []
 for _ in range(300):
