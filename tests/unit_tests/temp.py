@@ -1,56 +1,68 @@
-
-import os
-os.environ["PYLON_CAMEMU"] = "2"
-import pypylon.pylon as pylon
-import pypylon.genicam as geni
-#import from samples folder
-from configurationeventprinter import ConfigurationEventPrinter
-from imageeventprinter import ImageEventPrinter
-import time
-
-class CameraBasler(object):
-
-    def __init__(self):
-        tlFactory = pylon.TlFactory.GetInstance()
-
-        # Get all attached devices and exit application if no device is found.
-        devices = tlFactory.EnumerateDevices()
-        if len(devices) == 0:
-            raise pylon.RUNTIME_EXCEPTION("No camera present.")
-
-        # Create an array of instant cameras for the found devices and avoid exceeding a maximum number of devices.
-        self.cameras = pylon.InstantCameraArray(min(len(devices), 2))
-
-        # Create and attach all Pylon Devices.
-        for i, cam in enumerate(self.cameras):
-            cam.Attach(tlFactory.CreateDevice(devices[i]))
-            cam.RegisterConfiguration(pylon.SoftwareTriggerConfiguration(), pylon.RegistrationMode_ReplaceAll,
-                                      pylon.Cleanup_Delete)
-            # For demonstration purposes only, add a sample configuration event handler to print out information
-            # about camera use.t
-            cam.RegisterConfiguration(ConfigurationEventPrinter(), pylon.RegistrationMode_Append, pylon.Cleanup_Delete)
-            # The image event printer serves as sample image processing.
-            # When using the grab loop thread provided by the Instant Camera object, an image event handler processing the grab
-            # results must be created and registered.
-            cam.RegisterImageEventHandler(ImageEventPrinter(), pylon.RegistrationMode_Append, pylon.Cleanup_Delete)
-        # Start the grabbing using the grab loop thread, by setting the grabLoopType parameter
-        # to GrabLoop_ProvidedByInstantCamera. The grab results are delivered to the image event handlers.
-        # The GrabStrategy_OneByOne default grab strategy is used.
-        self.cameras.StartGrabbing(pylon.GrabStrategy_OneByOne, pylon.GrabLoop_ProvidedByInstantCamera)
-        self.cameraL = self.cameras[0]
-        self.cameraR = self.cameras[1]
+from pypylon import pylon
+import numpy as np
+import cv2
 
 
-    # The grabbing is stopped, the device is closed and destroyed automatically when the camera object goes out of scope.
-    def takeStereo(self):
-        if self.cameraL.WaitForFrameTriggerReady(100,
-                                                 pylon.TimeoutHandling_ThrowException) and self.cameraR.WaitForFrameTriggerReady(
-                100, pylon.TimeoutHandling_ThrowException):
-            self.cameraL.ExecuteSoftwareTrigger()
-            self.cameraR.ExecuteSoftwareTrigger()
+cv2.namedWindow('Acquisition', cv2.WINDOW_NORMAL)
+cv2.resizeWindow('Acquisition', 1280, 512)
 
 
-cams=CameraBasler()
-for i in range(10):
-    cams.takeStereo()
-    time.sleep(1)
+tlFactory = pylon.TlFactory.GetInstance()
+devices = tlFactory.EnumerateDevices()
+if len(devices) == 0:
+    raise pylon.RUNTIME_EXCEPTION("No camera present.")
+
+cameras = pylon.InstantCameraArray(2)
+
+for i, camera in enumerate(cameras):
+    camera.Attach(tlFactory.CreateDevice(devices[i]))
+    camera.Open()
+            # Set the acquisition frame rate
+    camera.AcquisitionFrameRateEnable.Value = True
+    camera.AcquisitionFrameRateAbs.Value = 60.0 # Set frame rate in fps
+    camera.ExposureAuto.SetValue('Off')
+    camera.ExposureTimeRaw.SetValue(1000)  # Set exposure time in microseconds
+    camera.GevIEEE1588.Value = True
+    print(camera.GevIEEE1588Status.Value)
+    if camera.GevIEEE1588Status.Value == 'Slave':
+        slave = i
+
+
+# Starts grabbing for all cameras
+cameras.StartGrabbing(pylon.GrabStrategy_LatestImageOnly, 
+                      pylon.GrabLoop_ProvidedByUser)
+
+
+while cameras.IsGrabbing():
+    grabResult1 = cameras[0].RetrieveResult(5000, 
+                         pylon.TimeoutHandling_ThrowException)
+    
+    grabResult2 = cameras[1].RetrieveResult(5000, 
+                         pylon.TimeoutHandling_ThrowException)
+    
+    if grabResult1.GrabSucceeded() & grabResult2.GrabSucceeded():
+        im1 = grabResult1.GetArray()
+        im2 = grabResult2.GetArray()
+        timestamp1 = grabResult1.TimeStamp
+        timestamp2 = grabResult2.TimeStamp
+
+        timediif = abs((timestamp2 - timestamp1) * 1e-6)
+        # If ESC is pressed exit and destroy window
+        combined_image = np.hstack((im1, im2))
+        cv2.imshow('Acquisition', combined_image)
+        key = cv2.waitKey(1)
+        if key == 27:
+            break
+        elif key == ord('s'):  # 's' key
+            if timediif < 10:
+                filename = f"{'../../ResultsCenter/sync'}/{timestamp1}_{timestamp2}.png"
+                cv2.imwrite(filename, combined_image)
+                print("timestamp difference (in ms): ", timediif)
+            else:
+                print("Not saved, because timestamp difference (in ms): ", timediif)
+
+cv2.destroyAllWindows()
+
+
+
+
