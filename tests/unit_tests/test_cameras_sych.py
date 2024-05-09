@@ -2,6 +2,7 @@ from pypylon import pylon
 import numpy as np
 import cv2
 from time import sleep
+import matplotlib.pyplot as plt
 
 def ptp_sync(cameras):
     # wait for PTP time synchronization and plot the offset results during synchronization
@@ -15,8 +16,6 @@ def ptp_sync(cameras):
         temp.append(offset)
         offset = abs(offset)
         sleep(1)
-
-    import matplotlib.pyplot as plt
     plt.plot(temp, marker='o')  # 'o' creates a circle marker for each point
     # Adding title and labels
     plt.title('PTP Time sychronization between Cameras')
@@ -92,24 +91,6 @@ cameras.StartGrabbing(pylon.GrabStrategy_LatestImageOnly,
 
 gige_tl = tlFactory.CreateTl('BaslerGigE')
 print_cam_status(cameras)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
