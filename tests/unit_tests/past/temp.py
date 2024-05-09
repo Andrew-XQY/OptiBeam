@@ -17,11 +17,11 @@ cameras = pylon.InstantCameraArray(2)
 for i, camera in enumerate(cameras):
     camera.Attach(tlFactory.CreateDevice(devices[i]))
     camera.Open()
-            # Set the acquisition frame rate
-    camera.AcquisitionFrameRateEnable.Value = True
-    camera.AcquisitionFrameRateAbs.Value = 60.0 # Set frame rate in fps
-    camera.ExposureAuto.SetValue('Off')
-    camera.ExposureTimeRaw.SetValue(1000)  # Set exposure time in microseconds
+    # Set the acquisition frame rate
+    # camera.AcquisitionFrameRateEnable.Value = True
+    # camera.AcquisitionFrameRateAbs.Value = 60.0 # Set frame rate in fps
+    # camera.ExposureAuto.SetValue('Off')
+    # camera.ExposureTimeRaw.SetValue(1000)  # Set exposure time in microseconds
     camera.GevIEEE1588.Value = True
     print(camera.GevIEEE1588Status.Value)
     if camera.GevIEEE1588Status.Value == 'Slave':

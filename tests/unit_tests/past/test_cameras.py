@@ -39,9 +39,10 @@ while True:
             grab_result.Release()
     
     # Display the images and save
-    combined_image = np.hstack((imgs[0], imgs[1]))
-    combined_image = cv2.resize(combined_image, (960, 300))
-    cv2.imshow('Camera View', combined_image)  # Display the first camera image
+    if len(imgs) > 1:
+        image = np.hstack(*imgs)
+        image = cv2.resize(image, (960, 300))
+    cv2.imshow('Camera View', imgs[0])  # Display the first camera image
     key = cv2.waitKey(1)
     if key == 27:  # ESC key
         break
