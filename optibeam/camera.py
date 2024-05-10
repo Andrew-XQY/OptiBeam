@@ -42,13 +42,6 @@ class Camera(ABC):
         pass
     
     @abstractmethod
-    def enable_ptp(self) -> None:
-        """
-        Enables the Precision Time Protocol (PTP) on the camera. (if supported)
-        """
-        pass
-    
-    @abstractmethod
     def open(self) -> None:
         """
         Opens the camera for capturing images.
@@ -63,12 +56,16 @@ class Camera(ABC):
         pass
     
     @abstractmethod
-    def capture(self) -> np.ndarray:
+    def refresh(self) -> None:
+        pass
+    
+    @abstractmethod
+    def grab(self) -> np.ndarray:
         """
-        Captures an image using the camera.
-
+        grabs an image from the camera buffer.
+        
         Returns:
-            np.ndarray: An array representing the captured image.
+            np.ndarray: An image array captured from the camera.
         """
         pass
 
@@ -112,12 +109,19 @@ class BaslerCamera(Camera):
         """
         info = self.camera.GetDeviceInfo()
         return {
-                "Camera ID": self.camera_id,
-                "Camera Information": info.GetModelName(), 
-                "Camera Serial Number": info.GetSerialNumber(),
-                "Camera Device Version": info.GetDeviceVersion(),
-                "Camera Device Class": info.GetDeviceClass(),
-                "Camera Resolution": (self.camera.Width(), self.camera.Height())
+                "IP Address": info.GetIpAddress(),
+                "Model": info.GetModelName(), 
+                "Serial Number": info.GetSerialNumber(),
+                "Device Version": info.GetDeviceVersion(),
+                "Device Class": info.GetDeviceClass(),
+                "Resolution": (self.camera.Width(), self.camera.Height()),
+                "ActionGroupKey": hex(self.camera.ActionGroupKey.Value),
+                "ActionGroupMask": hex(self.camera.ActionGroupMask.Value),
+                "TriggerSource": self.camera.TriggerSource.Value,
+                "TriggerMode": self.camera.TriggerMode.Value,
+                "AcquisitionMode": self.camera.AcquisitionMode.Value,
+                'Camera grabing status': self.camera.IsGrabbing(),
+                'Camera PTP status': self.camera.GevIEEE1588Status.Value
                 }
     
     def set_camera_params(self, params: dict):
@@ -127,54 +131,21 @@ class BaslerCamera(Camera):
         Parameters:
             params (dict): A dictionary containing camera parameter settings such as exposure, ISO, etc.
         """
-        self.converter = pylon.ImageFormatConverter()
-        # Setting the converter to output mono8 images for simplicity
-        self.converter.OutputPixelFormat = pylon.PixelType_Mono8
-        self.output_dim = [self.camera.Width.GetValue(), self.camera.Height.GetValue()]
-        
-        # Ensure the camera exposure, gain, and gamma are set to manual mode before adjusting
-        self.camera.ExposureAuto.SetValue('Off')  # Turn off auto exposure
-        self.camera.GainAuto.SetValue('Off')      # Turn off auto gain
-        self.camera.GammaEnable.SetValue(True)    # Enable gamma correction if supported
-        
-        # Adjust camera settings - these values are examples and should be adjusted based on your needs and camera capabilities
+        self.camera.ExposureAuto.SetValue(params.get('ExposureAuto') or 'Off')
         self.camera.ExposureTimeRaw.SetValue(1000)  # Set exposure time in microseconds
-        self.camera.GainRaw.SetValue(100)            # Set gain
-        self.camera.Gamma.SetValue(1.0)              # Set gamma value (if supported)
-        
-        # # Set the camera to software trigger mode.
-        # self.camera.TriggerMode.SetValue('On')
-        # self.camera.TriggerSource.SetValue('Software')
-        
-        # Set the acquisition frame rate
-        self.camera.AcquisitionFrameRateEnable.Value = True
-        self.camera.AcquisitionFrameRateAbs.Value = 10.0 # Set frame rate in fps
-
-        print(f"Resetting camera parameters: {params}")
+        self.camera.GainAuto.SetValue(params.get('GainAuto') or 'Off')
+        self.camera.GainRaw.SetValue(100)           
+        self.camera.GammaEnable.SetValue(params.get('GammaEnable') or True) # (if supported)
+        self.camera.Gamma.SetValue(1.0)              
+        print(f"Resetting camera with parameters: {params}")
     
-    def capture(self) -> Generator[np.ndarray, None, None]:
-        while True:  # Change this to a more reliable condition if necessary
-            if not self.camera.IsGrabbing():
-                self.open_camera()
-                self.camera.StartGrabbing(pylon.GrabStrategy_LatestImageOnly)
-            try:
-                grabResult = self.camera.RetrieveResult(5000, pylon.TimeoutHandling_ThrowException)
-                if grabResult.GrabSucceeded():
-                    # Convert to OpenCV format
-                    image = self.converter.Convert(grabResult)
-                    img = image.GetArray()
-                    yield img
-                grabResult.Release()
-            except Exception as e:
-                print("Error encountered: ", e)
-                # Optionally, attempt to reconnect or handle error
-                img = cv2.putText(np.zeros((self.output_dim[1], self.output_dim[0]), np.uint8),
-                                  "No Image Input", (100, 240), cv2.FONT_HERSHEY_SIMPLEX, 2, (255, 255, 255), 2)
-                yield img
-                # No need to break here; let it attempt to reconnect in the next iteration
+    def grab(self):
+        pass
+    
+    def refresh(self):
+        pass
                 
     def demo_video(self):
-        save_to = "../../ResultsCenter/images"
         cv2.namedWindow('Camera Output')
         cv2.createTrackbar('Exposure time (ms)', 'Camera Output', 50, 1000, 
                             lambda x: self.camera.ExposureTimeRaw.SetValue(x*1000))  # miniseconds
@@ -183,11 +154,7 @@ class BaslerCamera(Camera):
             key = cv2.waitKey(1)
             if key == 27:  # ESC key to exit
                 break
-            elif key == ord('s'):  # 's' key to save the image
-                timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-                filename = f"{save_to}/{timestamp}.png"
-                cv2.imwrite(filename, img)
-                print(f"Image saved as {filename}")
+        cv2.destroyAllWindows()
         
     def ptp_status(self) -> bool:
         """
@@ -195,14 +162,11 @@ class BaslerCamera(Camera):
         """
         pass
     
-    def enable_ptp(self) -> None:
-        pass
 
 
-
-class Synchronizer:
+class CameraController:
     """
-    Class to handle synchronization and simultaneous image capturing from multiple camera objects using PTP.
+    Class to handle synchronization and simultaneous image capturing from multiple camera objects using PTP and Scheduled Action Commands.
     """
     
     def __init__(self, cameras: List[Camera]):

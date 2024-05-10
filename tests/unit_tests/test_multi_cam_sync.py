@@ -116,8 +116,8 @@ for _ in range(5):
     grabResult2.Release()
     cameras.StopGrabbing()
     cameras.StartGrabbing()
-    
-    
+
+
 # ----------------- close cameras -----------------
 cameras.StopGrabbing()
 cameras.Close()

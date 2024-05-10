@@ -8,7 +8,7 @@ from conftest import *
 
 dim = (256, 256)
 canvas = simulation.DynamicPatterns(*dim)
-canvas._distributions = [simulation.GaussianDistribution(canvas) for _ in range(1)] 
+canvas._distributions = [simulation.GaussianDistribution(canvas) for _ in range(20)] 
 
 image_arrays = []
 for _ in range(300):
@@ -19,6 +19,5 @@ for _ in range(300):
 
 
 visualization.save_as_matplotlib_style_gif(image_arrays, frame_rate=60, save_path='../../ResultsCenter/animation.gif')
-
 
 
