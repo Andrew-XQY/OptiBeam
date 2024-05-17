@@ -40,9 +40,9 @@ while True:
     
     # Display the images and save
     if len(imgs) > 1:
-        image = np.hstack(*imgs)
+        image = np.hstack((imgs))
         image = cv2.resize(image, (960, 300))
-    cv2.imshow('Camera View', imgs[0])  # Display the first camera image
+    cv2.imshow('Camera View', image)  # Display the first camera image
     key = cv2.waitKey(1)
     if key == 27:  # ESC key
         break

@@ -1,215 +1,137 @@
-from .utils import *
 from abc import ABC, abstractmethod
 import numpy as np
 import cv2
 from pypylon import pylon
-from datetime import datetime
-
+import time
 
 class Camera(ABC):
-    """
-    Abstract base class for a camera, providing a blueprint for camera operations.
-    """
-    
-    @abstractmethod
-    def get_info(self) -> dict:
-        """
-        Retrieves information about the camera.
 
-        Returns:
-            dict: A dictionary containing camera details such as model, resolution, and other relevant parameters.
-        """
-        pass
-    
-    @abstractmethod
-    def set_camera_params(self, params: dict):
-        """
-        Resets the camera parameters based on the input dictionary.
+    def __init__(self):
+        self.parameters = {}
 
-        Parameters:
-            params (dict): A dictionary containing camera parameter settings such as exposure, ISO, etc.
-        """
-        pass
-    
     @abstractmethod
-    def ptp_status(self) -> bool:
-        """
-        Checks the status of the Precision Time Protocol (PTP) on the camera.
-
-        Returns:
-            bool: True if PTP is enabled, False otherwise.
-        """
-        pass
-    
-    @abstractmethod
-    def open(self) -> None:
-        """
-        Opens the camera for capturing images.
-        """
-        pass
-    
-    @abstractmethod
-    def close(self) -> None:
-        """
-        Closes the camera after capturing images. release resources.
-        """
-        pass
-    
-    @abstractmethod
-    def refresh(self) -> None:
-        pass
-    
-    @abstractmethod
-    def grab(self) -> np.ndarray:
-        """
-        grabs an image from the camera buffer.
-        
-        Returns:
-            np.ndarray: An image array captured from the camera.
-        """
+    def set_params(self, params):
         pass
 
+    @abstractmethod
+    def update_params(self, **params):
+        pass
+
+    @abstractmethod
+    def is_ready(self):
+        pass
+
+    def get_params(self):
+        return self.parameters
+    
 
 class BaslerCamera(Camera):
-    """
-    Class representing a Basler camera.
-    https://docs.baslerweb.com/pylonapi/pylon-sdk-samples-manual
-    """
-    
-    def __init__(self, camera: pylon.InstantCamera, params: dict={}):
-        """
-        Initializes a Basler camera object with a given camera ID.
 
-        Parameters:
-            camera_id (int): The ID of the camera.
-        """
+    def __init__(self, camera: pylon.InstantCamera):
+        super().__init__()
+        self.ready = False
         self.camera = camera
-        self.open()
-        self.set_camera_params(params)
-
-    def open(self):
-        if self.camera is not None:
-            try:
-                self.camera.Close()
-            except Exception:
-                pass
-        self.camera.Open()
         
-    def close(self):
-        if self.camera.IsGrabbing():
-            self.camera.StopGrabbing()
-        self.camera.Close()
-    
-    def get_info(self) -> dict:
-        """
-        Retrieves information about the Basler camera.
-        
-        Returns:
-            dict: A dictionary containing camera details such as model, serial number, etc.
-        """
+    def camera_status(self):
         info = self.camera.GetDeviceInfo()
-        return {
-                "IP Address": info.GetIpAddress(),
-                "Model": info.GetModelName(), 
-                "Serial Number": info.GetSerialNumber(),
-                "Device Version": info.GetDeviceVersion(),
-                "Device Class": info.GetDeviceClass(),
-                "Resolution": (self.camera.Width(), self.camera.Height()),
-                "ActionGroupKey": hex(self.camera.ActionGroupKey.Value),
-                "ActionGroupMask": hex(self.camera.ActionGroupMask.Value),
-                "TriggerSource": self.camera.TriggerSource.Value,
-                "TriggerMode": self.camera.TriggerMode.Value,
-                "AcquisitionMode": self.camera.AcquisitionMode.Value,
-                'Camera grabing status': self.camera.IsGrabbing(),
-                'Camera PTP status': self.camera.GevIEEE1588Status.Value
-                }
-    
-    def set_camera_params(self, params: dict):
-        """
-        Resets the camera parameters based on the input dictionary.
+        print('-' * 50)
+        print("Using %s @ %s @ %s" % (info.GetModelName(), info.GetSerialNumber(), info.GetIpAddress()))
+        print("ActionGroupKey:", hex(self.camera.ActionGroupKey.Value))
+        print("ActionGroupMask:", hex(self.camera.ActionGroupMask.Value))
+        print("TriggerSource:", self.camera.TriggerSource.Value)
+        print("TriggerMode:", self.camera.TriggerMode.Value)
+        print("AcquisitionMode:", self.camera.AcquisitionMode.Value)
+        print('Camera grabing status: ', self.camera.IsGrabbing())
+        print('Camera PTP status: ', self.camera.GevIEEE1588Status.Value)
+        print('-' * 50)
 
-        Parameters:
-            params (dict): A dictionary containing camera parameter settings such as exposure, ISO, etc.
-        """
-        self.camera.ExposureAuto.SetValue(params.get('ExposureAuto') or 'Off')
-        self.camera.ExposureTimeRaw.SetValue(1000)  # Set exposure time in microseconds
-        self.camera.GainAuto.SetValue(params.get('GainAuto') or 'Off')
-        self.camera.GainRaw.SetValue(100)           
-        self.camera.GammaEnable.SetValue(params.get('GammaEnable') or True) # (if supported)
-        self.camera.Gamma.SetValue(1.0)              
-        print(f"Resetting camera with parameters: {params}")
-    
-    def grab(self):
+    def set_params(self, params):
+        for key, value in params.items():
+            if key in self.parameters:
+                self.parameters[key] = value
+
+    def update_params(self, **params):
+        for key, value in params.items():
+            self.parameters[key] = value
+
+    def start_camera(self):
         pass
-    
-    def refresh(self):
-        pass
-                
-    def demo_video(self):
-        cv2.namedWindow('Camera Output')
-        cv2.createTrackbar('Exposure time (ms)', 'Camera Output', 50, 1000, 
-                            lambda x: self.camera.ExposureTimeRaw.SetValue(x*1000))  # miniseconds
-        for img in self.capture():
-            cv2.imshow('Camera Output', img)
-            key = cv2.waitKey(1)
-            if key == 27:  # ESC key to exit
-                break
-        cv2.destroyAllWindows()
         
-    def ptp_status(self) -> bool:
+
+
+class MultiBaslerCameraManager:
+
+    def __init__(self, action_key: int = 0x1, group_key: int = 0x1, group_mask: int = 0xffffffff, boardcast_ip: str = "255.255.255.255"):
+        self.cameras = None
+        self.tlFactory = pylon.TlFactory.GetInstance()
+        self.GigETL = self.tlFactory.CreateTl('BaslerGigE') # GigE transport layer, used for issuing action commands
+        self.action_key = action_key
+        self.group_key = group_key
+        self.group_mask = group_mask  # pylon.AllGroupMask or 0xffffffff
+        self.boardcast_ip = boardcast_ip # Broadcast to all devices in the network
+        self.initialize()
+
+    def initialize(self, timeout=10):
         """
-        https://docs.baslerweb.com/precision-time-protocol#checking-the-status-of-the-ptp-clock-synchronization
+        detect all cameras and initialize them
         """
+        start_time = time.time()
+        while start_time < timeout:
+            devices = self.tlFactory.EnumerateDevices()
+            if len(devices) == 2:
+                break
+            time.sleep(0.5)
+        if start_time >= timeout:
+            raise RuntimeError("Not enough cameras detected in the network.")
+        self.cameras = pylon.InstantCameraArray(len(devices))
+        for i, camera in enumerate(self.cameras):  # prepare for PTP and scheduled action command
+            camera.Attach(self.tlFactory.CreateDevice(devices[i]))
+            camera.Open()
+            camera.GevIEEE1588.Value = True
+            camera.AcquisitionMode.SetValue("SingleFrame") # SingleFrame Continuous
+            camera.TriggerMode.SetValue("On")
+            camera.TriggerSource.SetValue("Action1")
+            camera.TriggerSelector.SetValue('FrameStart')
+            camera.ActionDeviceKey.SetValue(self.action_key)
+            camera.ActionGroupKey.SetValue(self.group_key)
+            camera.ActionGroupMask.SetValue(self.group_mask)
+
+    def check_cameras_state(self, timeout=10):
+        start_time = time.time()
+        while time.time() - start_time < timeout:
+            if all(camera.GevIEEE1588Status.Value in ['Slave', 'Master'] for camera in self.cameras):
+                print("All cameras are ready.")
+                return True
+            time.sleep(0.5)
+        raise TimeoutError("Cameras did not become ready within the timeout period.")
+
+    def check_sync_status(self):
+        # check PTP offset anytime
+        slave = None
+        for i, camera in enumerate(self.cameras):
+            if camera.GevIEEE1588Status.Value == 'Slave':
+                slave = i
+        self.cameras[0].GevIEEE1588DataSetLatch.Execute()
+        self.cameras[1].GevIEEE1588DataSetLatch.Execute()
+        return self.cameras[slave].GevIEEE1588OffsetFromMaster.Value
+
+    def synchronization(self, threshold=200, timeout=10):
+        self.check_cameras_state()
+        print('Waiting for PTP time synchronization...')
+        offset = float('inf')
+        records = []
+        start_time = time.time()
+        while time.time() - start_time < timeout:
+            offset = self.check_sync_status()
+            records.append(offset)
+            print(offset)
+            offset = abs(offset)
+            if offset > threshold: return records
+            time.sleep(1)
+        raise TimeoutError("Cameras did not synchronize within the timeout period.")
+    
+    def schedule_action_command(self):
         pass
     
-
-
-class CameraController:
-    """
-    Class to handle synchronization and simultaneous image capturing from multiple camera objects using PTP and Scheduled Action Commands.
-    """
-    
-    def __init__(self, cameras: List[Camera]):
-        """
-        Initializes the Synchronizer with a list of Camera objects.
-
-        Parameters:
-            cameras (List[Camera]): A list of camera objects to be synchronized and managed.
-        """
-        self.cameras = cameras
-        self.initialize_ptp()
-    
-    def camera_registration(self):
+    def perodically_scheduled_action_command(self):
         pass
-
-    def initialize_ptp(self):
-        """
-        Initializes PTP on all cameras to synchronize them.
-        """
-        pass
-    
-    def take_images(self):
-        pass
-
-
-# ------------------- other functionalities -------------------
-
-def num_of_cameras_detected():
-    """
-    Returns the detected number of cameras that connected to the computer
-
-    Returns:
-        int: The number of cameras detected.
-    """
-    # Get the transport layer factory
-    tl_factory = pylon.TlFactory.GetInstance()
-    # Get all attached devices
-    devices = tl_factory.EnumerateDevices()
-    if len(devices) == 0:
-        print("No cameras detected.")
-    else:
-        print("Number of cameras detected:", len(devices))
-        # Print out the device info for each detected camera
-        for i, device in enumerate(devices):
-            print(f"Camera {i + 1}: {device.GetModelName()} - Serial Number: {device.GetSerialNumber()}")
-    return len(devices)
