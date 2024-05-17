@@ -89,11 +89,10 @@ for _ in range(10):
     scheduled_time = current_time + 3000000000  # Define the delay for action command (in nanoseconds)
 
     # Issue the scheduled action command
-    results = gige_tl.IssueScheduledActionCommandNoWait(action_key, group_key, 
-                                                        group_mask, scheduled_time, "255.255.255.255")
+    results = gige_tl.IssueScheduledActionCommandNoWait(action_key, group_key, group_mask, scheduled_time, "255.255.255.255")
     print(f"Scheduled command issued, scheduled capture at {scheduled_time}, retriving image...")
     
-    # Wait for the grab result to ensure images are captured after trigger
+    # Wait for the grab result to ensure images are captured after trigger (wait time should longer than the scheduled time)
     grabResult1 = cameras[0].RetrieveResult(10000, pylon.TimeoutHandling_ThrowException)
     grabResult2 = cameras[1].RetrieveResult(10000, pylon.TimeoutHandling_ThrowException)
 

@@ -1,77 +1,67 @@
+from pypylon import pylon
 import numpy as np
 import cv2
-from pypylon import pylon
-from conftest import *
 
-# get the Basler cameras resource manager
-cam_manager = pylon.TlFactory.GetInstance()
 
-# using the resource manager, get the list of available (detected) cameras
-devices = cam_manager.EnumerateDevices()
+cv2.namedWindow('Acquisition', cv2.WINDOW_NORMAL)
+cv2.resizeWindow('Acquisition', 1280, 512)
 
+
+tlFactory = pylon.TlFactory.GetInstance()
+devices = tlFactory.EnumerateDevices()
 if len(devices) == 0:
-    raise "No cameras detected."
-else:
-    print("Number of cameras detected:", len(devices))
-    cameras = []
-    for d in devices:
-        cam = camera.BaslerCamera(pylon.InstantCamera(cam_manager.CreateDevice(d)))
-        cameras.append(cam)
-        
-# Set the PTP on for all cameras internal clock synchronization
-for c in cameras:
-    c.camera.GevIEEE1588.Value = True
-    c.camera.StartGrabbing(pylon.GrabStrategy_LatestImageOnly)
+    raise pylon.RUNTIME_EXCEPTION("No camera present.")
+
+cameras = pylon.InstantCameraArray(2)
+
+for i, camera in enumerate(cameras):
+    camera.Attach(tlFactory.CreateDevice(devices[i]))
+    camera.Open()
+    # Set the acquisition frame rate
+    # camera.AcquisitionFrameRateEnable.Value = True
+    # camera.AcquisitionFrameRateAbs.Value = 60.0 # Set frame rate in fps
+    # camera.ExposureAuto.SetValue('Off')
+    # camera.ExposureTimeRaw.SetValue(1000)  # Set exposure time in microseconds
+    camera.GevIEEE1588.Value = True
+    print(camera.GevIEEE1588Status.Value)
+    if camera.GevIEEE1588Status.Value == 'Slave':
+        slave = i
 
 
-# Start grabbing images from all cameras
-while True:
-    imgs = []
-    timestamps = []
-    for cam in cameras:
-        if cam.camera.IsGrabbing():
-            grab_result = cam.camera.RetrieveResult(5000, pylon.TimeoutHandling_ThrowException)
-            if grab_result.GrabSucceeded():
-                img = grab_result.Array
-                timestamp = grab_result.TimeStamp
-                imgs.append(img)
-                timestamps.append(timestamp)
-            grab_result.Release()
+# Starts grabbing for all cameras
+cameras.StartGrabbing(pylon.GrabStrategy_LatestImageOnly, 
+                      pylon.GrabLoop_ProvidedByUser)
+
+
+while cameras.IsGrabbing():
+    grabResult1 = cameras[0].RetrieveResult(5000, 
+                         pylon.TimeoutHandling_ThrowException)
     
-    # Display the images and save
-    if len(imgs) > 1:
-        image = np.hstack((imgs))
-        image = cv2.resize(image, (960, 300))
-    cv2.imshow('Camera View', image)  # Display the first camera image
-    key = cv2.waitKey(1)
-    if key == 27:  # ESC key
-        break
-    elif key == ord('s'):  # 's' key
-        for i, (img, timestamp) in enumerate(zip(imgs, timestamps), 1):
-            filename = f"{'../../ResultsCenter/sync'}/{timestamp}_cam_{i}.png"
-            cv2.imwrite(filename, img)
-            print(f"Saved {filename}")
+    grabResult2 = cameras[1].RetrieveResult(5000, 
+                         pylon.TimeoutHandling_ThrowException)
+    
+    if grabResult1.GrabSucceeded() & grabResult2.GrabSucceeded():
+        im1 = grabResult1.GetArray()
+        im2 = grabResult2.GetArray()
+        timestamp1 = grabResult1.TimeStamp
+        timestamp2 = grabResult2.TimeStamp
 
+        timediif = abs((timestamp2 - timestamp1) * 1e-6)
+        # If ESC is pressed exit and destroy window
+        combined_image = np.hstack((im1, im2))
+        cv2.imshow('Acquisition', combined_image)
+        key = cv2.waitKey(1)
+        if key == 27:
+            break
+        elif key == ord('s'):  # 's' key
+            if timediif < 10:
+                filename = f"{'../../ResultsCenter/sync'}/{timestamp1}_{timestamp2}.png"
+                cv2.imwrite(filename, combined_image)
+                print("timestamp difference (in ms): ", timediif)
+            else:
+                print("Not saved, because timestamp difference (in ms): ", timediif)
 
-# Cleanup
 cv2.destroyAllWindows()
-
-for cam in cameras:
-    cam.close()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

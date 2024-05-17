@@ -1,13 +1,10 @@
 from conftest import *
-from pypylon import pylon
+import cv2
+from datetime import datetime
 
+manager = camera.MultiBaslerCameraManager()
+manager.synchronization()
 
-
-
-
-
-
-
-
-
-
+filename = "../../ResultsCenter/sync/"
+image =  manager.perodically_scheduled_action_command(filename)
+manager.end()
