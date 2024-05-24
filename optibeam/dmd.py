@@ -111,7 +111,7 @@ class ViALUXDMD(DMD):
         # Send the image sequence as a 1D list/array/numpy array
         self.dmd.SeqPut(imgData = imgSeq)
         # Set image rate to 50 Hz
-        self.dmd.SetTiming(pictureTime = 20000) # in microseconds
+        self.dmd.SetTiming(pictureTime = 20000) # in microseconds. 50 Hz = 20000 us
         # Run the sequence in a loop
         self.dmd.Run()
         time.sleep(0.01)
