@@ -4,9 +4,9 @@ import time
 
 # Load the Vialux .dll
 DMD = dmd.ViALUXDMD(ALP4(version = '4.3'))
-dim = 128
+dim = 1024
 canvas = simulation.DynamicPatterns(*(dim, dim))
-canvas._distributions = [simulation.GaussianDistribution(canvas) for _ in range(10)]
+canvas._distributions = [simulation.GaussianDistribution(canvas) for _ in range(5)]
 
 for i in range(1000000):
     canvas.update()
@@ -14,8 +14,6 @@ for i in range(1000000):
     img = simulation.pixel_value_remap(img)
     img = simulation.macro_pixel(img, size=int(1024/dim))
     DMD.display_image(img)
-    
-    #time.sleep(0.1)
     
 DMD.end()
 
