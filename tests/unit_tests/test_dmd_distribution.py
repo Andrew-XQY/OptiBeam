@@ -4,7 +4,7 @@ import time
 
 # Load the Vialux .dll
 DMD = dmd.ViALUXDMD(ALP4(version = '4.3'))
-dim = 1024
+dim = 256
 canvas = simulation.DynamicPatterns(*(dim, dim))
 canvas._distributions = [simulation.GaussianDistribution(canvas) for _ in range(5)]
 
