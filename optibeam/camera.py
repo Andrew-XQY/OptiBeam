@@ -4,7 +4,16 @@ import cv2
 from pypylon import pylon
 import time
 
-
+# Callback functions to set exposure and gain
+def create_camera_control_functions(camera):
+    # Define a closure for setting exposure
+    def set_exposure(val):
+        camera.ExposureTimeAbs.Value = val
+    # Define a closure for setting gain
+    def set_gain(val):
+        camera.GainRaw.Value = val
+    return set_exposure, set_gain
+    
 class MultiBaslerCameraManager:
 
     def __init__(self, params={"action_key" : 0x1, "group_key" : 0x1, "group_mask" : 0xffffffff, "boardcast_ip" : "255.255.255.255"}):
@@ -31,7 +40,17 @@ class MultiBaslerCameraManager:
 
     def _flip(self):
         cv2.namedWindow('Acquisition', cv2.WINDOW_NORMAL)
-        cv2.resizeWindow('Acquisition', 1280, 512)
+        width = sum([i.Width.GetValue() for i in self.cameras])
+        height = max([i.Height.GetValue() for i in self.cameras])
+
+        set_exposure_0, set_gain_0 = create_camera_control_functions(self.cameras[0])
+        set_exposure_1, set_gain_1 = create_camera_control_functions(self.cameras[1])
+        cv2.createTrackbar('Exposure_0', 'Acquisition', 0, 200000, set_exposure_0) 
+        cv2.createTrackbar('Exposure_1', 'Acquisition', 0, 200000, set_exposure_1) 
+        cv2.createTrackbar('Gain_0', 'Acquisition', 0, 200, set_gain_0)  
+        cv2.createTrackbar('Gain_1', 'Acquisition', 0, 200, set_gain_1) 
+
+        cv2.resizeWindow('Acquisition', int(width//(2.5)), int(height//(2.5)))
         self._start_grabbing()
         while all(cam.IsGrabbing() for cam in self.cameras):
             grabResult0 = self.cameras[0].RetrieveResult(5000, pylon.TimeoutHandling_ThrowException)
@@ -85,7 +104,6 @@ class MultiBaslerCameraManager:
             i.ActionDeviceKey.SetValue(self.action_key)
             i.ActionGroupKey.SetValue(self.group_key)
             i.ActionGroupMask.SetValue(self.group_mask)
-            
         self.print_all_camera_status()
 
     def print_all_camera_status(self):
@@ -159,8 +177,7 @@ class MultiBaslerCameraManager:
             t0 = grabResult0.TimeStamp
             t1 = grabResult1.TimeStamp
             timedif = self.max_time_difference([t0, t1])
-            print(f"Camera image captured time difference: {t0 - scheduled_time} ns")
-            print(f"Time difference between two images: {timedif} ns \n")
+            print(f"Capture/Schedule time difference: {t0 - scheduled_time} ns")
             if timedif < 1000:
                 combined_image = self._combine_images(im0, im1)
             else: combined_image = None
@@ -169,11 +186,11 @@ class MultiBaslerCameraManager:
         self._stop_grabbing() 
         return combined_image
     
-    def perodically_scheduled_action_command(self, save_path: str, total: int = 10, wait_time: int = 1000):
+    def perodically_scheduled_action_command(self, total: int = 10, wait_time: int = 1000):
         for _ in range(total):
             image = self.schedule_action_command(int(wait_time * 1e6))
             if image is not None:
-                cv2.imwrite(save_path + str(_) + '.png', image)  
+                return image  
     
     def end(self):
         self._stop_grabbing()

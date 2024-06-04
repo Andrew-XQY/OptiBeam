@@ -1,10 +1,16 @@
 from conftest import *
 import cv2
-from datetime import datetime
+import datetime
 
 manager = camera.MultiBaslerCameraManager()
 manager.synchronization()
 
-filename = "../../ResultsCenter/sync/"
-image =  manager.perodically_scheduled_action_command(filename)
+save_path = "../../ResultsCenter/sync/"
+# image =  manager.perodically_scheduled_action_command()
+for _ in range(5):
+    image = manager.schedule_action_command(int(1000 * 1e6))
+    if image is not None:
+        filename = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S-%f")
+        cv2.imwrite(save_path + filename + '.png', image)
+
 manager.end()
