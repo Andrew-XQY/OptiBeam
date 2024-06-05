@@ -43,7 +43,7 @@
 Python modules for image processing, sensor automation control and machine learning in accelerator physics. 
  _For more examples, please refer to the [Documentation](https://andrew-xqy.github.io/OptiBeam/)_
 
-Current version: 0.1.43
+Current version: 0.1.44
 
 ## Built With
 
