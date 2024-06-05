@@ -29,6 +29,9 @@ dependencies = [
     "typing; python_version<'3.5'",  # Only needed for versions of Python < 3.5
     "seaborn",
     "plotly",
+    "ALP4lib",
+    "pypylon",
+    "mysql-connector-python",
 ]
 
 [project.urls]

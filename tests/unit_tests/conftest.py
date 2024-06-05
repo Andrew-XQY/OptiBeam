@@ -26,4 +26,5 @@ with ChangeDirToFileLocation():
     import optibeam.visualization as visualization
     import optibeam.dmd as dmd
     import optibeam.camera as camera
+    import optibeam.utils as utils 
 

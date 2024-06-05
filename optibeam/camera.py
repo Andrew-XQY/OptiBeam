@@ -21,6 +21,7 @@ class MultiBaslerCameraManager:
                                "group_mask" : 0xffffffff, "boardcast_ip" : "255.255.255.255"}):
         self.cameras = []
         self.flip = False
+        self.master = None
         self.tlFactory = pylon.TlFactory.GetInstance()
         self.GigE_TL = self.tlFactory.CreateTl('BaslerGigE') # GigE transport layer, used for issuing action commands
         self.action_key = params.get("action_key")
@@ -143,19 +144,21 @@ class MultiBaslerCameraManager:
         start_time = time.time()
         while time.time() - start_time < timeout:
             if all(camera.GevIEEE1588Status.Value in ['Slave', 'Master'] for camera in self.cameras):
+                for i, camera in enumerate(self.cameras):
+                    if camera.GevIEEE1588Status.Value == 'Master':
+                        self.master = i
                 return True
             time.sleep(0.5)
         raise TimeoutError("Cameras did not become ready within the timeout period.")
+    
+    def _max_time_difference(self, timestamps: list) -> int:
+        return max(timestamps) - min(timestamps)
 
     def check_sync_status(self) -> float:
-        # check PTP offset anytime
-        slave = None
-        for i, camera in enumerate(self.cameras):
-            if camera.GevIEEE1588Status.Value == 'Slave':
-                slave = i
-        for i in range(len(self.cameras)):
-            self.cameras[i].GevIEEE1588DataSetLatch.Execute()
-        return self.cameras[slave].GevIEEE1588OffsetFromMaster.Value
+        # check PTP offset
+        for camera in self.cameras:
+            camera.GevIEEE1588DataSetLatch.Execute()
+        return [c.GevIEEE1588OffsetFromMaster.Value for c in self.cameras if c.GevIEEE1588Status.Value == 'Slave'] 
 
     def synchronization(self, threshold : int=300, timeout: int=20) -> list:
         self._check_cameras_state()
@@ -164,7 +167,7 @@ class MultiBaslerCameraManager:
         records = []
         start_time = time.time()
         while time.time() - start_time < timeout:
-            offset = self.check_sync_status()
+            offset = max(self.check_sync_status())
             records.append(offset)
             print(offset)
             offset = abs(offset)
@@ -174,13 +177,10 @@ class MultiBaslerCameraManager:
             time.sleep(1)
         raise TimeoutError("Cameras did not synchronize within the timeout period.")
     
-    def max_time_difference(self, timestamps: list) -> int:
-        return max(timestamps) - min(timestamps)
-    
     def schedule_action_command(self, scheduled_time: int) -> np.ndarray:
-        self.cameras[0].GevTimestampControlLatch.Execute() # Get the current timestamp from the master device
-        current_time = self.cameras[0].GevTimestampValue.Value
-        scheduled_time = current_time + scheduled_time  # delay for action command (in nanoseconds)
+        self.cameras[self.master].GevTimestampControlLatch.Execute() # Get the current timestamp from the master device
+        current_time = self.cameras[self.master].GevTimestampValue.Value
+        scheduled_time += current_time  # delay for action command (in nanoseconds)
         self._start_grabbing()
         results = self.GigE_TL.IssueScheduledActionCommandNoWait(self.action_key, self.group_key, self.group_mask,
                                                                  scheduled_time, self.boardcast_ip)
@@ -189,7 +189,7 @@ class MultiBaslerCameraManager:
         combined_image = None
         if len(grabResults) > 1:
             imgs = [grabResult.GetArray() for grabResult in grabResults]
-            timedif = self.max_time_difference([grabResult.TimeStamp for grabResult in grabResults])
+            timedif = self._max_time_difference([grabResult.TimeStamp for grabResult in grabResults])
             if timedif < 1000: # nanoseconds
                 combined_image = imgs[0]
                 for img in imgs[1:]:
