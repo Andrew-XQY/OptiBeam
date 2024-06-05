@@ -124,7 +124,7 @@ class ViALUXDMD(DMD):
         self.dmd.Halt() 
         self.dmd.FreeSeq()  # Free the sequence from the onboard memory
         self.dmd.Free()  # De-allocate the device
-        print("Device deallocated, program finished")
+        print("DMD Device deallocated, sequence stopped.")
 
 
 

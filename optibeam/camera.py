@@ -70,10 +70,12 @@ class MultiBaslerCameraManager:
         cv2.resizeWindow('Acquisition', int(width//(2.5)), int(height//(2.5)))
         self._start_grabbing()
         while all(cam.IsGrabbing() for cam in self.cameras):
-            grabResult0 = self.cameras[0].RetrieveResult(5000, pylon.TimeoutHandling_ThrowException)
-            grabResult1 = self.cameras[1].RetrieveResult(5000, pylon.TimeoutHandling_ThrowException)
-            if grabResult0.GrabSucceeded() and grabResult1.GrabSucceeded():
-                combined_image = self._combine_images(grabResult0.GetArray(), grabResult1.GetArray())
+            grabResults = self._grab_results()
+            imgs = [grabResult.GetArray() for grabResult in grabResults]
+            if len(grabResults) > 1:
+                combined_image = imgs[0]
+                for img in imgs[1:]:
+                    combined_image = self._combine_images(combined_image, img) 
                 cv2.imshow('Acquisition', combined_image)
                 key = cv2.waitKey(1)
                 if key == ord('f'):  # 'f' key to flip
@@ -81,8 +83,7 @@ class MultiBaslerCameraManager:
                     print('Image logic flipped.')
                 elif key == 27:  # Escape key
                     break
-        grabResult0.Release()
-        grabResult1.Release()
+        self._grab_release(grabResults)
         self._stop_grabbing()
         cv2.destroyAllWindows()
 
@@ -152,8 +153,8 @@ class MultiBaslerCameraManager:
         for i, camera in enumerate(self.cameras):
             if camera.GevIEEE1588Status.Value == 'Slave':
                 slave = i
-        self.cameras[0].GevIEEE1588DataSetLatch.Execute()
-        self.cameras[1].GevIEEE1588DataSetLatch.Execute()
+        for i in range(len(self.cameras)):
+            self.cameras[i].GevIEEE1588DataSetLatch.Execute()
         return self.cameras[slave].GevIEEE1588OffsetFromMaster.Value
 
     def synchronization(self, threshold : int=300, timeout: int=20) -> list:
@@ -175,34 +176,6 @@ class MultiBaslerCameraManager:
     
     def max_time_difference(self, timestamps: list) -> int:
         return max(timestamps) - min(timestamps)
-        
-    # def schedule_action_command(self, scheduled_time: int) -> np.ndarray:
-    #     self.cameras[0].GevTimestampControlLatch.Execute() # Get the current timestamp from the camera
-    #     current_time = self.cameras[0].GevTimestampValue.Value
-    #     scheduled_time = current_time + scheduled_time  # Define the delay for action command (in nanoseconds)
-    #     self._start_grabbing()
-    #     # Issue the scheduled action command
-    #     results = self.GigE_TL.IssueScheduledActionCommandNoWait(self.action_key, self.group_key, self.group_mask,
-    #                                                              scheduled_time, self.boardcast_ip)
-    #     print(f"Scheduled command issued at {int(scheduled_time//1e6)}ms later, retriving image...")
-        
-    #     grabResult0 = self.cameras[0].RetrieveResult(10000, pylon.TimeoutHandling_ThrowException)
-    #     grabResult1 = self.cameras[1].RetrieveResult(10000, pylon.TimeoutHandling_ThrowException)
-    #     if grabResult0.GrabSucceeded() & grabResult1.GrabSucceeded():
-    #         im0 = grabResult0.GetArray()
-    #         im1 = grabResult1.GetArray()
-    #         t0 = grabResult0.TimeStamp
-    #         t1 = grabResult1.TimeStamp
-    #         timedif = self.max_time_difference([t0, t1])
-    #         if timedif < 1000:
-    #             combined_image = self._combine_images(im0, im1)
-    #             print("Image retrived.")
-    #         else: combined_image = None
-            
-    #     grabResult0.Release()
-    #     grabResult1.Release()
-    #     self._stop_grabbing() 
-    #     return combined_image
     
     def schedule_action_command(self, scheduled_time: int) -> np.ndarray:
         self.cameras[0].GevTimestampControlLatch.Execute() # Get the current timestamp from the master device
@@ -211,8 +184,9 @@ class MultiBaslerCameraManager:
         self._start_grabbing()
         results = self.GigE_TL.IssueScheduledActionCommandNoWait(self.action_key, self.group_key, self.group_mask,
                                                                  scheduled_time, self.boardcast_ip)
-        print(f"Scheduled command issued at {int(scheduled_time//1e6)}ms later, retriving image...")
+        print(f"Scheduled command issued, retriving image...")
         grabResults = self._grab_results()
+        combined_image = None
         if len(grabResults) > 1:
             imgs = [grabResult.GetArray() for grabResult in grabResults]
             timedif = self.max_time_difference([grabResult.TimeStamp for grabResult in grabResults])
@@ -220,17 +194,16 @@ class MultiBaslerCameraManager:
                 combined_image = imgs[0]
                 for img in imgs[1:]:
                     combined_image = self._combine_images(combined_image, img)
-                print("Image retrived.")
-            else: combined_image = None
+                print(f"Image retrived.")
         self._grab_release(grabResults)
         self._stop_grabbing() 
         return combined_image
     
-    def perodically_scheduled_action_command(self, total_num: int = 10, schedule_time: int = 1000) -> np.ndarray:
-        for _ in range(total_num):
-            image = self.schedule_action_command(int(schedule_time * 1e6))
-            if image is not None:
-                return image  
+    # def perodically_scheduled_action_command(self, total_num: int = 10, schedule_time: int = 1000) -> np.ndarray:
+    #     for _ in range(total_num):
+    #         image = self.schedule_action_command(int(schedule_time * 1e6))
+    #         if image is not None:
+    #             return image  
     
     def end(self) -> None:
         self._stop_grabbing()
@@ -316,3 +289,33 @@ class MultiBaslerCameraManager:
 #         Refresh the camera (not restart Main purpose is to make sure the camera is ready for the next action command)
 #         """
 #         pass
+
+
+
+    # def schedule_action_command(self, scheduled_time: int) -> np.ndarray:
+    #     self.cameras[0].GevTimestampControlLatch.Execute() # Get the current timestamp from the camera
+    #     current_time = self.cameras[0].GevTimestampValue.Value
+    #     scheduled_time = current_time + scheduled_time  # Define the delay for action command (in nanoseconds)
+    #     self._start_grabbing()
+    #     # Issue the scheduled action command
+    #     results = self.GigE_TL.IssueScheduledActionCommandNoWait(self.action_key, self.group_key, self.group_mask,
+    #                                                              scheduled_time, self.boardcast_ip)
+    #     print(f"Scheduled command issued at {int(scheduled_time//1e6)}ms later, retriving image...")
+        
+    #     grabResult0 = self.cameras[0].RetrieveResult(10000, pylon.TimeoutHandling_ThrowException)
+    #     grabResult1 = self.cameras[1].RetrieveResult(10000, pylon.TimeoutHandling_ThrowException)
+    #     if grabResult0.GrabSucceeded() & grabResult1.GrabSucceeded():
+    #         im0 = grabResult0.GetArray()
+    #         im1 = grabResult1.GetArray()
+    #         t0 = grabResult0.TimeStamp
+    #         t1 = grabResult1.TimeStamp
+    #         timedif = self.max_time_difference([t0, t1])
+    #         if timedif < 1000:
+    #             combined_image = self._combine_images(im0, im1)
+    #             print("Image retrived.")
+    #         else: combined_image = None
+            
+    #     grabResult0.Release()
+    #     grabResult1.Release()
+    #     self._stop_grabbing() 
+    #     return combined_image
