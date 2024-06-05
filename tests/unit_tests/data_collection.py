@@ -6,6 +6,7 @@ import threading
 
 
 MAX_DMD_DIM = 1024
+
 class DataCollection:
     def __init__(self):
         self.DMD = dmd.ViALUXDMD(ALP4(version = '4.3')) # Load the Vialux .dll
@@ -25,7 +26,7 @@ class DataCollection:
             # img = np.tile(np.linspace(0, 255, 1024, dtype=np.uint8), (1024, 1))
             scale = 1 / np.sqrt(2)
             center = (MAX_DMD_DIM // 2, MAX_DMD_DIM // 2)
-            M = cv2.getRotationMatrix2D(center, 45, scale)
+            M = cv2.getRotationMatrix2D(center, 47, scale)
             img = cv2.warpAffine(img, M, (MAX_DMD_DIM, MAX_DMD_DIM), 
                                         borderMode=cv2.BORDER_CONSTANT, 
                                         borderValue=(0, 0, 0))
@@ -35,9 +36,6 @@ class DataCollection:
     def end(self):
         self.DMD.end()
 
-@utils.add_progress_bar
-def generate_data(n : int=10):
-    return range(n)
         
 # Create and start the thread
 data = DataCollection()
@@ -46,11 +44,17 @@ thread.start()
 
 manager = camera.MultiBaslerCameraManager()
 manager.synchronization()
-save_path = "../../ResultsCenter/sync/"
-for _ in generate_data():
-    image = manager.schedule_action_command(int(3000 * 1e6))
+
+save_path = f"../../ResultsCenter/dataset/{datetime.datetime.now().strftime('%Y-%m-%d')}/"
+if not os.path.exists(save_path):
+    # Create the directory
+    os.makedirs(save_path)
+    print(f"Directory '{save_path}' was created.")
+
+for _ in range(50):
+    image = manager.schedule_action_command(int(5000 * 1e6))
     if image is not None:
-        resized_image = cv2.resize(data.img, (int(image.shape[1]//2),image.shape[0]))
+        resized_image = cv2.resize(data.img, (image.shape[0],image.shape[0]))
         rotated_image = cv2.rotate(resized_image, cv2.ROTATE_90_CLOCKWISE)
         three_imgs = np.hstack((rotated_image, image))
         filename = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S-%f")

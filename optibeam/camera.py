@@ -54,7 +54,7 @@ class MultiBaslerCameraManager:
     def _grab_results(self) -> list:
         grabResults = []
         for cam in self.cameras:
-            grabResult = cam.RetrieveResult(5000, pylon.TimeoutHandling_ThrowException)
+            grabResult = cam.RetrieveResult(10000, pylon.TimeoutHandling_ThrowException)
             if grabResult.GrabSucceeded():
                 grabResults.append(grabResult)
         return grabResults

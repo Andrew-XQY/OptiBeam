@@ -9,9 +9,11 @@ from . import camera
 from . import simulation
 from . import database
 from . import processing
+from . import metadata
 
 
-__all__ = ['utils', 'evaluation', 'visualization', 'training', 'dmd', 'camera', 'simulation', 'database', 'processing']
+__all__ = ['utils', 'evaluation', 'visualization', 'training', 'dmd', 'camera',
+           'simulation', 'database', 'processing', 'metadata']
 __author__ = 'Andrew Xu'
 __email__ = 'qiyuanxu95@gmail.com'
 __version__ = '0.1.43'
