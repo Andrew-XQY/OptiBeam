@@ -49,6 +49,10 @@ class DMD(ABC):
         """
         pass
     
+    @abstractmethod
+    def get_metadata(self) -> dict:
+        pass
+    
     def pad_image(self, img, padding_value=0):
         # Calculate the padding sizes
         pad_height = self.get_height() - img.shape[0]
@@ -89,6 +93,7 @@ class DMD(ABC):
             return self.crop_image(img)
         else:
             return img
+    
 
 
 class ViALUXDMD(DMD):
@@ -116,6 +121,8 @@ class ViALUXDMD(DMD):
         self.dmd.Run()
         time.sleep(0.01)
 
+    def get_metadata(self) -> dict:
+        return {}
     
     def end(self) -> None:
         """

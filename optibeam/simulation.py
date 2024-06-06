@@ -91,6 +91,8 @@ class DynamicPatterns:
         plt.draw()  
         plt.pause(pause)  # Pause for a short period, allowing the plot to be updated
 
+    def get_metadata(self) -> dict:
+        return {}
 
 
 class Distribution(ABC):
@@ -111,6 +113,15 @@ class Distribution(ABC):
     @abstractmethod
     def update(self, *args, **kwargs):
         """Update the distribution's state."""
+        pass
+    
+    @abstractmethod
+    def fast_update(self, *args, **kwargs):
+        """Update the distribution's state without updating the pattern."""
+        pass
+    
+    @abstractmethod
+    def get_metadata(self) -> dict:
         pass
 
 
@@ -191,8 +202,12 @@ class GaussianDistribution(Distribution):
     def update(self, *args, **kwargs):
         self.change_distribution_params(*args, **kwargs)
         self._pattern = self.generate_2d_gaussian()
+        
+    def fast_update(self, *args, **kwargs):
+        self.change_distribution_params(*args, **kwargs)
 
-    
+    def get_metadata(self) -> dict:
+        return {}
         
 
 class MaxwellBoltzmannDistribution(Distribution):

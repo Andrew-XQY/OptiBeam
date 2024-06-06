@@ -62,8 +62,13 @@ class MultiBaslerCameraManager:
     def _grab_release(self, grabResults: list) -> None:
         for grabResult in grabResults:
             grabResult.Release()
+            
+    def _plot_max_pixel(self, img: np.ndarray) -> None:
+        font = cv2.FONT_HERSHEY_SIMPLEX
+        max_pixel = 'Max pixel value: ' + str(np.max(img))
+        cv2.putText(img, max_pixel, (10, 50), font, 2, (255, 255, 255), 2)
     
-    def _flip(self) -> None:
+    def _flip_order(self) -> None:
         cv2.namedWindow('Acquisition', cv2.WINDOW_NORMAL)
         width = sum([i.Width.GetValue() for i in self.cameras])
         height = max([i.Height.GetValue() for i in self.cameras])
@@ -75,11 +80,10 @@ class MultiBaslerCameraManager:
             imgs = [grabResult.GetArray() for grabResult in grabResults]
             if len(grabResults) > 1:
                 combined_image = imgs[0]
+                self._plot_max_pixel(combined_image)
                 for img in imgs[1:]:
+                    self._plot_max_pixel(img)
                     combined_image = self._combine_images(combined_image, img) 
-                max_pixel = 'Max pixel value: ' + str(np.max(combined_image))
-                font = cv2.FONT_HERSHEY_SIMPLEX
-                cv2.putText(combined_image, max_pixel, (10, 100), font, 3, (255, 255, 255), 2)
                 cv2.imshow('Acquisition', combined_image)
                 key = cv2.waitKey(1)
                 if key == ord('f'):  # 'f' key to flip
@@ -112,7 +116,7 @@ class MultiBaslerCameraManager:
             camera.AcquisitionFrameRateAbs.Value = 20.0
             self.cameras.append(camera)
         
-        self._flip()
+        self._flip_order()
         
         for i in self.cameras:  # prepare for PTP and scheduled action command
             i.AcquisitionFrameRateEnable.Value = False
@@ -202,11 +206,8 @@ class MultiBaslerCameraManager:
         self._stop_grabbing() 
         return combined_image
     
-    # def perodically_scheduled_action_command(self, total_num: int = 10, schedule_time: int = 1000) -> np.ndarray:
-    #     for _ in range(total_num):
-    #         image = self.schedule_action_command(int(schedule_time * 1e6))
-    #         if image is not None:
-    #             return image  
+    def get_metadata(self) -> dict:
+        return {}
     
     def end(self) -> None:
         self._stop_grabbing()
@@ -214,111 +215,3 @@ class MultiBaslerCameraManager:
             cam.Close()
         print("Camera closed, grab terminated.")
         
-        
-
-# class Camera(ABC):
-#     def __init__(self, camera=None):
-#         self.role = 'unsigned'  # reserved for PTP synchronization
-#         self.camera = camera  # wrapped camera object of the specific camera brand
-#         self.parameters = {}
-
-#     @property
-#     def role(self):
-#         """
-#         Get the role of the camera.
-#         """
-#         return self._role
-
-#     @role.setter
-#     def role(self, value):
-#         """
-#         Set the role of the camera with validation.
-#         """
-#         if value not in ['beam_image', 'fiber_output', 'unsigned']:
-#             raise ValueError("Role must be 'beam_image' or 'fiber_output' or 'unsigned'.")
-#         self._role = value
-        
-#     @abstractmethod
-#     def set_parameter(self, **kwargs):
-#         """
-#         Set a camera parameter.
-#         """
-#         pass
-
-#     @abstractmethod
-#     def get_information(self):
-#         """
-#         Return a dictionary containing camera information.
-#         """
-#         pass
-    
-#     @abstractmethod
-#     def demo(self):
-#         """
-#         freerun image streaming
-#         """
-#         pass
-
-
-# class BaslerCamera(Camera):
-#     def __init__(self, camera=None):
-#         super().__init__(camera)
-#         self.grabResult = None
-        
-#     def demo(self):
-#         """
-#         Generator method to continuously yield images as they are captured by the camera.
-#         """
-#         try:
-#             self.camera.StartGrabbing(pylon.GrabStrategy_LatestImageOnly, pylon.GrabLoop_ProvidedByUser)
-#             while self.camera.IsGrabbing():
-#                 grabResult = self.camera.RetrieveResult(5000, pylon.TimeoutHandling_ThrowException)
-#                 if grabResult.GrabSucceeded():
-#                     img = grabResult.GetArray()
-#                     yield img
-#                 grabResult.Release()
-#         finally:
-#             # Ensure the camera stops grabbing and properly releases resources when the generator stops.
-#             self.camera.StopGrabbing()
-
-#     def set_parameter(self, **kwargs):
-#         pass
-
-#     def get_information(self):
-#         return {}
-    
-#     def refresh(self):
-#         """
-#         Refresh the camera (not restart Main purpose is to make sure the camera is ready for the next action command)
-#         """
-#         pass
-
-
-
-    # def schedule_action_command(self, scheduled_time: int) -> np.ndarray:
-    #     self.cameras[0].GevTimestampControlLatch.Execute() # Get the current timestamp from the camera
-    #     current_time = self.cameras[0].GevTimestampValue.Value
-    #     scheduled_time = current_time + scheduled_time  # Define the delay for action command (in nanoseconds)
-    #     self._start_grabbing()
-    #     # Issue the scheduled action command
-    #     results = self.GigE_TL.IssueScheduledActionCommandNoWait(self.action_key, self.group_key, self.group_mask,
-    #                                                              scheduled_time, self.boardcast_ip)
-    #     print(f"Scheduled command issued at {int(scheduled_time//1e6)}ms later, retriving image...")
-        
-    #     grabResult0 = self.cameras[0].RetrieveResult(10000, pylon.TimeoutHandling_ThrowException)
-    #     grabResult1 = self.cameras[1].RetrieveResult(10000, pylon.TimeoutHandling_ThrowException)
-    #     if grabResult0.GrabSucceeded() & grabResult1.GrabSucceeded():
-    #         im0 = grabResult0.GetArray()
-    #         im1 = grabResult1.GetArray()
-    #         t0 = grabResult0.TimeStamp
-    #         t1 = grabResult1.TimeStamp
-    #         timedif = self.max_time_difference([t0, t1])
-    #         if timedif < 1000:
-    #             combined_image = self._combine_images(im0, im1)
-    #             print("Image retrived.")
-    #         else: combined_image = None
-            
-    #     grabResult0.Release()
-    #     grabResult1.Release()
-    #     self._stop_grabbing() 
-    #     return combined_image
