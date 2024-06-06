@@ -3,6 +3,7 @@ import numpy as np
 import cv2
 from pypylon import pylon
 import time
+from .utils import *
 
 
 def create_camera_control_functions(camera):
@@ -17,7 +18,7 @@ def create_camera_control_functions(camera):
     
 class MultiBaslerCameraManager:
 
-    def __init__(self, params={"action_key" : 0x1, "group_key" : 0x1, 
+    def __init__(self, params={"grab_timeout" : 5000, "action_key" : 0x1, "group_key" : 0x1,
                                "group_mask" : 0xffffffff, "boardcast_ip" : "255.255.255.255"}):
         self.cameras = []
         self.flip = False
@@ -28,6 +29,7 @@ class MultiBaslerCameraManager:
         self.group_key = params.get("group_key")
         self.group_mask = params.get("group_mask")  # pylon.AllGroupMask or 0xffffffff
         self.boardcast_ip = params.get("boardcast_ip") # Broadcast to all devices in the network
+        self.grab_timeout = params.get("grab_timeout")
         self.initialize()
         
     def _start_grabbing(self) -> None:
@@ -45,7 +47,7 @@ class MultiBaslerCameraManager:
         """
         mount the camera control functions to the cv2 trackbars
         """
-        type = {'Exposure':200000, 'Gain':200}
+        type = {'Exposure':200000, 'Gain':400}
         for i in range(len(self.cameras)):
             params = create_camera_control_functions(self.cameras[i])
             for key, val in type.items():
@@ -54,7 +56,7 @@ class MultiBaslerCameraManager:
     def _grab_results(self) -> list:
         grabResults = []
         for cam in self.cameras:
-            grabResult = cam.RetrieveResult(10000, pylon.TimeoutHandling_ThrowException)
+            grabResult = cam.RetrieveResult(self.grab_timeout, pylon.TimeoutHandling_ThrowException)
             if grabResult.GrabSucceeded():
                 grabResults.append(grabResult)
         return grabResults
@@ -94,19 +96,16 @@ class MultiBaslerCameraManager:
         self._grab_release(grabResults)
         self._stop_grabbing()
         cv2.destroyAllWindows()
-
-    def initialize(self, timeout:int=10) -> None:
+    
+    @timeout(10)
+    def initialize(self) -> None:
         """
         detect all cameras and initialize them
         """
-        start_time = time.time()
-        timeout += start_time
         while True:
             devices = self.tlFactory.EnumerateDevices()
             if len(devices) >= 2:
                 break
-            if time.time() >= timeout:
-                raise RuntimeError(f"At least 2 cameras are required. Detected: {len(devices)}.")
             time.sleep(0.5)
         
         for i in range(len(devices)):  
@@ -146,18 +145,17 @@ class MultiBaslerCameraManager:
             print('Camera PTP status: ', cam.GevIEEE1588Status.Value)
             print('\n')
         print('-' * 50)
-        
-    def _check_cameras_state(self, timeout: int=10) -> bool:
-        start_time = time.time()
-        while time.time() - start_time < timeout:
+
+    @timeout(10)
+    def _check_cameras_ptp_state(self) -> bool:
+        while True:
             if all(camera.GevIEEE1588Status.Value in ['Slave', 'Master'] for camera in self.cameras):
                 for i, camera in enumerate(self.cameras):
                     if camera.GevIEEE1588Status.Value == 'Master':
                         self.master = i
                 return True
             time.sleep(0.5)
-        raise TimeoutError("Cameras did not become ready within the timeout period.")
-    
+        
     def _max_time_difference(self, timestamps: list) -> int:
         return max(timestamps) - min(timestamps)
 
@@ -166,14 +164,14 @@ class MultiBaslerCameraManager:
         for camera in self.cameras:
             camera.GevIEEE1588DataSetLatch.Execute()
         return [c.GevIEEE1588OffsetFromMaster.Value for c in self.cameras if c.GevIEEE1588Status.Value == 'Slave'] 
-
-    def synchronization(self, threshold : int=300, timeout: int=20) -> list:
-        self._check_cameras_state()
+    
+    @timeout(20)
+    def synchronization(self, threshold : int=300) -> list:
+        self._check_cameras_ptp_state()
         print('Waiting for PTP time synchronization...')
         offset = float('inf')
         records = []
-        start_time = time.time()
-        while time.time() - start_time < timeout:
+        while True:
             offset = max(self.check_sync_status())
             records.append(offset)
             print(offset)
@@ -182,7 +180,6 @@ class MultiBaslerCameraManager:
                 print("Cameras synchronized.")
                 return records
             time.sleep(1)
-        raise TimeoutError("Cameras did not synchronize within the timeout period.")
     
     def schedule_action_command(self, scheduled_time: int) -> np.ndarray:
         self.cameras[self.master].GevTimestampControlLatch.Execute() # Get the current timestamp from the master device
@@ -214,4 +211,73 @@ class MultiBaslerCameraManager:
         for cam in self.cameras:
             cam.Close()
         print("Camera closed, grab terminated.")
+    
+    
+
+
+    # def synchronization(self, threshold : int=300, timeout: int=20) -> list:
+    #     self._check_cameras_ptp_state()
+    #     print('Waiting for PTP time synchronization...')
+    #     offset = float('inf')
+    #     records = []
+    #     start_time = time.time()
+    #     while time.time() - start_time < timeout:
+    #         offset = max(self.check_sync_status())
+    #         records.append(offset)
+    #         print(offset)
+    #         offset = abs(offset)
+    #         if offset < threshold: 
+    #             print("Cameras synchronized.")
+    #             return records
+    #         time.sleep(1)
+    #     raise TimeoutError("Cameras did not synchronize within the timeout period.")
+    
+    
+    
+    # def _check_cameras_ptp_state(self, timeout: int=10) -> bool:
+    #     start_time = time.time()
+    #     while time.time() - start_time < timeout:
+    #         if all(camera.GevIEEE1588Status.Value in ['Slave', 'Master'] for camera in self.cameras):
+    #             for i, camera in enumerate(self.cameras):
+    #                 if camera.GevIEEE1588Status.Value == 'Master':
+    #                     self.master = i
+    #             return True
+    #         time.sleep(0.5)
+    #     raise TimeoutError("Cameras did not become ready within the timeout period.")
+    
+    
+    
+    # def initialize(self, timeout:int=10) -> None:
+    #     """
+    #     detect all cameras and initialize them
+    #     """
+    #     start_time = time.time()
+    #     timeout += start_time
+    #     while True:
+    #         devices = self.tlFactory.EnumerateDevices()
+    #         if len(devices) >= 2:
+    #             break
+    #         if time.time() >= timeout:
+    #             raise RuntimeError(f"At least 2 cameras are required. Detected: {len(devices)}.")
+    #         time.sleep(0.5)
         
+    #     for i in range(len(devices)):  
+    #         camera = pylon.InstantCamera(self.tlFactory.CreateDevice(devices[i]))
+    #         camera.Open()
+    #         camera.AcquisitionFrameRateEnable.Value = True
+    #         camera.AcquisitionFrameRateAbs.Value = 20.0
+    #         self.cameras.append(camera)
+        
+    #     self._flip_order()
+        
+    #     for i in self.cameras:  # prepare for PTP and scheduled action command
+    #         i.AcquisitionFrameRateEnable.Value = False
+    #         i.GevIEEE1588.Value = True
+    #         i.AcquisitionMode.SetValue("SingleFrame") # SingleFrame Continuous
+    #         i.TriggerMode.SetValue("On")
+    #         i.TriggerSource.SetValue("Action1")
+    #         i.TriggerSelector.SetValue('FrameStart')
+    #         i.ActionDeviceKey.SetValue(self.action_key)
+    #         i.ActionGroupKey.SetValue(self.group_key)
+    #         i.ActionGroupMask.SetValue(self.group_mask)
+    #     self.print_all_camera_status()

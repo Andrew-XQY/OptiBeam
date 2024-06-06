@@ -7,6 +7,7 @@ from skimage.transform import resize
 from PIL import Image
 from tqdm import tqdm
 from functools import wraps, reduce
+import time
 from typing import *
 
 
@@ -67,6 +68,19 @@ def preset_kwargs(**preset_kwargs):
         return wrapper
     return decorator
 
+
+def timeout(seconds):
+    """Decorator to timeout a function after 'seconds' seconds"""
+    def decorator(func):
+        def wrapper(*args, **kwargs):
+            start = time.time()
+            result = func(*args, **kwargs)  # Execute the function
+            end = time.time()
+            if end - start > seconds:
+                raise RuntimeError(f"'{func.__name__}' timed out after {seconds} seconds. process terminated.")
+            return result
+        return wrapper
+    return decorator
 
 
 def deprecated(reason):
@@ -178,6 +192,8 @@ class ImageLoader:
         Load an image from the specified path and apply the specified functions to the image sequentially.
         """
         with Image.open(image_path) as img:
+            # Convert the image to a NumPy array
+            img = np.array(img)
             for func in self.funcs:
                 img = func(img)
         return img

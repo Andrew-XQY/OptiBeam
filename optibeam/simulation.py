@@ -117,7 +117,12 @@ class Distribution(ABC):
     
     @abstractmethod
     def fast_update(self, *args, **kwargs):
-        """Update the distribution's state without updating the pattern."""
+        """Update the distribution's parameters without actually plotting the new pattern."""
+        pass
+    
+    @abstractmethod
+    def pattern_generation(self) -> np.ndarray:
+        """Generate/plot the distribution's pattern. (in narray form)"""
         pass
     
     @abstractmethod
@@ -173,7 +178,7 @@ class GaussianDistribution(Distribution):
         self.rotation_velocity = self.rotation_velocity * self.rotation_momentum + rotational_adjustment
         self.rotation_radians = (self.rotation_radians + self.rotation_velocity) % (2 * np.pi)
         
-    def generate_2d_gaussian(self) -> np.ndarray:
+    def pattern_generation(self) -> np.ndarray:
         """
         Generate a rotated 2D Gaussian distribution based on the current state of the distribution.
         The rotation is centered around the mean of the distribution.
@@ -201,7 +206,7 @@ class GaussianDistribution(Distribution):
         
     def update(self, *args, **kwargs):
         self.change_distribution_params(*args, **kwargs)
-        self._pattern = self.generate_2d_gaussian()
+        self._pattern = self.pattern_generation()
         
     def fast_update(self, *args, **kwargs):
         self.change_distribution_params(*args, **kwargs)

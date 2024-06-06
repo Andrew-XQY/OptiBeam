@@ -4,8 +4,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 from contextlib import ContextDecorator
 
-
-
 class ChangeDirToFileLocation(ContextDecorator):
     def __enter__(self):
         # Save the current working directory
@@ -28,4 +26,6 @@ with ChangeDirToFileLocation():
     import optibeam.camera as camera
     import optibeam.utils as utils 
     import optibeam.database as database
+    import optibeam.processing as processing
+    import optibeam.metadata as metadata
 
