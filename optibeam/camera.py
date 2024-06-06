@@ -77,6 +77,9 @@ class MultiBaslerCameraManager:
                 combined_image = imgs[0]
                 for img in imgs[1:]:
                     combined_image = self._combine_images(combined_image, img) 
+                max_pixel = 'Max pixel value: ' + str(np.max(combined_image))
+                font = cv2.FONT_HERSHEY_SIMPLEX
+                cv2.putText(combined_image, max_pixel, (10, 100), font, 3, (255, 255, 255), 2)
                 cv2.imshow('Acquisition', combined_image)
                 key = cv2.waitKey(1)
                 if key == ord('f'):  # 'f' key to flip

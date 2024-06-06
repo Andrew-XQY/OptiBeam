@@ -51,7 +51,7 @@ if not os.path.exists(save_path):
     os.makedirs(save_path)
     print(f"Directory '{save_path}' was created.")
 
-for _ in range(50):
+for _ in range(5):
     image = manager.schedule_action_command(int(5000 * 1e6))
     if image is not None:
         resized_image = cv2.resize(data.img, (image.shape[0],image.shape[0]))
