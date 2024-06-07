@@ -96,7 +96,21 @@ class MultiBaslerCameraManager:
         self._grab_release(grabResults)
         self._stop_grabbing()
         cv2.destroyAllWindows()
-    
+        
+    def _ptp_setup(self, cam: pylon.InstantCamera):
+        """
+        PTP configuration for each camera
+        """
+        cam.AcquisitionFrameRateEnable.Value = False
+        cam.GevIEEE1588.Value = True
+        cam.AcquisitionMode.SetValue("SingleFrame") # SingleFrame Continuous
+        cam.TriggerMode.SetValue("On")
+        cam.TriggerSource.SetValue("Action1")
+        cam.TriggerSelector.SetValue('FrameStart')
+        cam.ActionDeviceKey.SetValue(self.action_key)
+        cam.ActionGroupKey.SetValue(self.group_key)
+        cam.ActionGroupMask.SetValue(self.group_mask)
+        
     @timeout(10)
     def initialize(self) -> None:
         """
@@ -114,19 +128,10 @@ class MultiBaslerCameraManager:
             camera.AcquisitionFrameRateEnable.Value = True
             camera.AcquisitionFrameRateAbs.Value = 20.0
             self.cameras.append(camera)
-        
         self._flip_order()
         
         for i in self.cameras:  # prepare for PTP and scheduled action command
-            i.AcquisitionFrameRateEnable.Value = False
-            i.GevIEEE1588.Value = True
-            i.AcquisitionMode.SetValue("SingleFrame") # SingleFrame Continuous
-            i.TriggerMode.SetValue("On")
-            i.TriggerSource.SetValue("Action1")
-            i.TriggerSelector.SetValue('FrameStart')
-            i.ActionDeviceKey.SetValue(self.action_key)
-            i.ActionGroupKey.SetValue(self.group_key)
-            i.ActionGroupMask.SetValue(self.group_mask)
+            self._ptp_setup(i)
         self.print_all_camera_status()
 
     def print_all_camera_status(self) -> None:
@@ -213,71 +218,3 @@ class MultiBaslerCameraManager:
         print("Camera closed, grab terminated.")
     
     
-
-
-    # def synchronization(self, threshold : int=300, timeout: int=20) -> list:
-    #     self._check_cameras_ptp_state()
-    #     print('Waiting for PTP time synchronization...')
-    #     offset = float('inf')
-    #     records = []
-    #     start_time = time.time()
-    #     while time.time() - start_time < timeout:
-    #         offset = max(self.check_sync_status())
-    #         records.append(offset)
-    #         print(offset)
-    #         offset = abs(offset)
-    #         if offset < threshold: 
-    #             print("Cameras synchronized.")
-    #             return records
-    #         time.sleep(1)
-    #     raise TimeoutError("Cameras did not synchronize within the timeout period.")
-    
-    
-    
-    # def _check_cameras_ptp_state(self, timeout: int=10) -> bool:
-    #     start_time = time.time()
-    #     while time.time() - start_time < timeout:
-    #         if all(camera.GevIEEE1588Status.Value in ['Slave', 'Master'] for camera in self.cameras):
-    #             for i, camera in enumerate(self.cameras):
-    #                 if camera.GevIEEE1588Status.Value == 'Master':
-    #                     self.master = i
-    #             return True
-    #         time.sleep(0.5)
-    #     raise TimeoutError("Cameras did not become ready within the timeout period.")
-    
-    
-    
-    # def initialize(self, timeout:int=10) -> None:
-    #     """
-    #     detect all cameras and initialize them
-    #     """
-    #     start_time = time.time()
-    #     timeout += start_time
-    #     while True:
-    #         devices = self.tlFactory.EnumerateDevices()
-    #         if len(devices) >= 2:
-    #             break
-    #         if time.time() >= timeout:
-    #             raise RuntimeError(f"At least 2 cameras are required. Detected: {len(devices)}.")
-    #         time.sleep(0.5)
-        
-    #     for i in range(len(devices)):  
-    #         camera = pylon.InstantCamera(self.tlFactory.CreateDevice(devices[i]))
-    #         camera.Open()
-    #         camera.AcquisitionFrameRateEnable.Value = True
-    #         camera.AcquisitionFrameRateAbs.Value = 20.0
-    #         self.cameras.append(camera)
-        
-    #     self._flip_order()
-        
-    #     for i in self.cameras:  # prepare for PTP and scheduled action command
-    #         i.AcquisitionFrameRateEnable.Value = False
-    #         i.GevIEEE1588.Value = True
-    #         i.AcquisitionMode.SetValue("SingleFrame") # SingleFrame Continuous
-    #         i.TriggerMode.SetValue("On")
-    #         i.TriggerSource.SetValue("Action1")
-    #         i.TriggerSelector.SetValue('FrameStart')
-    #         i.ActionDeviceKey.SetValue(self.action_key)
-    #         i.ActionGroupKey.SetValue(self.group_key)
-    #         i.ActionGroupMask.SetValue(self.group_mask)
-    #     self.print_all_camera_status()

@@ -16,7 +16,7 @@ class SQLiteDB:
         base_schema = {}
         if add_base_schema:
             base_schema = {
-                'id': 'INTEGER PRIMARY KEY AUTOINCREMENT',
+                'id': 'INTEGER',
                 'created_at': 'TIMESTAMP DEFAULT CURRENT_TIMESTAMP',
                 'modified_at': 'TIMESTAMP DEFAULT CURRENT_TIMESTAMP',
                 'is_deleted': 'BOOLEAN DEFAULT FALSE'
@@ -33,9 +33,14 @@ class SQLiteDB:
                 UPDATE {table_name} SET modified_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
             END;
         """)
+        self.cursor.execute(f"""
+            CREATE TRIGGER IncrementID BEFORE INSERT ON Images
+            FOR EACH ROW
+            BEGIN
+                SELECT IFNULL(MAX(id), 0) + 1 INTO NEW.id FROM Images;
+            END;
+        """)
         self.connection.commit()
-        # Adding a trigger to update the modified_at column on update
-        self.create_update_trigger(table_name)
 
     def add_field(self, table_name: str, column_name: str, data_type: str) -> None:
         """

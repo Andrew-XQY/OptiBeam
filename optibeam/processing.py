@@ -32,6 +32,7 @@ def select_crop_areas_corner(original_image, num, scale_factor=1):
     # Helper variables
     points = []
     rectangles = []
+    max_x, max_y = original_image.shape[1], original_image.shape[0]
 
     def mouse_click(event, x, y, flags, param):
         # Access the points list
@@ -52,6 +53,8 @@ def select_crop_areas_corner(original_image, num, scale_factor=1):
 
             # Check if we can form a rectangle
             if len(points) % 2 == 0:
+                points[-2] = (max(0, min(points[-2][0], max_x)), max(0, min(points[-2][1], max_y)))
+                points[-1] = (max(0, min(points[-1][0], max_x)), max(0, min(points[-1][1], max_y)))
                 rectangles.append((points[-2], points[-1]))
 
             # Redraw the image with rectangles/points
@@ -86,7 +89,7 @@ def select_crop_areas_center(original_image, num, scale_factor=1):
 
     def mouse_click(event, x, y, flags, param):
         nonlocal points, squares
-
+        max_x, max_y = original_image.shape[1], original_image.shape[0]
         # Adjust click position to original image scale
         orig_x, orig_y = int(x / scale_factor), int(y / scale_factor)
 
@@ -107,6 +110,8 @@ def select_crop_areas_center(original_image, num, scale_factor=1):
                 side_length = max(abs(edge_point[0] - center[0]), abs(edge_point[1] - center[1]))
                 top_left = (center[0] - side_length, center[1] - side_length)
                 bottom_right = (center[0] + side_length, center[1] + side_length)
+                top_left = (max(0, min(top_left[0], max_x)), max(0, min(top_left[1], max_y)))
+                bottom_right = (max(0, min(bottom_right[0], max_x)), max(0, min(bottom_right[1], max_y)))
                 squares.append((top_left, bottom_right))
 
             # Redraw the image with squares
