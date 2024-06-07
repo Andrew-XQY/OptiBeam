@@ -21,6 +21,3 @@ for i, img in enumerate(temp):
 # visualization.plot_narray(cv2.imread(dirs[0]))  
 
 
-
-
-

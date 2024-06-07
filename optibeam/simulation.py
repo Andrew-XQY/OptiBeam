@@ -92,7 +92,11 @@ class DynamicPatterns:
         plt.pause(pause)  # Pause for a short period, allowing the plot to be updated
 
     def get_metadata(self) -> dict:
-        return {}
+        config = {}
+        config["simulation_vertical_resolution"] = self._height
+        config["simulation_horizontal_resolution"] = self._width
+        config[]
+        return config
 
 
 class Distribution(ABC):

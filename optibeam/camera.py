@@ -209,7 +209,17 @@ class MultiBaslerCameraManager:
         return combined_image
     
     def get_metadata(self) -> dict:
-        return {}
+        config = {}
+        c1, c2 = 0, 1
+        if self.flip:
+            c1, c2 = 1, 0
+        config['ground_truth_camera_exposure'] = self.cameras[c1].ExposureTimeAbs.Value 
+        config['ground_truth_camera_gain'] = self.cameras[c1].GainRaw.Value
+        config['ground_truth_camera_sn'] = self.cameras[c1].GetDeviceInfo().GetSerialNumber()
+        config['speckle_camera_exposure'] = self.cameras[c2].ExposureTimeAbs.Value
+        config['speckle_camera_gain'] = self.cameras[c2].GainRaw.Value
+        config['speckle_camera_sn'] = self.cameras[c2].GetDeviceInfo().GetSerialNumber()
+        return config
     
     def end(self) -> None:
         self._stop_grabbing()

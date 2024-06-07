@@ -5,43 +5,40 @@ class SQLiteDB:
     def __init__(self, db_path: str):
         self.connection = sqlite3.connect(db_path)
         self.cursor = self.connection.cursor()
+        self.tables = self.get_all_tables()
+        print(f"{len(self.tables)} table(s) found in the database:")
+        for t in self.tables: print(t)
         
-    def create_table(self, table_name: str, schema: Dict[str, str], add_base_schema=True) -> None:
+    def get_all_tables(self) -> List[str]:
+        """
+        Returns a list of all tables in the database.
+        """
+        self.cursor.execute("SELECT name FROM sqlite_master WHERE type='table'")
+        return [table[0] for table in self.cursor.fetchall()]
+        
+    def create_table(self, table_name: str, schema: Dict[str, str]) -> None:
         """
         Creates a table with an auto-incrementing ID, created_at, and modified_at fields,
         along with user-defined schema.
         :param table_name: Name of the table to create.
         :param schema: Dictionary of column names and their SQL data types.
         """
-        base_schema = {}
-        if add_base_schema:
-            base_schema = {
-                'id': 'INTEGER',
-                'created_at': 'TIMESTAMP DEFAULT CURRENT_TIMESTAMP',
-                'modified_at': 'TIMESTAMP DEFAULT CURRENT_TIMESTAMP',
-                'is_deleted': 'BOOLEAN DEFAULT FALSE'
-            }
-        # Merging user-defined schema with the base schema
-        full_schema = {**schema, **base_schema}
-        columns = ', '.join(f"{col_name} {data_type}" for col_name, data_type in full_schema.items())
+        if table_name in self.tables:
+            print(f"Table {table_name} already exists.")
+            return
+        columns = ', '.join(f"{col_name} {data_type}" for col_name, data_type in schema.items())
         self.cursor.execute(f"CREATE TABLE IF NOT EXISTS {table_name} ({columns})")
-        self.cursor.execute(f"""
-            CREATE TRIGGER IF NOT EXISTS update_{table_name}_modified_time
-            AFTER UPDATE ON {table_name}
-            FOR EACH ROW
-            BEGIN
-                UPDATE {table_name} SET modified_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
-            END;
-        """)
-        self.cursor.execute(f"""
-            CREATE TRIGGER IncrementID BEFORE INSERT ON Images
-            FOR EACH ROW
-            BEGIN
-                SELECT IFNULL(MAX(id), 0) + 1 INTO NEW.id FROM Images;
-            END;
-        """)
-        self.connection.commit()
+        print(f"Table {table_name} created with schema:\n {schema}")
 
+    def sql_execute(self, sql: str) -> None:
+        """
+        Executes a raw SQL command.
+        :param sql: SQL command to execute.
+        """
+        self.cursor.execute(sql)
+        self.connection.commit()
+        print(f"SQL command executed")
+    
     def add_field(self, table_name: str, column_name: str, data_type: str) -> None:
         """
         Add a new field to an existing table.

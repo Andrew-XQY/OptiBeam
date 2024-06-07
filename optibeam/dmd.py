@@ -122,7 +122,9 @@ class ViALUXDMD(DMD):
         time.sleep(0.01)
 
     def get_metadata(self) -> dict:
-        return {}
+        config = {}
+        config["bitDepth"] = 8
+        return config
     
     def end(self) -> None:
         """
