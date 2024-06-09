@@ -95,7 +95,7 @@ class DynamicPatterns:
         config = {}
         config["simulation_vertical_resolution"] = self._height
         config["simulation_horizontal_resolution"] = self._width
-        config[]
+        # config[]
         return config
 
 

@@ -22,10 +22,11 @@ with ChangeDirToFileLocation():
     sys.path.insert(0, full_path)
     import optibeam.simulation as simulation
     import optibeam.visualization as visualization
-    import optibeam.dmd as dmd
     import optibeam.camera as camera
     import optibeam.utils as utils 
     import optibeam.database as database
     import optibeam.processing as processing
     import optibeam.metadata as metadata
+    if os.name == 'nt':
+        import optibeam.dmd as dmd
 
