@@ -82,8 +82,21 @@ class SQLiteDB:
         self.cursor.execute(f"DELETE FROM {table_name} WHERE {key_column} = ?", (key_value,))
         self.connection.commit()
         
-    def get_max_id(self, table_name):
-        query = f"SELECT MAX(id) FROM {table_name}"
+    def update_record(self, table_name: str, key_column: str, key_value: Any, new_values: Dict[str, Any]) -> None:
+        """
+        Updates a single record in a table based on the key column and key value.
+        :param table_name: Name of the table.
+        :param key_column: Name of the key column to match for update.
+        :param key_value: Value of the key to match for update.
+        :param new_values: Dictionary of column names and their new values.
+        """
+        set_values = ', '.join(f"{col_name} = ?" for col_name in new_values.keys())
+        values = tuple(new_values.values())
+        self.cursor.execute(f"UPDATE {table_name} SET {set_values} WHERE {key_column} = ?", values + (key_value,))
+        self.connection.commit()
+        
+    def get_max(self, table_name, column_name) -> int:
+        query = f"SELECT MAX({column_name}) FROM {table_name}"
         self.cursor.execute(query)
         max_id = self.cursor.fetchone()[0]
         return max_id

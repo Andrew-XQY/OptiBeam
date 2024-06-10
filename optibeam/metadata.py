@@ -37,6 +37,8 @@ class ImageMetadata(Metadata):
         self.metadata["speckle_crop_pos"] = meta['speckle_crop_pos']
         self.metadata["beam_parameters"] = meta['beam_parameters']
         self.metadata["num_of_images"] = meta['num_of_images']
+        self.metadata["image_path"] = meta['image_path']
+        self.metadata["batch"] = meta["batch"]
         self.metadata["metadata_id"] = meta['metadata_id']
         self.metadata["comments"] = meta['comments']
 
@@ -59,9 +61,10 @@ class ConfigMetaData(Metadata):
         self._set_hash()
     
     def _set_hash(self):
-        serialized_data = self.metadata["fiber_config"] + self.metadata["camera_config"] + self.metadata["other_config"]
+        temp_metadata = {key: value for key, value in self.metadata.items() if key != 'hash'}
+        serialized_data = json.dumps(temp_metadata, sort_keys=True)
         # Create a hash of the serialized string
-        hash_object = hashlib.sha256(serialized_data.encode())
+        hash_object = hashlib.sha512(serialized_data.encode())
         self.metadata["hash"] = hash_object.hexdigest()
     
     def get_hash(self):

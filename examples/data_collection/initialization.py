@@ -17,6 +17,7 @@ schema = {
             "image_path":"TEXT",  # path to the image file
             "metadata_id":"INTEGER",  # foreign key to the config table
             "comments":"TEXT",
+            "batch":"INTEGER",  # batch number for the data sample collected in a single run
             "create_time":"TIMESTAMP DEFAULT CURRENT_TIMESTAMP",
             "update_time":"TIMESTAMP DEFAULT CURRENT_TIMESTAMP",
             "is_deleted":"BOOLEAN DEFAULT FALSE"
@@ -62,5 +63,3 @@ sql = f"""
         """
 db.sql_execute(sql) # create the trigger
 db.close()
-
-

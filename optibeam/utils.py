@@ -2,6 +2,7 @@ import os
 import platform, warnings
 import numpy as np
 import multiprocessing, multiprocess
+import threading
 
 from skimage.transform import resize
 from PIL import Image
@@ -69,21 +70,32 @@ def preset_kwargs(**preset_kwargs):
     return decorator
 
 
+class TimeoutError(Exception):
+    pass
+
+
 def timeout(seconds):
-    """
-    Decorator to timeout a function after 'seconds' seconds
-    """
     def decorator(func):
+        @wraps(func)
         def wrapper(*args, **kwargs):
-            start = time.time()
-            result = func(*args, **kwargs)  # Execute the function
-            end = time.time()
-            if end - start > seconds:
-                raise RuntimeError(f"'{func.__name__}' timed out after {seconds} seconds. process terminated.")
-            return result
+            result = [None]  # Placeholder for the function's result
+            def function_thread():
+                try:
+                    result[0] = func(*args, **kwargs)
+                except Exception as e:
+                    result[0] = e
+            
+            thread = threading.Thread(target=function_thread)
+            thread.start()
+            thread.join(seconds)
+            if thread.is_alive():
+                thread.join(0.1)  # Ensure any remaining operations wrap up
+                if isinstance(result[0], Exception):
+                    raise result[0]
+                raise TimeoutError("Function call timed out")
+            return result[0]
         return wrapper
     return decorator
-
 
 def print_underscore(func):
     """

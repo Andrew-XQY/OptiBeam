@@ -98,6 +98,7 @@ class ViALUXDMD(DMD):
     def __init__(self, dmd: ALP4=ALP4(version = '4.3')) -> None:
         # Initialize the device
         self.dmd = dmd
+        self.load_image_shape = None
         self.dmd.Initialize()
     
     def get_height(self) -> int:
@@ -108,6 +109,8 @@ class ViALUXDMD(DMD):
     
     def display_image(self, image: np.ndarray, bitDepth: int=8) -> None:
         image = self.adjust_image(image)
+        self.load_image_shape = image.shape
+        
         imgSeq = image.ravel()
         # Allocate the onboard memory for the image sequence
         self.dmd.SeqAlloc(nbImg = 1, bitDepth = bitDepth)
@@ -121,7 +124,9 @@ class ViALUXDMD(DMD):
 
     def get_metadata(self) -> dict:
         config = {}
-        config["bitDepth"] = 8
+        config["bit_depth"] = 8
+        config["picture_time"] = 20000
+        config["load_image_shape"] = self.load_image_shape
         return config
     
     def end(self) -> None:
