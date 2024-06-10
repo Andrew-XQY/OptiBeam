@@ -75,7 +75,7 @@ def clean_tensor(narray):
             return None, None
     return narray, labels
 
-
+@print_underscore
 def split_dataset(data, labels, proportion=(8, 1, 1)):
     """
     split dataset, Tensorflow only
@@ -89,14 +89,12 @@ def split_dataset(data, labels, proportion=(8, 1, 1)):
         data, labels, test_size=prop_test, random_state=42)
     train, val, labels_train, labels_val = train_test_split(
         train_val, labels_train_val, test_size=prop_val, random_state=42)  
-    print("-"*50)
     print(f'train set shape: {train.shape}')
     print(f'train label shape: {labels_train.shape}')
     print(f'validation set shape: {val.shape}')
     print(f'validation label shape: {labels_val.shape}')
     print(f'test set shape: {test.shape}')
     print(f'test label shape: {labels_test.shape}')
-    print("-"*50)
     return {'x_train' : train, 'label_train' : labels_train, 
             'x_val' : val, 'label_val' : labels_val,
             'x_test' : test, 'label_test' : labels_test} 

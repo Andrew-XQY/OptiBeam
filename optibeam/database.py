@@ -1,7 +1,9 @@
 import sqlite3
+from .utils import print_underscore
 from typing import *
 
 class SQLiteDB:
+    @print_underscore
     def __init__(self, db_path: str):
         self.connection = sqlite3.connect(db_path)
         self.cursor = self.connection.cursor()

@@ -1,9 +1,8 @@
-from abc import ABC, abstractmethod
+from pypylon import pylon
 import numpy as np
 import cv2
-from pypylon import pylon
 import time
-from .utils import *
+from .utils import timeout, print_underscore
 
 
 def create_camera_control_functions(camera):
@@ -134,8 +133,8 @@ class MultiBaslerCameraManager:
             self._ptp_setup(i)
         self.print_all_camera_status()
 
+    @print_underscore
     def print_all_camera_status(self) -> None:
-        print('-' * 50)
         print(f"Number of cameras detected: {len(self.cameras)}")
         print('\n')
         for cam in self.cameras:
@@ -149,7 +148,6 @@ class MultiBaslerCameraManager:
             print('Camera grabing status: ', cam.IsGrabbing())
             print('Camera PTP status: ', cam.GevIEEE1588Status.Value)
             print('\n')
-        print('-' * 50)
 
     @timeout(10)
     def _check_cameras_ptp_state(self) -> bool:

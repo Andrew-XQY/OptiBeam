@@ -1,7 +1,5 @@
-from .utils import *
 from abc import ABC, abstractmethod
 from ALP4 import *
-
 import time
 
 # https://github.com/wavefrontshaping/ALP4lib

@@ -27,6 +27,5 @@ with ChangeDirToFileLocation():
     import optibeam.database as database
     import optibeam.processing as processing
     import optibeam.metadata as metadata
-    if os.name == 'nt':
-        import optibeam.dmd as dmd
+    import optibeam.dmd as dmd
 

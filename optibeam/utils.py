@@ -70,7 +70,9 @@ def preset_kwargs(**preset_kwargs):
 
 
 def timeout(seconds):
-    """Decorator to timeout a function after 'seconds' seconds"""
+    """
+    Decorator to timeout a function after 'seconds' seconds
+    """
     def decorator(func):
         def wrapper(*args, **kwargs):
             start = time.time()
@@ -81,6 +83,18 @@ def timeout(seconds):
             return result
         return wrapper
     return decorator
+
+
+def print_underscore(func):
+    """
+    Decorator to print a line of underscores before and after the decorated function is called.
+    """
+    def wrapper(*args, **kwargs):
+        print("_" * 80)
+        result = func(*args, **kwargs)
+        print("_" * 80)
+        return result
+    return wrapper
 
 
 def deprecated(reason):
