@@ -1,10 +1,9 @@
 """
-file to create the database and tables based on the schema for fiber speckle dataset.
+script to create the database and tables based on the schema for fiber speckle dataset.
+And other initialization steps.
 """
+from conf import *
 
-from conftest import *
-
-DATABASE_ROOT = "../../ResultsCenter/db/liverpool.db"
 db = database.SQLiteDB(DATABASE_ROOT)
 
 schema = {
@@ -62,3 +61,6 @@ sql = f"""
             END;
         """
 db.sql_execute(sql) # create the trigger
+db.close()
+
+

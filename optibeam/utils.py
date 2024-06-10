@@ -90,9 +90,9 @@ def print_underscore(func):
     Decorator to print a line of underscores before and after the decorated function is called.
     """
     def wrapper(*args, **kwargs):
-        print("_" * 80)
+        print("-" * 80)
         result = func(*args, **kwargs)
-        print("_" * 80)
+        print("-" * 80)
         return result
     return wrapper
 

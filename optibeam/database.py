@@ -9,7 +9,7 @@ class SQLiteDB:
         self.cursor = self.connection.cursor()
         self.tables = self.get_all_tables()
         print(f"{len(self.tables)} table(s) found in the database:")
-        for t in self.tables: print(t)
+        for t in sorted(self.tables): print(t)
         
     def get_all_tables(self) -> List[str]:
         """
@@ -58,6 +58,7 @@ class SQLiteDB:
         """
         self.cursor.execute(f"DROP TABLE IF EXISTS {table_name}")
         self.connection.commit()
+        print(f"Table {table_name} deleted")
 
     def insert_record(self, table_name: str, record: Dict[str, Any]) -> None:
         """
@@ -80,7 +81,22 @@ class SQLiteDB:
         """
         self.cursor.execute(f"DELETE FROM {table_name} WHERE {key_column} = ?", (key_value,))
         self.connection.commit()
-
-    def __end__(self):
+        
+    def get_max_id(self, table_name):
+        query = f"SELECT MAX(id) FROM {table_name}"
+        self.cursor.execute(query)
+        max_id = self.cursor.fetchone()[0]
+        return max_id
+    
+    def entry_exists(self, table_name, column_name, value) -> bool:        
+        # Prepare the SQL query to check if the entry exists
+        query = f"SELECT EXISTS(SELECT 1 FROM {table_name} WHERE {column_name} = ? LIMIT 1)"
+        self.cursor.execute(query, (value,))
+        # Fetch the result
+        exists = self.cursor.fetchone()[0] == 1
+        return exists
+    
+    def close(self):
         self.cursor.close()
         self.connection.close()
+        print("Database connection closed")
