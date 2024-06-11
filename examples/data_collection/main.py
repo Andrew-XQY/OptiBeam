@@ -31,9 +31,6 @@ for i in range(50):
     meta = {
             "image_id":f"image_{i}", 
             "capture_time":datetime.datetime.now().strftime('%Y-%m-%d'),
-            "original_crop_pos":"(0,0),(100,100)", 
-            "speckle_crop_pos":"(0,0),(100,100)", 
-            "beam_parameters":"1500nm 570nm no_bending", 
             "num_of_images":3, 
             "image_path":f"../../ResultsCenter/dataset/image_{i}.png",
             "metadata_id":db.get_max("mmf_dataset_config", "id"),
