@@ -8,7 +8,7 @@ db = database.SQLiteDB(DATABASE_ROOT)
 
 schema = {
             "id":"INTEGER PRIMARY KEY AUTOINCREMENT", # primary key
-            "image_id":"TEXT",  # full timestamp when the image was captured
+            "image_id":"TEXT",  # full timestamp when the image was captured, also the image file name
             "capture_time":"TEXT",  # date and time when the image was captured, to second level
             "original_crop_pos":"TEXT",  # two points for cropping the image
             "speckle_crop_pos":"TEXT",  # two points for cropping the image
@@ -39,19 +39,23 @@ db.sql_execute(sql) # create the trigger for update_time field
 
 schema = {
             "id": "INTEGER PRIMARY KEY AUTOINCREMENT",
-            "experiment_name":"TEXT",
             "experiment_description":"TEXT",
             "experiment_location":"TEXT",
+            "experiment_date":"TEXT",
+            "total_images":"INTEGER",
+            "batch":"INTEGER",  # batch number for the data sample collected in a single run
             "fiber_config":"TEXT",  # JSON or dict
             "camera_config":"TEXT",  # JSON or dict
             "other_config":"TEXT",  # JSON or dict
+            "purtubations":"TEXT",  # JSON or dict
+            "radiation":"TEXT",  # JSON or dict
             "hash":"TEXT",  # hash of the total config for fast comparison
             "create_time":"TIMESTAMP DEFAULT CURRENT_TIMESTAMP",
             "update_time":"TIMESTAMP DEFAULT CURRENT_TIMESTAMP"
 }
 # create the config table that stores the detailed setup, parameters and configurations of the experiment
 # id is corresponding to the config_id in the main table as a foreign key
-table_name = "mmf_dataset_config"
+table_name = "mmf_experiment_config"
 db.create_table(table_name=table_name, schema=schema)
 sql = f"""
             CREATE TRIGGER IF NOT EXISTS update_{table_name}_time

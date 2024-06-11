@@ -68,6 +68,15 @@ class DynamicPatterns:
         for dst in self._distributions:
             dst.update(*args, **kwargs)
         self.apply_distribution()
+        
+    def fast_update(self, *args, **kwargs):
+        """
+        Call the fast_update method of all the distributions.
+        Only update the parameters of the distributions without plotting the new pattern.
+        """
+        self.clear_canvas()
+        for dst in self._distributions:
+            dst.fast_update(*args, **kwargs)
     
     def append(self, distribution):
         """
@@ -95,7 +104,8 @@ class DynamicPatterns:
         config = {}
         config["simulation_vertical_resolution"] = self._height
         config["simulation_horizontal_resolution"] = self._width
-        # config[]
+        config["num_of_distributions"] = len(self._distributions)
+        config["types"] = set([dst._type for dst in self._distributions])
         return config
 
 
@@ -104,6 +114,7 @@ class Distribution(ABC):
     Abstract class for defining the distribution of different beam patterns.
     """
     def __init__(self, canvas: DynamicPatterns):
+        self._type = None
         self._height = canvas.height
         self._width = canvas.width
         self._pattern = np.zeros((canvas.height, canvas.width))
@@ -143,6 +154,7 @@ class GaussianDistribution(Distribution):
                  std_y: float=0.1, x_velocity: float=0, y_velocity: float=0, speed_momentum: float=0.9,
                  rotation_radians: float=0, rotation_velocity: float=0, rotation_momentum: float=0.95):
         super().__init__(canvas)
+        self._type = "Gaussian"
         self.mean_x = mean_x
         self.mean_y = mean_y
         self.std_x = std_x

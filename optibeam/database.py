@@ -245,7 +245,6 @@ class SQLiteDB(Database):
         Returns:
         str: A SQL statement for updating multiple rows.
         """
-
         sql = f"UPDATE {table_name} SET "
         # Generate the SET part of the SQL command dynamically based on DataFrame columns
         columns = dataframe.columns.tolist()

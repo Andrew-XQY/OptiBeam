@@ -10,6 +10,7 @@ import numpy as np
 from contextlib import ContextDecorator
 
 DATABASE_ROOT = "../../ResultsCenter/db/liverpool.db"
+DATASET_ROOT = "../../ResultsCenter/dataset/"
 
 class ChangeDirToFileLocation(ContextDecorator):
     def __enter__(self):
@@ -27,12 +28,12 @@ class ChangeDirToFileLocation(ContextDecorator):
 with ChangeDirToFileLocation():
     full_path = os.path.abspath(os.path.join(os.getcwd(), "../../"))
     sys.path.insert(0, full_path)
-    import optibeam.simulation as simulation
-    import optibeam.visualization as visualization
+    import optibeam.dmd as dmd
     import optibeam.camera as camera
+    import optibeam.simulation as simulation
     import optibeam.utils as utils 
     import optibeam.database as database
     import optibeam.processing as processing
     import optibeam.metadata as metadata
-    import optibeam.dmd as dmd
+    
 
