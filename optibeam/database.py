@@ -264,6 +264,23 @@ class SQLiteDB(Database):
         sql += f" WHERE {id_column} IN ({ids})"
         return sql
     
+    def batch_delete(table_name, id_column, id_list):
+        """
+        Construct a SQL DELETE statement for batch deletions based on primary key values.
+
+        Args:
+            table_name (str): Name of the table from which to delete rows.
+            id_column (str): Column name which is the primary key.
+            id_list (list): List of primary key values that indicate rows to be deleted.
+
+        Returns:
+            str: SQL DELETE statement.
+        """
+        # Prepare the parameter placeholders and the SQL statement
+        placeholders = ', '.join(['?'] * len(id_list))  # Create a placeholder for each id
+        sql = f"DELETE FROM {table_name} WHERE {id_column} IN ({placeholders})"
+        return sql
+    
     def close(self) -> None:
         """
         Close the database connection.
