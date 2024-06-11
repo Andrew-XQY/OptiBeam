@@ -1,4 +1,5 @@
 import sqlite3
+import pandas as pd
 from abc import ABC, abstractmethod
 from .utils import print_underscore
 from typing import *
@@ -104,6 +105,25 @@ class SQLiteDB(Database):
         self.cursor.execute(sql)
         self.connection.commit()
         print(f"SQL command executed")
+    
+    def sql_select(self, sql: str) -> pd.DataFrame:
+        """
+        Executes a raw SQL SELECT command.
+        
+        args:
+            sql (str): SQL SELECT command to execute.
+            
+        returns:
+            DataFrame: Pandas DataFrame containing the results of the SELECT command.
+        
+        raises:
+            Exception: If SQL execution fails.
+        """
+        try:
+            return pd.read_sql_query(sql, self.connection)
+        except Exception as e:
+            print(f"An error occurred: {e}")
+            raise
     
     def add_field(self, table_name: str, column_name: str, data_type: str) -> None:
         """

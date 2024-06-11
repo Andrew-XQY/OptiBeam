@@ -30,15 +30,18 @@ class ImageMetadata(Metadata):
     def add_metadata(self, key, value):
         self.metadata[key] = value
         
-    def get_hash(self):
-        temp_metadata = {key: value for key, value in self.metadata.items() if key != 'hash'}
-        serialized_data = json.dumps(temp_metadata, sort_keys=True)
-        hash_object = hashlib.sha512(serialized_data.encode())
-        return hash_object.hexdigest()
-        
     def set_image_metadata(self, meta: dict={}):
         for key, value in meta.items():
             self.metadata[key] = value if type(value) is not dict else json.dumps(value)
+            
+    def _set_hash(self):
+        temp_metadata = {key: value for key, value in self.metadata.items() if key != 'hash'}
+        serialized_data = json.dumps(temp_metadata, sort_keys=True)
+        hash_object = hashlib.sha512(serialized_data.encode())
+        self.metadata["hash"] = hash_object.hexdigest()
+        
+    def get_hash(self):
+        return self.metadata["hash"]
 
 class ConfigMetaData(Metadata):
     def __init__(self):

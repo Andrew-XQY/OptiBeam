@@ -1,6 +1,5 @@
 """
 Allows local imports of the Optibeam package and sets the working directory to the location of the currently running .py file.
-If package already installed and updated, then don't need to run this script.
 """
 
 import sys
@@ -35,5 +34,6 @@ with ChangeDirToFileLocation():
     import optibeam.database as database
     import optibeam.processing as processing
     import optibeam.metadata as metadata
+    import optibeam.evaluation as evaluation
     
 

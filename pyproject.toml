@@ -17,6 +17,7 @@ classifiers = [
 ]
 dependencies = [
     "numpy>=1.18.1",
+    "pandas",
     "scipy",
     "moviepy",
     "matplotlib",

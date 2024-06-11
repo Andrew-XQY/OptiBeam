@@ -95,7 +95,7 @@ for i in range(number_of_images):
                 "image_id":str(time.time_ns()), 
                 "capture_time":datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
                 "num_of_images":3, 
-                "image_path":image_path,
+                "image_path":os.path.abspath(image_path),
                 "metadata_id":config_id,
                 "batch":batch,
                 "comments":""

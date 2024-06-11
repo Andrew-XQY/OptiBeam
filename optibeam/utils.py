@@ -251,6 +251,14 @@ class ImageLoader:
 
 # ------------------- image processing -------------------
 
+def read_narray_image(image_path):
+    """
+    Read an image from the specified path and return it as a NumPy array.
+    """
+    with Image.open(image_path) as img:
+        return np.array(img)
+
+
 def rgb_to_grayscale(narray_img : np.array):
     """
     input: image in numpy array format
