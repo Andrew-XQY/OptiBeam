@@ -26,7 +26,7 @@ confMeta.set_config_metadata(fiber_config={"fiber_length":"5 meters", "fiber_nam
 batch = (db.get_max("mmf_dataset_metadata", "batch") or 0) + 1
 
 for i in range(50):
-    if not db.entry_exists("mmf_dataset_config", "hash", confMeta.get_hash()):
+    if not db.record_exists("mmf_dataset_config", "hash", confMeta.get_hash()):
         db.sql_execute(confMeta.to_sql_insert("mmf_dataset_config")) 
     meta = {
             "image_id":f"image_{i}", 
