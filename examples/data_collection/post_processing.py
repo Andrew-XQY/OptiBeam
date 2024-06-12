@@ -6,35 +6,51 @@ including 1. cropping images positions
 
 from conf import *
 import cv2
+import json
 import pandas as pd
+from tqdm import tqdm
 
 # Database Initialization
 DB = database.SQLiteDB(DATABASE_ROOT)
 
 # Select the images to process (could based on other fields, adjust the query accordingly)
-image_selected = DB.sql_select("SELECT id, image_path FROM mmf_dataset_metadata WHERE batch=1")
+batch = DB.sql_select("SELECT id, image_path, is_params FROM mmf_dataset_metadata WHERE batch=2")
+
 
 # ----------------- Update crop position -----------------
-image_contained = 2
-crop_areas = processing.select_crop_areas_center(cv2.imread(image_selected["image_path"][-1]), num=image_contained, scale_factor=(1/image_contained)) 
+img = cv2.imread(batch['image_path'].iloc[-1])
+crop_areas = processing.select_crop_areas_center(img, num=2, scale_factor=0.5) 
 print("Defined crop areas:", crop_areas)
 
-original_crop = [crop_areas[0]]*len(image_selected)
-fiber_crop = [crop_areas[1]]*len(image_selected)
-df = pd.DataFrame({"id": image_selected["id"], "original_crop_pos": original_crop, "speckle_crop_pos": fiber_crop})
+original_crop = [crop_areas[0]]*len(batch)
+fiber_crop = [crop_areas[1]]*len(batch)
+df = pd.DataFrame({"id": batch["id"], "original_crop_pos": original_crop, "speckle_crop_pos": fiber_crop})
 sql = DB.batch_update("mmf_dataset_metadata", "id", df)
-DB.sql_execute(sql)
+DB.sql_execute(sql, multiple=True)
 
 # ----------------- Update beam parameters -----------------
-params = []
+print("Calculating beam parameters...")
+for i in tqdm(range(len(batch))):
+    if batch['is_params'].iloc[i]:
+        img = utils.read_narray_image(batch['image_path'].iloc[i])
+        cropped_image = img[0:img.shape[0], 0:img.shape[0]]
+        params = json.dumps(evaluation.beam_params(cropped_image))
+        DB.update_record("mmf_dataset_metadata", "id", batch['id'].iloc[i], "beam_parameters", params)
 
-for path in image_selected["image_path"]:
-    img = utils.load_image(path)
-    params.append(evaluation.beam_params(img))
-    
-df = pd.DataFrame({"id": image_selected["id"], "beam_parameters": params})
-sql = DB.batch_update("mmf_dataset_metadata", "id", df)
-DB.sql_execute(sql)
+
+# ---------------- Information Correction  -----------------
+# recallculate the number of images in a batch
+
+sql = """
+    SELECT meta.batch AS batch, count(meta.id) AS total_images
+    FROM mmf_dataset_metadata AS meta
+    LEFT JOIN mmf_experiment_config AS conf
+    ON meta.metadata_id = conf.id
+    GROUP BY meta.batch
+"""
+df = DB.sql_select(sql)
+sql = DB.batch_update("mmf_experiment_config", "batch", df)
+DB.sql_execute(sql, multiple=True)
 
 
 # Close the database connection

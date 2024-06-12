@@ -55,6 +55,7 @@ class SQLiteDB(Database):
             None
         """
         super().__init__()
+        self.text_types = (str, bytes, set, list, dict, tuple, bool)
         self.connection = sqlite3.connect(db_path)
         self.cursor = self.connection.cursor()
         self.tables = self.get_all_tables()
@@ -92,7 +93,7 @@ class SQLiteDB(Database):
         self.cursor.execute(f"CREATE TABLE IF NOT EXISTS {table_name} ({columns})")
         print(f"Table {table_name} created with schema:\n {schema}")
 
-    def sql_execute(self, sql: str) -> None:
+    def sql_execute(self, sql: str, multiple=False) -> None:
         """
         Executes a raw SQL command.
         
@@ -102,7 +103,10 @@ class SQLiteDB(Database):
         returns:
             None
         """
-        self.cursor.execute(sql)
+        if multiple:
+            self.cursor.executescript(sql)
+        else:
+            self.cursor.execute(sql)
         self.connection.commit()
         print(f"SQL command executed")
     
@@ -186,22 +190,27 @@ class SQLiteDB(Database):
         self.cursor.execute(f"DELETE FROM {table_name} WHERE {key_column} = ?", (key_value,))
         self.connection.commit()
         
-    def update_record(self, table_name: str, key_column: str, key_value: Any, new_values: Dict[str, Any]) -> None:
+    def update_record(self, table_name, key_field, key_value, update_field, update_value) -> None:
         """
-        Updates a single record in a table based on the key column and key value.
-        
+        Generate an SQL string and update a single value in an SQLite table.
+
         args:
             table_name (str): Name of the table.
-            key_column (str): Name of the key column to match for update.
-            key_value (Any): Value of the key to match for update.
-            new_values (dict): Dictionary of column names and their new values.
-            
-        returns:
+            key_field (str): Name of the key field.
+            key_value (Any): Value of the key field.
+            update_field (str): Name of the field to update.
+            update_value (Any): Value to update the field to.
+
+        Returns:
             None
         """
-        set_values = ', '.join(f"{col_name} = ?" for col_name in new_values.keys())
-        values = tuple(new_values.values())
-        self.cursor.execute(f"UPDATE {table_name} SET {set_values} WHERE {key_column} = ?", values + (key_value,))
+        if isinstance(key_value, self.text_types):
+            key_value = f"'{key_value}'"
+        if isinstance(update_value, self.text_types):
+            update_value = f"'{update_value}'"
+        
+        sql = f"UPDATE {table_name} SET {update_field} = {update_value} WHERE {key_field} = {key_value};"
+        self.cursor.execute(sql)
         self.connection.commit()
         
     def get_max(self, table_name, column_name) -> float:
@@ -251,39 +260,28 @@ class SQLiteDB(Database):
         exists = self.cursor.fetchone()[0] == 1
         return exists
     
-    def batch_update(table_name, id_column, dataframe) -> str:
+    def batch_update(self, table_name, primary_key, df):
         """
-        Constructs a single SQL statement for batch updating rows in a SQLite table.
-        
+        Generate SQL UPDATE statements for updating rows in an SQLite table based on a DataFrame.
+
         Args:
-        table_name (str): Name of the database table to update.
-        id_column (str): Name of the column that serves as the primary key.
-        dataframe (pd.DataFrame): DataFrame containing data to update. 
-                                The DataFrame should include the primary key column
-                                and other columns that match exactly the column names in the table.
-        
+        - table_name (str): Name of the SQLite table to be updated.
+        - primary_key (str): Column name in the table and DataFrame to use as a primary key.
+        - df (pd.DataFrame): DataFrame containing the data to update.
+
         Returns:
-        str: A SQL statement for updating multiple rows.
+        - str: SQL string that contains all the update commands.
         """
-        sql = f"UPDATE {table_name} SET "
-        # Generate the SET part of the SQL command dynamically based on DataFrame columns
-        columns = dataframe.columns.tolist()
-        columns.remove(id_column)  # Remove the ID column from the list to form the SET clause
-        set_clause = ', '.join([f"{col} = CASE {id_column} " for col in columns])
-        # Generate the CASE part of the SQL for each column
-        case_statements = []
-        for col in columns:
-            cases = ' '.join([f"WHEN {id_column} = {row[id_column]} THEN '{row[col]}'" for index, row in dataframe.iterrows()])
-            case_statements.append(f"{cases} END")
-        # Combine everything
-        set_clause = ', '.join([f"{col} = CASE {id_column} " + case + " END" for col, case in zip(columns, case_statements)])
-        sql += set_clause
-        # Add WHERE clause to limit the update to only the IDs mentioned in the DataFrame
-        ids = ', '.join([str(id) for id in dataframe[id_column].unique()])
-        sql += f" WHERE {id_column} IN ({ids})"
-        return sql
+        sql_commands = []
+        for _, row in df.iterrows():
+            set_clause = ', '.join([f"{col} = '{row[col]}'" if isinstance(row[col], self.text_types) 
+                                    else f"{col} = {row[col]}" for col in df.columns if col != primary_key])
+            primary_val = f"'{row[primary_key]}'" if isinstance(row[primary_key], self.text_types) else row[primary_key]
+            sql_commands.append(f"UPDATE {table_name} SET {set_clause} WHERE {primary_key} = {primary_val};")
+        return "\n".join(sql_commands)
+
     
-    def batch_delete(table_name, id_column, id_list):
+    def batch_delete(self, table_name, id_column, id_list):
         """
         Construct a SQL DELETE statement for batch deletions based on primary key values.
 

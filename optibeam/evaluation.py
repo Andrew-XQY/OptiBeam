@@ -18,7 +18,9 @@ def fit_gaussian(x, y):
     """
     # Initial guesses for fitting parameters: A, mu, sigma
     initial_guesses = [max(y), np.mean(x), np.std(x)]
-    params, covariance = curve_fit(gaussian, x, y, p0=initial_guesses)
+    params, covariance = curve_fit(gaussian, x, y, p0=initial_guesses,
+                                   maxfev=1000  # limit the number of function evaluations
+                                   )
     y_fit = gaussian(x, *params)
     return y_fit, params
 
@@ -94,7 +96,9 @@ def fit_2d_gaussian(image):
     
     # Fit the 2D Gaussian
     try:
-        popt, pcov = curve_fit(gaussian_2d, xy_flat, image_flat, p0=initial_guess)
+        popt, pcov = curve_fit(gaussian_2d, xy_flat, image_flat, p0=initial_guess,
+                               maxfev=1000  # limit the number of function evaluations
+                               )
         res = {"horizontal_centroid" : popt[1], "vertical_centroid" : popt[2],
                 "horizontal_width" : popt[3], "vertical_width" : popt[4]}
     except: # if the fitting fails, return the center of the image, zero sigma can be seen as a indicator

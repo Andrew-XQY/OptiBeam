@@ -102,10 +102,9 @@ class DynamicPatterns:
 
     def get_metadata(self) -> dict:
         config = {}
-        config["simulation_vertical_resolution"] = self._height
-        config["simulation_horizontal_resolution"] = self._width
+        config["simulation_resolution"] = (self._height, self._width)
         config["num_of_distributions"] = len(self._distributions)
-        config["types"] = set([dst._type for dst in self._distributions])
+        config["types"] = list(set([dst._type for dst in self._distributions]))
         return config
 
 

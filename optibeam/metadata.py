@@ -12,6 +12,10 @@ class Metadata(ABC):
         pass
     
     @abstractmethod
+    def set_metadata(self, meta: dict={}):
+        pass
+    
+    @abstractmethod
     def get_hash(self):
         pass
     
@@ -30,7 +34,7 @@ class ImageMetadata(Metadata):
     def add_metadata(self, key, value):
         self.metadata[key] = value
         
-    def set_image_metadata(self, meta: dict={}):
+    def set_metadata(self, meta: dict={}):
         for key, value in meta.items():
             self.metadata[key] = value if type(value) is not dict else json.dumps(value)
             
@@ -50,7 +54,7 @@ class ConfigMetaData(Metadata):
     def add_metadata(self, key, value):
         self.metadata[key] = value
         
-    def set_config_metadata(self, meta: dict={}):
+    def set_metadata(self, meta: dict={}):
         for key, value in meta.items():
             self.metadata[key] = value if type(value) is not dict else json.dumps(value)
         self._set_hash()

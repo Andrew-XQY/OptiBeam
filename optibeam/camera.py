@@ -64,10 +64,14 @@ class MultiBaslerCameraManager:
         for grabResult in grabResults:
             grabResult.Release()
             
+    def _plot_image_label(self, img: np.ndarray, label: str) -> None:
+        font = cv2.FONT_HERSHEY_SIMPLEX
+        cv2.putText(img, str(label), (10, 50), font, 2, (255, 255, 255), 2)
+        
     def _plot_max_pixel(self, img: np.ndarray) -> None:
         font = cv2.FONT_HERSHEY_SIMPLEX
         max_pixel = 'Max pixel value: ' + str(np.max(img))
-        cv2.putText(img, max_pixel, (10, 50), font, 2, (255, 255, 255), 2)
+        cv2.putText(img, max_pixel, (10, 100), font, 2, (255, 255, 255), 2)
     
     def _flip_order(self) -> None:
         cv2.namedWindow('Acquisition', cv2.WINDOW_NORMAL)
@@ -85,6 +89,7 @@ class MultiBaslerCameraManager:
                 for img in imgs[1:]:
                     self._plot_max_pixel(img)
                     combined_image = self._combine_images(combined_image, img) 
+                    self._plot_image_label(combined_image, 'Ground Truth')
                 cv2.imshow('Acquisition', combined_image)
                 key = cv2.waitKey(1)
                 if key == ord('f'):  # 'f' key to flip
@@ -110,7 +115,7 @@ class MultiBaslerCameraManager:
         cam.ActionGroupKey.SetValue(self.group_key)
         cam.ActionGroupMask.SetValue(self.group_mask)
         
-    @timeout(10)
+    @timeout(100)
     def initialize(self) -> None:
         """
         detect all cameras and initialize them
@@ -214,9 +219,11 @@ class MultiBaslerCameraManager:
         config['ground_truth_camera_exposure'] = self.cameras[c1].ExposureTimeAbs.Value 
         config['ground_truth_camera_gain'] = self.cameras[c1].GainRaw.Value
         config['ground_truth_camera_sn'] = self.cameras[c1].GetDeviceInfo().GetSerialNumber()
+        config['ground_truth_camera_model'] = self.cameras[c1].GetDeviceInfo().GetModelName()
         config['speckle_camera_exposure'] = self.cameras[c2].ExposureTimeAbs.Value
         config['speckle_camera_gain'] = self.cameras[c2].GainRaw.Value
         config['speckle_camera_sn'] = self.cameras[c2].GetDeviceInfo().GetSerialNumber()
+        config['speckle_camera_model'] = self.cameras[c2].GetDeviceInfo().GetModelName()
         return config
     
     def end(self) -> None:
