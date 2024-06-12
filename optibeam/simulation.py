@@ -97,6 +97,7 @@ class DynamicPatterns:
     def plot_canvas(self, cmap='viridis', pause=0.01):
         plt.clf()
         plt.imshow(self.canvas, cmap=cmap) # cmap='gray' for black and white, and 'viridis' for color
+        plt.colorbar(label='Pixel value')
         plt.draw()  
         plt.pause(pause)  # Pause for a short period, allowing the plot to be updated
 
@@ -392,4 +393,16 @@ def create_mosaic_image(size: int=1024, n: int=3) -> np.ndarray:
     return image
 
 
-    
+def dmd_calibration_pattern_generation(size: int=128, point_size: int=5) -> np.ndarray:
+    # Create a square image with zeros
+    image = np.zeros((size, size), dtype=np.uint8)
+    # Define the center point
+    center = size // 2
+    half_point_size = point_size // 2
+    image[center-half_point_size:center+half_point_size+1, center-half_point_size:center+half_point_size+1] = 255
+    # Draw boundaries
+    image[0, :] = 255  # Top boundary
+    image[-1, :] = 255  # Bottom boundary
+    image[:, 0] = 255  # Left boundary
+    image[:, -1] = 255  # Right boundary
+    return image

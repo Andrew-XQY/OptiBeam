@@ -18,8 +18,8 @@ batch = DB.sql_select("SELECT id, image_path, is_params FROM mmf_dataset_metadat
 
 
 # ----------------- Update crop position -----------------
-img = cv2.imread(batch['image_path'].iloc[-1])
-crop_areas = processing.select_crop_areas_center(img, num=2, scale_factor=0.5) 
+img = cv2.imread(batch['image_path'].iloc[0])
+crop_areas = processing.select_crop_areas_center(img, num=2, scale_factor=0.3) 
 print("Defined crop areas:", crop_areas)
 
 original_crop = [crop_areas[0]]*len(batch)
@@ -40,12 +40,11 @@ for i in tqdm(range(len(batch))):
 
 # ---------------- Information Correction  -----------------
 # recallculate the number of images in a batch
-
 sql = """
     SELECT meta.batch AS batch, count(meta.id) AS total_images
     FROM mmf_dataset_metadata AS meta
     LEFT JOIN mmf_experiment_config AS conf
-    ON meta.metadata_id = conf.id
+    ON meta.config_id = conf.id
     GROUP BY meta.batch
 """
 df = DB.sql_select(sql)

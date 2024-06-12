@@ -14,6 +14,7 @@ schema = {
             "original_crop_pos":"TEXT",  # two points for cropping the image
             "speckle_crop_pos":"TEXT",  # two points for cropping the image
             "is_params":"BOOLEAN",  # whether the beam parameters are calculable
+            "is_calibration":"BOOLEAN",  # whether the image is used for calibration
             "beam_parameters":"TEXT",  # beam parameters used in the experiment (JSON or dict)
             "num_of_images":"INTEGER",  # number of individual images in the data sample
             "image_descriptions":"TEXT",  # JSON or dict, description of each image
