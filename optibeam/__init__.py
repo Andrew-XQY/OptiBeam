@@ -25,4 +25,4 @@ __all__ = ['utils', 'evaluation', 'visualization', 'training', 'camera',
 # Package metadata
 __author__ = 'Andrew Xu'
 __email__ = 'qiyuanxu95@gmail.com'
-__version__ = '0.1.44'
+__version__ = '0.1.45'
