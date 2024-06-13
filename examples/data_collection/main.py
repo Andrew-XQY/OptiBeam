@@ -7,9 +7,41 @@ import datetime, time
 import cv2
 import json
 
+
+def read_MNIST_images(filepath):
+    with open(filepath, 'rb') as file:
+        # Skip the magic number and read dimensions
+        magic_number = int.from_bytes(file.read(4), 'big')  # not used here
+        num_images = int.from_bytes(file.read(4), 'big')
+        rows = int.from_bytes(file.read(4), 'big')
+        cols = int.from_bytes(file.read(4), 'big')
+
+        # Read each image into a numpy array
+        images = []
+        for _ in range(num_images):
+            image = np.frombuffer(file.read(rows * cols), dtype=np.uint8)
+            image = image.reshape((rows, cols))
+            images.append(image)
+
+        return images
+    
+    
+    
+# ------------------- Dataset Parameters ------------------
+number_of_images = 1500
+is_params = 0
+calibration = 1
+load_from_disk = False
+include_simulation = True  # add the original loaded image into data samples
+sim_num = 5    # number of distributions in the simulation
+stride = 5  # every stride simulation update steps, load a new image
+DMD_DIM = 1024  # DMD final loaded image resolution
+DIM = 512    # simulation image resolution
+# ---------------------------------------------------------
+
+
 # DMD Initialization
 DMD = dmd.ViALUXDMD(ALP4(version = '4.3'))
-DMD_DIM = 1024
 DMD.display_image(simulation.create_mosaic_image(size=DMD_DIM)) # preload one image for camera calibration
 
 # Cameras Initialization
@@ -22,16 +54,9 @@ ImageMeta = metadata.ImageMetadata()
 ConfMeta = metadata.ConfigMetaData()
 
 # Simulation Initialization (Optional, could just load disk images instead)
-DIM = 1024 
 CANVAS = simulation.DynamicPatterns(*(DIM, DIM))
-CANVAS._distributions = [simulation.GaussianDistribution(CANVAS) for _ in range(10)]
+CANVAS._distributions = [simulation.GaussianDistribution(CANVAS) for _ in range(sim_num)]
 
-# ------------------- Dataset Parameters ------------------
-number_of_images = 5
-is_params = 0
-load_from_disk = True
-include_simulation = True
-# ---------------------------------------------------------
 
 # If load specific images from local disk, set load_from_disk to True
 if load_from_disk:
@@ -39,7 +64,11 @@ if load_from_disk:
     paths = utils.get_all_file_paths(path_to_images)
     process_funcs = [utils.rgb_to_grayscale, utils.image_normalize, utils.split_image, lambda x : x[0]]
     loader = utils.ImageLoader(process_funcs)
-    imgs_array = utils.add_progress_bar(iterable_arg_index=0)(loader.load_images)(paths)
+    imgs_array = utils.add_progress_bar(iterable_arg_index=0)(loader.load_images)(paths)   
+    number_of_images = len(imgs_array)
+
+# minst_path = "../../DataWarehouse/MMF/MNIST_ORG/t10k-images.idx3-ubyte"
+# imgs_array = read_MNIST_images(minst_path)
 
 
 # Setting up the experiment metadata
@@ -49,7 +78,7 @@ experiment_metadata = {
     "experiment_location": "DITALab, Cockcroft Institute, UK",
     "experiment_date": datetime.datetime.now().strftime('%Y-%m-%d'),
     "batch": batch,
-    "image_source": "simulation",  # e-beam, proton-beam, simulation, or other dataset like MNIST
+    "image_source": "beam image" if load_from_disk else "simulation",  # e-beam, proton-beam, simulation, or other dataset like MNIST
     "image_device": "dmd",  # scintillation-screen, dmd, slm, led
     "fiber_config": {
         "fiber_length": "5 m",
@@ -59,45 +88,40 @@ experiment_metadata = {
     "camera_config": MANAGER.get_metadata(),
     "other_config": {
         "dmd_config": DMD.get_metadata(),
-        "simulation_config": CANVAS.get_metadata(),
+        "simulation_config": CANVAS.get_metadata() if not load_from_disk else {},
         "light_source": "class 2 laser",
         "temperature": "10 C"
     },
     "purtubations": {},
     "radiation":{}
 }
+
+# Start the data collection experiment main loop.
+save_dir = DATASET_ROOT + str(batch) # datetime.datetime.now().strftime('%Y-%m-%d')
+if not os.path.exists(save_dir): # Create the directory
+    os.makedirs(save_dir)
+    print(f"Directory '{save_dir}' was created.")
+    
 ConfMeta.set_metadata(experiment_metadata) 
 if not DB.record_exists("mmf_experiment_config", "hash", ConfMeta.get_hash()):
     DB.sql_execute(ConfMeta.to_sql_insert("mmf_experiment_config")) # save the experiment metadata to the database
 config_id = DB.get_max("mmf_experiment_config", "id")
 
-
-# Start the data collection experiment main loop.
-save_dir = DATASET_ROOT + datetime.datetime.now().strftime('%Y-%m-%d')
-if not os.path.exists(save_dir): # Create the directory
-    os.makedirs(save_dir)
-    print(f"Directory '{save_dir}' was created.")
-
-stride = 5  # every stride simulation update steps, load a new image
 count = 0
-
 try:
-    for i in range(number_of_images):
-        if i == 0:
-            calibration = 1
+    for i in range(-1 if calibration else 0, number_of_images):
+        if calibration:
             img = simulation.dmd_calibration_pattern_generation()
             
         # select image source
         # ------------------------------ local image --------------------------------
         elif load_from_disk:
-            calibration = 0
             if count >= len(imgs_array): break # local images are already all loaded
             img = imgs_array[i]
         # ---------------------------------------------------------------------------
         
         # ------------------------------- simulation --------------------------------
         else:
-            calibration = 0
             for _ in range(stride):  # update the simulation
                 CANVAS.fast_update()
             CANVAS.update()
@@ -119,7 +143,7 @@ try:
         # time.sleep(0.3)  # If loading speed is too fast, the DMD might has memory error
         
         # capture the image from the cameras (Scheduled action command)
-        image = MANAGER.schedule_action_command(int(1000 * 1e6)) # schedule for 1 seconds later
+        image = MANAGER.schedule_action_command(int(500 * 1e6)) # schedule for milliseconds later
         if image is not None:
             img_size = (image.shape[0], int(image.shape[1]//2))
             if include_simulation:
@@ -148,6 +172,7 @@ try:
             DB.sql_execute(ImageMeta.to_sql_insert("mmf_dataset_metadata")) 
             print(f"Image {i+1} captured.")
             count += 1
+            calibration = 0
             
 except Exception as e:
     print(f"An error occured, data collection stopped. {e}")

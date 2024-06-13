@@ -47,7 +47,7 @@ schema = {
             "experiment_date":"TEXT",
             "total_images":"INTEGER",
             "batch":"INTEGER",  # batch number for the data sample collected in a single run
-            "image_source":"TEXT",  # simulation or real beam, e-beam or proton beam
+            "image_source":"TEXT",  # simulation or real beam, e-beam or proton beam, MNIST or other dataset
             "image_device":"TEXT",  # dmd, slm, led, scintillation-screen
             "fiber_config":"TEXT",  # JSON or dict
             "camera_config":"TEXT",  # JSON or dict

@@ -115,7 +115,7 @@ class MultiBaslerCameraManager:
         cam.ActionGroupKey.SetValue(self.group_key)
         cam.ActionGroupMask.SetValue(self.group_mask)
         
-    @timeout(100)
+    @timeout(500)
     def initialize(self) -> None:
         """
         detect all cameras and initialize them

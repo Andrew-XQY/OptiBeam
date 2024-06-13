@@ -1,38 +1,29 @@
 from conf import *
 import pandas as pd
 
+def read_MNIST_images(filepath):
+    with open(filepath, 'rb') as file:
+        # Skip the magic number and read dimensions
+        magic_number = int.from_bytes(file.read(4), 'big')  # not used here
+        num_images = int.from_bytes(file.read(4), 'big')
+        rows = int.from_bytes(file.read(4), 'big')
+        cols = int.from_bytes(file.read(4), 'big')
 
-# # dmd calibration pattern generation
-# def dmd_calibration_pattern_generation(size):
-#     # Create a square image with zeros
-#     image = np.zeros((size, size), dtype=np.uint8)
-#     # Define the center point
-#     center = size // 2
-#     image[center, center] = 255  # Set the central point to maximum intensity (white)
-#     # Draw boundaries
-#     image[0, :] = 255  # Top boundary
-#     image[-1, :] = 255  # Bottom boundary
-#     image[:, 0] = 255  # Left boundary
-#     image[:, -1] = 255  # Right boundary
-#     return image
+        # Read each image into a numpy array
+        images = []
+        for _ in range(num_images):
+            image = np.frombuffer(file.read(rows * cols), dtype=np.uint8)
+            image = image.reshape((rows, cols))
+            images.append(image)
 
-# # Define the size of the image
-# image_size = 100
+        return images
 
-# # Generate the image
-# square_image = dmd_calibration_pattern_generation(image_size)
-
-# # Display the image using matplotlib
-# plt.imshow(square_image, cmap='gray', interpolation='nearest')
-# plt.title("Square Image with Center Point and Boundaries")
-# plt.show()
-
-
-
-
-
-
-
+# Example usage
+# Replace 'path_to_t10k-images.idx3-ubyte' with the actual file path
+minst_path = "../../DataWarehouse/MMF/MNIST_ORG/t10k-images.idx3-ubyte"
+images = read_MNIST_images(minst_path)
+print(len(images))  
+visualization.plot_narray(images[0])
 
 
 
