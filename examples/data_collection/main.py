@@ -29,9 +29,9 @@ def read_MNIST_images(filepath):
     
 # ------------------- Dataset Parameters ------------------
 number_of_images = 1500
-is_params = 0
-calibration = 1
-load_from_disk = False
+is_params = 0  # if the image contains beam parameters
+calibration = 1  # if include a calibration image (first one in the batch)
+load_from_disk = False  # load images from local disk instead of running simulation
 include_simulation = True  # add the original loaded image into data samples
 sim_num = 5    # number of distributions in the simulation
 stride = 5  # every stride simulation update steps, load a new image

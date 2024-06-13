@@ -1,29 +1,19 @@
 from conf import *
 import pandas as pd
 
-def read_MNIST_images(filepath):
-    with open(filepath, 'rb') as file:
-        # Skip the magic number and read dimensions
-        magic_number = int.from_bytes(file.read(4), 'big')  # not used here
-        num_images = int.from_bytes(file.read(4), 'big')
-        rows = int.from_bytes(file.read(4), 'big')
-        cols = int.from_bytes(file.read(4), 'big')
+DB = database.SQLiteDB(DATABASE_ROOT)
 
-        # Read each image into a numpy array
-        images = []
-        for _ in range(num_images):
-            image = np.frombuffer(file.read(rows * cols), dtype=np.uint8)
-            image = image.reshape((rows, cols))
-            images.append(image)
 
-        return images
 
-# Example usage
-# Replace 'path_to_t10k-images.idx3-ubyte' with the actual file path
-minst_path = "../../DataWarehouse/MMF/MNIST_ORG/t10k-images.idx3-ubyte"
-images = read_MNIST_images(minst_path)
-print(len(images))  
-visualization.plot_narray(images[0])
+
+# modify the tables
+sql = """
+UPDATE mmf_experiment_config
+SET image_source = "Georges beam image 1000"
+WHERE id = 1;
+"""
+DB.sql_execute(sql)
+DB.close()
 
 
 
@@ -32,7 +22,7 @@ visualization.plot_narray(images[0])
 
 # # Delete images and database according to batch number!!!
 # BATCH = 2
-# DB = database.SQLiteDB(DATABASE_ROOT)
+# 
 # select_batch = f"""
 #     SELECT image_path FROM mmf_dataset_metadata WHERE batch = {BATCH};
 # """
@@ -43,10 +33,10 @@ visualization.plot_narray(images[0])
 
 # tables = ["mmf_dataset_metadata", "mmf_experiment_config"]
 # for table in tables:
-#     delete_batch = f"""
+#     sql = f"""
 #         DELETE FROM {table} WHERE batch = {BATCH};
 #     """
-#     DB.sql_execute(delete_batch)
+#     DB.sql_execute(sql)
 
 # DB.close()
 

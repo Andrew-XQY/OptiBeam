@@ -1,28 +1,42 @@
+# __init__.py
+
+class LazyImport:
+    def __init__(self, module_name):
+        self.module_name = module_name
+        self.module = None
+
+    def __getattr__(self, name):
+        if self.module is None:
+            self.module = __import__(self.module_name, globals(), locals(), [name], 0)
+        return getattr(self.module, name)
+
+# Lazy-load modules in package
+utils = LazyImport('optibeam.utils')
+database = LazyImport('optibeam.database')
+evaluation = LazyImport('optibeam.evaluation')
+visualization = LazyImport('optibeam.visualization')
+training = LazyImport('optibeam.training')
+camera = LazyImport('optibeam.camera')
+simulation = LazyImport('optibeam.simulation')
+processing = LazyImport('optibeam.processing')
+metadata = LazyImport('optibeam.metadata')
+
+# Optionally, conditionally import platform-specific modules
 import platform
-
-# Import modules
-from . import utils
-from . import evaluation
-from . import visualization
-from . import training
-from . import camera
-from . import simulation
-from . import database
-from . import processing
-from . import metadata
-
-# Conditionally import
-if platform.system() == 'Windows':
-    from . import dmd
-    extra_imports = ['dmd']  # ALP4 driver is only available on Windows
-else:
-    extra_imports = []
+if platform.system() == 'Windows':  # ALP4 driver is only available on Windows
+    dmd = LazyImport('optibeam.dmd')
 
 # Define what is available to import from the package
-__all__ = ['utils', 'evaluation', 'visualization', 'training', 'camera',
-           'simulation', 'database', 'processing', 'metadata'] + extra_imports
+__all__ = [
+    'utils', 'database', 'evaluation', 'visualization', 'training',
+    'camera', 'simulation', 'processing', 'metadata'
+]
+
+if platform.system() == 'Windows':
+    __all__.append('dmd')
 
 # Package metadata
 __author__ = 'Andrew Xu'
 __email__ = 'qiyuanxu95@gmail.com'
 __version__ = '0.1.45'
+
