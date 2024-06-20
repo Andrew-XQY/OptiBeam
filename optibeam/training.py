@@ -11,6 +11,40 @@ import json
 from datetime import datetime
 
 # ------------------- callback functions for tensorflow fit -------------------
+class ImageReconstructionCallback(Callback):
+    def __init__(self, model, test_data_generator, num_images=3, dim=(128,128)):
+        super().__init__()
+        self.model = model
+        self.test_data_generator = test_data_generator
+        self.num_images = num_images
+        self.dim = dim
+
+    def on_epoch_end(self, epoch, logs=None):
+        # Clear the previous figure
+        plt.clf()
+        clear_output(wait=True)
+        x_test, y_test = next(self.test_data_generator)  # Get a batch of test data
+        predicted_y = self.model.predict(x_test)  # Get reconstructed images
+        plt.figure(figsize=(15, 5))   # Plot the original and reconstructed images
+        for i in range(self.num_images):
+            ax = plt.subplot(3, self.num_images, i + 1)
+            plt.imshow(x_test[i].reshape(*self.dim), cmap="gray")
+            plt.title("Input")
+            plt.axis("off")
+            ax = plt.subplot(3, self.num_images, i + 1 + self.num_images)
+            plt.imshow(y_test[i].reshape(*self.dim), cmap="gray")
+            plt.title("Label")
+            plt.axis("off")
+            ax = plt.subplot(3, self.num_images, i + 1 + 2 * self.num_images)
+            plt.imshow(predicted_y[i].reshape(*self.dim), cmap="gray")
+            plt.title("Reconstructed")
+            plt.axis("off")
+        plt.tight_layout()
+        plt.show()
+
+
+
+
 class PlotPredictionParamsCallback(Callback):
     """
     Callback to plot the true and predicted beam parameters on a random validation image

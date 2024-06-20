@@ -30,5 +30,5 @@ with ChangeDirToFileLocation():
     import optibeam.metadata as metadata
     import optibeam.evaluation as evaluation
     import optibeam.visualization as visualization
-    
+    import optibeam.training as training
 

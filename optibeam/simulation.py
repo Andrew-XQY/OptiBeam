@@ -243,7 +243,101 @@ class CauchyDistribution(Distribution):
     Class for generating a 2D Cauchy distribution.
     """
     pass
+
+
+class StaticGaussianDistribution(Distribution):
+    def init(self, canvas: DynamicPatterns) -> None:
+        super().__init__(canvas)
+        self._type = "Static Gaussian"
+        # Gaussian parameters (position, intensity, size and translation)
+        self.std_x = 0
+        self.std_y = 0
+        self.intensity = 0
+        self.rotation = 0
+        self.dx = 0  # translation in x
+        self.dy = 0  # translation in y
+        
+    def update_params(self, max_std_x: float=0.1, max_std_y: float=0.1) -> None:
+        """
+        Update the parameters of the Gaussian distribution.
+        """
+        max_std_x *= self._width 
+        max_std_y *= self._height
+        # Random sigmas
+        self.std_x = np.random.uniform(low=self._width/64, high=max_std_x)
+        self.std_y = np.random.uniform(low=self._height/64, high=max_std_y)
+        # Random intensity with condition
+        self.intensity = np.random.uniform(-10, 10)
+        # Random Rotation
+        angle_degrees = np.random.uniform(0, 360)
+        self.rotation = np.deg2rad(angle_degrees)  # Convert angle to radians for rotation
+        # Random Translation with decaying probability
+        max_radius = max(self._width, self._height) // 2  # np.sqrt(2) * (size / 2)
+        # Generate a random radius with decreasing probability
+        radius = np.random.exponential(scale=self._width/2)  # Adjust scale to control decay
+        radius = min(radius, max_radius)  # Limit radius to max_radius
+        # Generate a random angle for translation
+        trans_angle = np.random.uniform(0, 2*np.pi)
+        # Convert polar to Cartesian coordinates for the translation
+        self.dx = radius * np.cos(trans_angle)
+        self.dy = radius * np.sin(trans_angle)
+        
+    def pattern_generation(self) -> np.ndarray:
+        """
+        Generate a 2D Gaussian distribution based on the current state of the distribution.
+        """
+        # Check if intensity is negative
+        if self.intensity < 0:
+            return np.zeros((self._height, self._width))  # Set Gaussian to zero (black canvas)
+        else:
+        # Create a coordinate grid
+            x = np.linspace(0, self._width-1, self._width)
+            y = np.linspace(0, self._height-1, self._height)
+            x, y = np.meshgrid(x, y)
+            # Shift the center for rotation
+            x -= self._width/2
+            y -= self._height/2
+            # Apply rotation
+            x_new = x * np.cos(self.rotation) - y * np.sin(self.rotation)
+            y_new = x * np.sin(self.rotation) + y * np.cos(self.rotation)
+            # Apply translation
+            x_new += self._width/2 + self.dx
+            y_new += self._height/2 + self.dy
+            # Calculate the 2D Gaussian with different sigma for x and y
+            dist = np.exp(-((x_new - self._width/2)**2 / (2 * self.std_x**2) + (y_new - self._height/2)**2 / (2 * self.std_y**2)))
+            dist *= self.intensity  # Scale Gaussian by the intensity factor
+            return dist
+        
+    def update(self, *args, **kwargs) -> None:
+        """Update the distribution's state."""
+        self.update_params(*args, **kwargs)
+        self._pattern = self.pattern_generation()
     
+    def fast_update(self, *args, **kwargs) -> None:
+        """Update the distribution's parameters without actually plotting the new pattern."""
+        self.update_params(*args, **kwargs)
+    
+    def get_metadata(self) -> dict:
+        return {}
+
+    def demo(self) -> None:
+        # Plot the transformed Gaussian
+        plt.clf()
+        plt.imshow(self._pattern, cmap='viridis')
+        plt.colorbar()
+        plt.title('Randomly Transformed Anisotropic Gaussian Distribution')
+        plt.draw()
+        plt.pause(0.5)
+
+class Polygon:
+    def __init__(self) -> None:
+        pass
+
+
+class Lens(ABC):
+    def __init__(self, canvas: DynamicPatterns, focal_length: float=1.0, aperture: float=1.0):
+        pass
+
 
 
 # ----------------- 2D narray affine transformation -----------------
@@ -405,4 +499,19 @@ def dmd_calibration_pattern_generation(size: int=128, point_size: int=5) -> np.n
     image[-1, :] = 255  # Bottom boundary
     image[:, 0] = 255  # Left boundary
     image[:, -1] = 255  # Right boundary
+    return image
+
+
+def dmd_calibration_pattern_generation_gradient(size: int=128, point_size: int=5, boundary_width: int=5) -> np.ndarray:
+    # Create a square image with gradient background
+    image = np.tile(np.linspace(0, 255, size, dtype=np.uint8), (size, 1))
+    # Define the center point
+    center = size // 2
+    half_point_size = point_size // 2
+    image[center-half_point_size:center+half_point_size+1, center-half_point_size:center+half_point_size+1] = 255
+    # Draw boundaries
+    image[:boundary_width, :] = 255  # Top boundary
+    image[-boundary_width:, :] = 255  # Bottom boundary
+    image[:, :boundary_width] = 255  # Left boundary
+    image[:, -boundary_width:] = 255  # Right boundary
     return image

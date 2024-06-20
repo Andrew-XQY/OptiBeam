@@ -20,6 +20,7 @@ camera = LazyImport('optibeam.camera')
 simulation = LazyImport('optibeam.simulation')
 processing = LazyImport('optibeam.processing')
 metadata = LazyImport('optibeam.metadata')
+datapipeline = LazyImport('optibeam.datapipeline')
 
 # Optionally, conditionally import platform-specific modules
 import platform
@@ -29,7 +30,7 @@ if platform.system() == 'Windows':  # ALP4 driver is only available on Windows
 # Define what is available to import from the package
 __all__ = [
     'utils', 'database', 'evaluation', 'visualization', 'training',
-    'camera', 'simulation', 'processing', 'metadata'
+    'camera', 'simulation', 'processing', 'metadata', 'datapipeline'
 ]
 
 if platform.system() == 'Windows':

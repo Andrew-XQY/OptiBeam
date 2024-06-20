@@ -111,7 +111,7 @@ count = 0
 try:
     for i in range(-1 if calibration else 0, number_of_images):
         if calibration:
-            img = simulation.dmd_calibration_pattern_generation()
+            img = simulation.dmd_calibration_pattern_generation_gradient()
             
         # select image source
         # ------------------------------ local image --------------------------------
