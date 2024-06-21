@@ -28,6 +28,14 @@ df = pd.DataFrame({"id": batch["id"], "original_crop_pos": original_crop, "speck
 sql = DB.batch_update("mmf_dataset_metadata", "id", df)
 DB.sql_execute(sql, multiple=True)
 
+
+# ----------------- Update max intensity -----------------
+# TODO: calculate and fill the max intensity (pixel value) of the images
+
+
+
+
+
 # ----------------- Update beam parameters -----------------
 print("Calculating beam parameters...")
 for i in tqdm(range(len(batch))):
@@ -50,6 +58,7 @@ sql = """
 df = DB.sql_select(sql)
 sql = DB.batch_update("mmf_experiment_config", "batch", df)
 DB.sql_execute(sql, multiple=True)
+
 
 
 # Close the database connection
