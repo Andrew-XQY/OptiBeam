@@ -15,6 +15,8 @@ schema = {
             "speckle_crop_pos":"TEXT",  # two points for cropping the image
             "is_params":"BOOLEAN",  # whether the beam parameters are calculable
             "is_calibration":"BOOLEAN",  # whether the image is used for calibration
+            "is_blank":"BOOLEAN DEFAULT 0",  # whether the image is blank (black) or not
+            "max_pixel_value":"TEXT",  # maximum pixel value in the image
             "beam_parameters":"TEXT",  # beam parameters used in the experiment (JSON or dict)
             "num_of_images":"INTEGER",  # number of individual images in the data sample
             "image_descriptions":"TEXT",  # JSON or dict, description of each image
@@ -58,6 +60,7 @@ schema = {
             "create_time":"TIMESTAMP DEFAULT CURRENT_TIMESTAMP",
             "update_time":"TIMESTAMP DEFAULT CURRENT_TIMESTAMP"
 }
+
 # create the config table that stores the detailed setup, parameters and configurations of the experiment
 # id is corresponding to the config_id in the main table as a foreign key
 table_name = "mmf_experiment_config"

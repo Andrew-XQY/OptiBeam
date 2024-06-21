@@ -143,6 +143,36 @@ class SQLiteDB(Database):
         """
         self.cursor.execute(f"ALTER TABLE {table_name} ADD COLUMN {column_name} {data_type}")
         self.connection.commit()
+        
+    def rename_field(self, table_name: str, old_column_name: str, new_column_name: str) -> None:
+        """
+        Rename a field in a table.
+        
+        args:
+            table_name (str): Name of the table.
+            old_column_name (str): Name of the column to rename.
+            new_column_name (str): New name for the column.
+            
+        returns:
+            None
+        """
+        self.cursor.execute(f"ALTER TABLE {table_name} RENAME COLUMN {old_column_name} TO {new_column_name}")
+        self.connection.commit()
+        
+    def retype_field(self, table_name: str, column_name: str, new_data_type: str) -> None:
+        """
+        Change the data type of a field in a table.
+        
+        args:
+            table_name (str): Name of the table.
+            column_name (str): Name of the column to change.
+            new_data_type (str): New data type for the column.
+            
+        returns:
+            None
+        """
+        self.cursor.execute(f"ALTER TABLE {table_name} ALTER COLUMN {column_name} TYPE {new_data_type}")
+        self.connection.commit()
 
     def delete_table(self, table_name: str) -> None:
         """

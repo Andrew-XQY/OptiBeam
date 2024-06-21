@@ -45,17 +45,14 @@ DIM = 512    # simulation image resolution
 DMD = dmd.ViALUXDMD(ALP4(version = '4.3'))
 DMD.display_image(simulation.create_mosaic_image(size=DMD_DIM)) # preload one image for camera calibration
 
-
 # Cameras Initialization
 MANAGER = camera.MultiBaslerCameraManager()
 MANAGER.synchronization()
-
 
 # Database Initialization
 DB = database.SQLiteDB(DATABASE_ROOT)
 ImageMeta = metadata.ImageMetadata()
 ConfMeta = metadata.ConfigMetaData()
-
 
 # Simulation Initialization (Optional, could just load disk images instead)
 CANVAS = simulation.DynamicPatterns(*(DIM, DIM))
@@ -125,11 +122,19 @@ try:
             img = imgs_array[i]
         # ---------------------------------------------------------------------------
         
+        # -------------------------- simulation (dynamic) ---------------------------
+        # else:
+        #     for _ in range(stride):  # update the simulation
+        #         CANVAS.fast_update()
+        #     CANVAS.update()
+        #     CANVAS.thresholding(1)    
+        #     img = CANVAS.get_image()
+        # ---------------------------------------------------------------------------
+        
         # ------------------------------- simulation --------------------------------
         else:
-            for _ in range(stride):  # update the simulation
-                CANVAS.fast_update()
             CANVAS.update()
+            CANVAS.thresholding(1)    
             img = CANVAS.get_image()
         # ---------------------------------------------------------------------------
         
@@ -139,13 +144,12 @@ try:
         # Because the DMD is rotated by about 45 degrees, we need to rotate the generated image by ~45 degrees back
         scale = 1 / np.sqrt(2)
         center = (DMD_DIM // 2, DMD_DIM // 2)
-        M = cv2.getRotationMatrix2D(center, 137, scale) 
+        M = cv2.getRotationMatrix2D(center, 137, scale)  # 137 is the angle to rotate to the right orientation in this case
         img = cv2.warpAffine(img, M, (DMD_DIM, DMD_DIM), 
                                     borderMode=cv2.BORDER_CONSTANT, 
                                     borderValue=(0, 0, 0))
-        
-        DMD.display_image(img) 
-        # time.sleep(0.3)  # If loading speed is too fast, the DMD might has memory error
+
+        DMD.display_image(img)  # if loading too fast, the DMD might report memory error
         
         # capture the image from the cameras (Scheduled action command)
         image = MANAGER.schedule_action_command(int(500 * 1e6)) # schedule for milliseconds later
@@ -165,6 +169,7 @@ try:
                     "num_of_images":3 if include_simulation else 2, 
                     "is_params":is_params,
                     "is_calibration":calibration,
+                    "is_blank":1 if CANVAS.is_blank() else 0,
                     "image_descriptions":json.dumps({**({"simulation_img": img_size} if include_simulation else {}), 
                                                      "ground_truth_img": img_size, "fiber_output_img": img_size}),
                     "image_path":os.path.abspath(image_path),

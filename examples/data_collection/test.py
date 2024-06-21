@@ -5,15 +5,27 @@ DB = database.SQLiteDB(DATABASE_ROOT)
 
 
 
+# DB.rename_field("mmf_dataset_metadata", "is_blank", "max_pixel_value")
+# DB.retype_field("mmf_dataset_metadata", "max_pixel_value", "TEXT")
 
-# modify the tables
-sql = """
-UPDATE mmf_experiment_config
-SET image_source = "Georges beam image 1000"
-WHERE id = 1;
-"""
-DB.sql_execute(sql)
-DB.close()
+
+
+
+
+
+
+
+
+
+
+# # modify the tables
+# sql = """
+# UPDATE mmf_experiment_config
+# SET image_source = "Georges beam image 1000"
+# WHERE id = 1;
+# """
+# DB.sql_execute(sql)
+# DB.close()
 
 
 

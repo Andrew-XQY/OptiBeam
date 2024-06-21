@@ -37,7 +37,8 @@ def plot_image_with_cursor_info(image_path):
     plt.show()
 
 # Example usage
-plot_image_with_cursor_info('C:/Users/qiyuanxu/Documents/DataWarehouse/MMF/procIMGs/processed/35.png')
+# plot_image_with_cursor_info('C:/Users/qiyuanxu/Documents/DataWarehouse/MMF/procIMGs/processed/35.png')
+plot_image_with_cursor_info('C:/Users/qiyuanxu/Documents/DataWarehouse/MMF/procIMGs_2/processed/991.png')
 
 
 

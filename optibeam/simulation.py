@@ -61,6 +61,12 @@ class DynamicPatterns:
         """
         # Cut-off pixel value threshold for the canvas (0-255)
         self.canvas[self.canvas < threshold] = 0
+        
+    def is_blank(self) -> bool:
+        """
+        Check if the canvas is blank (all zeros).
+        """
+        return np.all(self.canvas == 0)
 
     def apply_distribution(self) -> None:
         """
@@ -166,9 +172,11 @@ class DynamicPatterns:
         
         return: None
         """
+        max_pixel_value = np.max(self.canvas)
         plt.clf()
         plt.imshow(self.canvas, cmap=cmap, vmin=0, vmax=255) # cmap='gray' for black and white, and 'viridis' for color
         plt.colorbar(label='Pixel value')
+        plt.title(f'Max Pixel Value: {max_pixel_value}')
         plt.draw()  
         plt.pause(pause)  # Pause for a short period, allowing the plot to be updated
     
@@ -364,6 +372,9 @@ class StaticGaussianDistribution(Distribution):
         # Random intensity with condition (uniform distribution)
         min_intensity = fade_rate * max_intensity/(fade_rate - 1)
         self.intensity = np.random.uniform(min_intensity, max_intensity)
+        if self.intensity > 0:  # intensity inversely proportional to area through probabilistic modeling
+            area_scaling = (self._width * self._height) / (self.std_x * self.std_y)
+            self.intensity += np.random.uniform(0, area_scaling/3)
         # Random Rotation
         angle_degrees = np.random.uniform(0, 360)
         self.rotation = np.deg2rad(angle_degrees)  # Convert angle to radians for rotation
