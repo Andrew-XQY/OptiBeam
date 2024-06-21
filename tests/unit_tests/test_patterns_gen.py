@@ -17,9 +17,12 @@ canvas._distributions = [simulation.StaticGaussianDistribution(canvas) for _ in 
 
 image_arrays = []
 for _ in range(10000):
-    canvas.update(min_std=0.05, max_std=0.1, max_intensity=100, fade_rate=0.95)
+    canvas.update(min_std=0.05, max_std=0.1, max_intensity=130, fade_rate=0.95)  # around 0.95 is good
+    canvas.thresholding(1)
     canvas.plot_canvas(cmap='grey')
-    time.sleep(0.5)
+    #canvas.canvas_pixel_values()
+    #break
+    time.sleep(1)
     
 
 

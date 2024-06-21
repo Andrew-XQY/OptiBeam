@@ -11,7 +11,7 @@ class DynamicPatterns:
     Class for generating and managing dynamic patterns on a 2D canvas.
     Focusing on image pattern generation only.
     """
-    def __init__(self, height: int=128, width: int=128):
+    def __init__(self, height: int=128, width: int=128) -> None:
         self._height = self._validate_and_convert(height)  # canvas height
         self._width = self._validate_and_convert(width) 
         self.clear_canvas()  # Update canvas size
@@ -19,24 +19,24 @@ class DynamicPatterns:
         self._distributions = []
         self.max_pixel_value = 255  # Maximum pixel value for the canvas
         
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"DynamicPatterns with Canvas sides of: {self.canvas.shape}"
     
     @property
-    def height(self):
+    def height(self) -> int:
         return self._height
 
     @height.setter
-    def height(self, value: int):
+    def height(self, value: int) -> None:
         self._height = self._validate_and_convert(value)
         self.clear_canvas()  
 
     @property
-    def width(self):
+    def width(self) -> int:
         return self._width
 
     @width.setter
-    def width(self, value: int):
+    def width(self, value: int) -> None:
         self._width = self._validate_and_convert(value)
         self.clear_canvas()  
         
@@ -51,10 +51,18 @@ class DynamicPatterns:
             print(f"Value must be between 0 and {4096}.")
         return value
     
-    def clear_canvas(self):
+    def clear_canvas(self) -> None:
         self.canvas = np.zeros((self._height, self._width))
+        
+    def thresholding(self, threshold: int=5) -> None:
+        """
+        Apply a threshold to the canvas. Any pixel value below the threshold will be set to 0
+        otherwize keep original value.
+        """
+        # Cut-off pixel value threshold for the canvas (0-255)
+        self.canvas[self.canvas < threshold] = 0
 
-    def apply_distribution(self):
+    def apply_distribution(self) -> None:
         """
         Apply the pattern of each distribution to the canvas.
         """
@@ -62,7 +70,7 @@ class DynamicPatterns:
             self.canvas += dst.pattern
             self.canvas = np.clip(self.canvas, 0, self.max_pixel_value)
             
-    def remove_distribution(self, index: int):
+    def remove_distribution(self, index: int) -> None:
         """
         Remove a distribution object from the list of distributions.
         
@@ -74,7 +82,7 @@ class DynamicPatterns:
         if 0 <= index < len(self._distributions):
             self._distributions.pop(index)
             
-    def remove_distributions(self, amount: int):
+    def remove_distributions(self, amount: int) -> None:
         """
         Remove a number of distributions from the list of distributions.
         
@@ -89,7 +97,7 @@ class DynamicPatterns:
             for _ in range(amount):
                 self._distributions.pop()
             
-    def update(self, *args, **kwargs):
+    def update(self, *args, **kwargs) -> None:
         """
         Update the canvas by updating all the distributions.
         Need distribution objects have the update method implemented.
@@ -105,7 +113,7 @@ class DynamicPatterns:
             dst.update(*args, **kwargs)
         self.apply_distribution()
         
-    def fast_update(self, *args, **kwargs):
+    def fast_update(self, *args, **kwargs) -> None:
         """
         Call the fast_update method of all the distributions.
         Only update the parameters of the distributions without plotting the new pattern.
@@ -120,7 +128,7 @@ class DynamicPatterns:
         for dst in self._distributions:
             dst.fast_update(*args, **kwargs)
     
-    def append(self, distribution):
+    def append(self, distribution) -> None:
         """
         Append a distribution object to the list of distributions.
         
@@ -131,7 +139,7 @@ class DynamicPatterns:
         """
         self._distributions.append(distribution)
     
-    def get_image(self):
+    def get_image(self) -> np.ndarray:
         """
         Return a copy of the current canvas
         
@@ -141,14 +149,14 @@ class DynamicPatterns:
         """
         return self.canvas
     
-    def transform(self, transformations : List[Callable[[np.ndarray], np.ndarray]]):
+    def transform(self, transformations : List[Callable[[np.ndarray], np.ndarray]]) -> None:
         """
         Apply a series of transformations on the final image (), not on the canvas. 
         """
         for transformation in transformations:
             self.canvas = transformation(self.canvas)
     
-    def plot_canvas(self, cmap='viridis', pause=0.01):
+    def plot_canvas(self, cmap='viridis', pause=0.01) -> None:
         """
         plot the current canvas.
         
@@ -159,10 +167,27 @@ class DynamicPatterns:
         return: None
         """
         plt.clf()
-        plt.imshow(self.canvas, cmap=cmap) # cmap='gray' for black and white, and 'viridis' for color
+        plt.imshow(self.canvas, cmap=cmap, vmin=0, vmax=255) # cmap='gray' for black and white, and 'viridis' for color
         plt.colorbar(label='Pixel value')
         plt.draw()  
         plt.pause(pause)  # Pause for a short period, allowing the plot to be updated
+    
+    def canvas_pixel_values(self, cmap='gray') -> None:
+        fig, ax = plt.subplots()
+        im = ax.imshow(self.canvas, cmap=cmap, vmin=0, vmax=255)
+        # Function to be called when the mouse is moved
+        def on_move(event):
+            if event.inaxes == ax:
+                x, y = int(event.xdata), int(event.ydata)
+                # Get the pixel value of the image at the given (x, y) location
+                pixel_value = self.canvas[y, x]
+                # Update the figure title with pixel coordinates and value
+                ax.set_title(f'Pixel ({x}, {y}): {pixel_value}')
+                fig.canvas.draw_idle()
+                
+        fig.canvas.mpl_connect('motion_notify_event', on_move)
+        plt.colorbar(im, ax=ax)  # Shows the color scale
+        plt.show()
 
     def get_metadata(self) -> dict:
         """
@@ -336,7 +361,7 @@ class StaticGaussianDistribution(Distribution):
         # Random sigmas
         self.std_x = np.random.uniform(low=min_std, high=max_std)
         self.std_y = np.random.uniform(low=self.std_x*0.5, high=self.std_x*1.5)
-        # Random intensity with condition
+        # Random intensity with condition (uniform distribution)
         min_intensity = fade_rate * max_intensity/(fade_rate - 1)
         self.intensity = np.random.uniform(min_intensity, max_intensity)
         # Random Rotation
