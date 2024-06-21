@@ -45,18 +45,22 @@ DIM = 512    # simulation image resolution
 DMD = dmd.ViALUXDMD(ALP4(version = '4.3'))
 DMD.display_image(simulation.create_mosaic_image(size=DMD_DIM)) # preload one image for camera calibration
 
+
 # Cameras Initialization
 MANAGER = camera.MultiBaslerCameraManager()
 MANAGER.synchronization()
+
 
 # Database Initialization
 DB = database.SQLiteDB(DATABASE_ROOT)
 ImageMeta = metadata.ImageMetadata()
 ConfMeta = metadata.ConfigMetaData()
 
+
 # Simulation Initialization (Optional, could just load disk images instead)
 CANVAS = simulation.DynamicPatterns(*(DIM, DIM))
-CANVAS._distributions = [simulation.GaussianDistribution(CANVAS) for _ in range(sim_num)]
+CANVAS._distributions = [simulation.StaticGaussianDistribution(CANVAS) for _ in range(sim_num)]
+
 
 
 # If load specific images from local disk, set load_from_disk to True
@@ -68,7 +72,7 @@ if load_from_disk:
     imgs_array = utils.add_progress_bar(iterable_arg_index=0)(loader.load_images)(paths)   
     number_of_images = len(imgs_array)
 
-# minst_path = "../../DataWarehouse/MMF/MNIST_ORG/t10k-images.idx3-ubyte"
+# minst_path = "../../DataWarehouse/MNIST_ORG/t10k-images.idx3-ubyte"
 # imgs_array = read_MNIST_images(minst_path)
 
 
@@ -112,7 +116,7 @@ count = 0
 try:
     for i in range(-1 if calibration else 0, number_of_images):
         if calibration:
-            img = simulation.dmd_calibration_pattern_generation_gradient()
+            img = simulation.dmd_calibration_pattern_generation()
             
         # select image source
         # ------------------------------ local image --------------------------------
@@ -135,7 +139,7 @@ try:
         # Because the DMD is rotated by about 45 degrees, we need to rotate the generated image by ~45 degrees back
         scale = 1 / np.sqrt(2)
         center = (DMD_DIM // 2, DMD_DIM // 2)
-        M = cv2.getRotationMatrix2D(center, 47, scale)
+        M = cv2.getRotationMatrix2D(center, 137, scale) 
         img = cv2.warpAffine(img, M, (DMD_DIM, DMD_DIM), 
                                     borderMode=cv2.BORDER_CONSTANT, 
                                     borderValue=(0, 0, 0))

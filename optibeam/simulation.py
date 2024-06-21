@@ -342,8 +342,8 @@ class StaticGaussianDistribution(Distribution):
         # Random Rotation
         angle_degrees = np.random.uniform(0, 360)
         self.rotation = np.deg2rad(angle_degrees)  # Convert angle to radians for rotation
-        self.dx = np.random.uniform(0, self._width//2)
-        self.dy = np.random.uniform(0, self._height//2)
+        self.dx = np.random.uniform(0, self._width//2.5)
+        self.dy = np.random.uniform(0, self._height//2.5)
         
     def pattern_generation(self) -> np.ndarray:
         """
@@ -551,7 +551,7 @@ def create_mosaic_image(size: int=1024, n: int=3) -> np.ndarray:
     return image
 
 
-def dmd_calibration_pattern_generation(size: int=128, point_size: int=5) -> np.ndarray:
+def dmd_calibration_pattern_generation(size: int=128, point_size: int=5, boundary_width: int=10) -> np.ndarray:
     # Create a square image with zeros
     image = np.zeros((size, size), dtype=np.uint8)
     # Define the center point
@@ -559,10 +559,10 @@ def dmd_calibration_pattern_generation(size: int=128, point_size: int=5) -> np.n
     half_point_size = point_size // 2
     image[center-half_point_size:center+half_point_size+1, center-half_point_size:center+half_point_size+1] = 255
     # Draw boundaries
-    image[0, :] = 255  # Top boundary
-    image[-1, :] = 255  # Bottom boundary
-    image[:, 0] = 255  # Left boundary
-    image[:, -1] = 255  # Right boundary
+    image[:boundary_width, :] = 255  # Top boundary
+    image[-boundary_width:, :] = 255  # Bottom boundary
+    image[:, :boundary_width] = 255  # Left boundary
+    image[:, -boundary_width:] = 255  # Right boundary
     return image
 
 
