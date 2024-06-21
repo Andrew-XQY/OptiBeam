@@ -1,5 +1,6 @@
 from conftest import *
 import cv2
+import time
 
 '''TODO'''
 # rotation remodelling (decouple centroids movement as a individual function, apply affine transformation as matrix multiplication)
@@ -11,16 +12,15 @@ import cv2
 d = 256
 dim = (d, d)
 canvas = simulation.DynamicPatterns(*dim)
-canvas._distributions = [simulation.GaussianDistribution(canvas) for _ in range(20)] 
+# canvas._distributions = [simulation.GaussianDistribution(canvas) for _ in range(20)] 
+canvas._distributions = [simulation.StaticGaussianDistribution(canvas) for _ in range(100)] 
 
 image_arrays = []
-for _ in range(100000):
-    canvas.update()
+for _ in range(10000):
+    canvas.update(min_std=0.05, max_std=0.1, max_intensity=100, fade_rate=0.95)
     canvas.plot_canvas(cmap='grey')
+    time.sleep(0.5)
     
-
-
-
 
 
 

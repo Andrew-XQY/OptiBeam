@@ -238,17 +238,6 @@ def apply_cylindrical_lens_effect(image, focus_axis='horizontal', focus_strength
 
 
 
-
-
-
-
-
-
-
-
-
-
-
 # dataset_path = '../../ResultsCenter/dataset/2024-06-06/'
 # dirs = utils.get_all_file_paths(dataset_path)
 # image_arrays = utils.ImageLoader([]).load(dirs)
@@ -312,9 +301,6 @@ def apply_cylindrical_lens_effect(image, focus_axis='horizontal', focus_strength
 
 
 
-
-
-
 # import time
 
 # # Example usage
@@ -336,9 +322,17 @@ def apply_cylindrical_lens_effect(image, focus_axis='horizontal', focus_strength
 
 
 
-
-
-
+# Random Translation with decaying probability
+# max_radius = max(self._width, self._height) // 2  # np.sqrt(2) * (size / 2)
+# Generate a random radius with decreasing probability
+# radius = np.random.exponential(scale=self._width/2)  # Adjust scale to control decay
+# radius = min(radius, max_radius)  # Limit radius to max_radius
+# radius = max_radius - np.random.exponential(scale=self._width/2)
+# # Generate a random angle for translation
+# trans_angle = np.random.uniform(0, 2*np.pi)
+# # Convert polar to Cartesian coordinates for the translation
+# self.dx = radius * np.cos(trans_angle)
+# self.dy = radius * np.sin(trans_angle)
 
 
 

@@ -28,7 +28,7 @@ def read_MNIST_images(filepath):
     
     
 # ------------------- Dataset Parameters ------------------
-number_of_images = 1500
+number_of_images = 2000  # for simulation, this is the number of images to generate
 is_params = 0  # if the image contains beam parameters
 calibration = 1  # if include a calibration image (first one in the batch)
 load_from_disk = False  # load images from local disk instead of running simulation
@@ -37,6 +37,7 @@ sim_num = 5    # number of distributions in the simulation
 stride = 5  # every stride simulation update steps, load a new image
 DMD_DIM = 1024  # DMD final loaded image resolution
 DIM = 512    # simulation image resolution
+
 # ---------------------------------------------------------
 
 
@@ -128,7 +129,7 @@ try:
             img = CANVAS.get_image()
         # ---------------------------------------------------------------------------
         
-        img = simulation.pixel_value_remap(img)
+        # img = simulation.pixel_value_remap(img)   # remap the intensity will decrease the diversity of the images
         img = simulation.macro_pixel(img, size=int(DMD_DIM/img.shape[0])) 
         origianl = img.copy()
         # Because the DMD is rotated by about 45 degrees, we need to rotate the generated image by ~45 degrees back

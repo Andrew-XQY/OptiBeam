@@ -55,14 +55,50 @@ class DynamicPatterns:
         self.canvas = np.zeros((self._height, self._width))
 
     def apply_distribution(self):
+        """
+        Apply the pattern of each distribution to the canvas.
+        """
         for dst in self._distributions:
             self.canvas += dst.pattern
             self.canvas = np.clip(self.canvas, 0, self.max_pixel_value)
+            
+    def remove_distribution(self, index: int):
+        """
+        Remove a distribution object from the list of distributions.
+        
+        args:
+        - index: The index of the distribution to be removed.
+        
+        return: None
+        """
+        if 0 <= index < len(self._distributions):
+            self._distributions.pop(index)
+            
+    def remove_distributions(self, amount: int):
+        """
+        Remove a number of distributions from the list of distributions.
+        
+        args:
+        - amount: The number of distributions to be removed.
+        
+        return: None
+        """
+        if amount >= len(self._distributions):
+            self._distributions = []
+        else:
+            for _ in range(amount):
+                self._distributions.pop()
             
     def update(self, *args, **kwargs):
         """
         Update the canvas by updating all the distributions.
         Need distribution objects have the update method implemented.
+        
+        args:
+        - *args: Variable length argument list.
+        - **kwargs: Arbitrary keyword arguments.
+        
+        return: None
         """
         self.clear_canvas()
         for dst in self._distributions:
@@ -73,6 +109,12 @@ class DynamicPatterns:
         """
         Call the fast_update method of all the distributions.
         Only update the parameters of the distributions without plotting the new pattern.
+        
+        args:
+        - *args: Variable length argument list.
+        - **kwargs: Arbitrary keyword arguments.
+        
+        return: None
         """
         self.clear_canvas()
         for dst in self._distributions:
@@ -81,10 +123,22 @@ class DynamicPatterns:
     def append(self, distribution):
         """
         Append a distribution object to the list of distributions.
+        
+        args:
+        - distribution: The distribution object to be appended.
+        
+        return: None
         """
         self._distributions.append(distribution)
     
-    def get_image(self, type="narray"):
+    def get_image(self):
+        """
+        Return a copy of the current canvas
+        
+        args: None
+        
+        return: np.ndarray
+        """
         return self.canvas
     
     def transform(self, transformations : List[Callable[[np.ndarray], np.ndarray]]):
@@ -95,6 +149,15 @@ class DynamicPatterns:
             self.canvas = transformation(self.canvas)
     
     def plot_canvas(self, cmap='viridis', pause=0.01):
+        """
+        plot the current canvas.
+        
+        args:
+        - cmap: The color map to use for plotting.
+        - pause: The pause time for the plot.
+        
+        return: None
+        """
         plt.clf()
         plt.imshow(self.canvas, cmap=cmap) # cmap='gray' for black and white, and 'viridis' for color
         plt.colorbar(label='Pixel value')
@@ -102,6 +165,13 @@ class DynamicPatterns:
         plt.pause(pause)  # Pause for a short period, allowing the plot to be updated
 
     def get_metadata(self) -> dict:
+        """
+        Return the configuration metadata of the dynamic patterns.
+        
+        args: None
+        
+        return: dict
+        """
         config = {}
         config["simulation_resolution"] = (self._height, self._width)
         config["num_of_distributions"] = len(self._distributions)
@@ -257,30 +327,23 @@ class StaticGaussianDistribution(Distribution):
         self.dx = 0  # translation in x
         self.dy = 0  # translation in y
         
-    def update_params(self, max_std_x: float=0.1, max_std_y: float=0.1) -> None:
+    def update_params(self, min_std: float=0.03, max_std: float=0.1, max_intensity: int=10, fade_rate: float=0.5) -> None:
         """
         Update the parameters of the Gaussian distribution.
         """
-        max_std_x *= self._width 
-        max_std_y *= self._height
+        min_std *= min(self._width, self._height) 
+        max_std *= max(self._width, self._height)
         # Random sigmas
-        self.std_x = np.random.uniform(low=self._width/64, high=max_std_x)
-        self.std_y = np.random.uniform(low=self._height/64, high=max_std_y)
+        self.std_x = np.random.uniform(low=min_std, high=max_std)
+        self.std_y = np.random.uniform(low=self.std_x*0.5, high=self.std_x*1.5)
         # Random intensity with condition
-        self.intensity = np.random.uniform(-10, 10)
+        min_intensity = fade_rate * max_intensity/(fade_rate - 1)
+        self.intensity = np.random.uniform(min_intensity, max_intensity)
         # Random Rotation
         angle_degrees = np.random.uniform(0, 360)
         self.rotation = np.deg2rad(angle_degrees)  # Convert angle to radians for rotation
-        # Random Translation with decaying probability
-        max_radius = max(self._width, self._height) // 2  # np.sqrt(2) * (size / 2)
-        # Generate a random radius with decreasing probability
-        radius = np.random.exponential(scale=self._width/2)  # Adjust scale to control decay
-        radius = min(radius, max_radius)  # Limit radius to max_radius
-        # Generate a random angle for translation
-        trans_angle = np.random.uniform(0, 2*np.pi)
-        # Convert polar to Cartesian coordinates for the translation
-        self.dx = radius * np.cos(trans_angle)
-        self.dy = radius * np.sin(trans_angle)
+        self.dx = np.random.uniform(0, self._width//2)
+        self.dy = np.random.uniform(0, self._height//2)
         
     def pattern_generation(self) -> np.ndarray:
         """
@@ -318,7 +381,7 @@ class StaticGaussianDistribution(Distribution):
         self.update_params(*args, **kwargs)
     
     def get_metadata(self) -> dict:
-        return {}
+        return {"type": "Static Gaussian", "std_x": self.std_x, "std_y": self.std_y, "intensity": self.intensity}
 
     def demo(self) -> None:
         # Plot the transformed Gaussian
@@ -328,6 +391,7 @@ class StaticGaussianDistribution(Distribution):
         plt.title('Randomly Transformed Anisotropic Gaussian Distribution')
         plt.draw()
         plt.pause(0.5)
+
 
 class Polygon:
     def __init__(self) -> None:

@@ -43,6 +43,7 @@ class DataPipeline:
         ).prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
 
 
+
 # train_batch = ['train']
 # valid_batch = ['valid']
 # test_batch = ['test']

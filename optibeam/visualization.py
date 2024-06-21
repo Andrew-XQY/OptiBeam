@@ -9,6 +9,19 @@ import seaborn as sns
 import imageio
 
 
+
+# -------------- Exploretory Data Analysis --------------
+
+def image_batch_intensity_distribution(images : np.array):
+    pass
+
+
+
+
+
+
+
+
 # ------------------- Plot evaluation -------------------
 
 def plot_prediction_comparison(real : np.array, predicted : np.array, param_name=''):
