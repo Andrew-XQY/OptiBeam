@@ -38,3 +38,17 @@ with ChangeDirToFileLocation():
     import optibeam.visualization as visualization
     
 
+def read_MNIST_images(filepath):
+    with open(filepath, 'rb') as file:
+        # Skip the magic number and read dimensions
+        magic_number = int.from_bytes(file.read(4), 'big')  # not used here
+        num_images = int.from_bytes(file.read(4), 'big')
+        rows = int.from_bytes(file.read(4), 'big')
+        cols = int.from_bytes(file.read(4), 'big')
+        # Read each image into a numpy array
+        images = []
+        for _ in range(num_images):
+            image = np.frombuffer(file.read(rows * cols), dtype=np.uint8)
+            image = image.reshape((rows, cols))
+            images.append(image)
+        return images

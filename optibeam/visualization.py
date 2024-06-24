@@ -151,6 +151,26 @@ def plot_narray(narray_img, channel=1):
         plt.show()
 
 
+def check_intensity(img, cmap='gray'):
+    fig, ax = plt.subplots()
+    im = ax.imshow(img, cmap=cmap, vmin=0, vmax=255)
+    # Function to be called when the mouse is moved
+    def on_move(event):
+        if event.inaxes == ax:
+            x, y = int(event.xdata), int(event.ydata)
+            # Get the pixel value of the image at the given (x, y) location
+            pixel_value = img[y, x]
+            # Update the figure title with pixel coordinates and value
+            ax.set_title(f'Pixel ({x}, {y}): {pixel_value}')
+            fig.canvas.draw_idle()
+            
+    fig.canvas.mpl_connect('motion_notify_event', on_move)
+    plt.colorbar(im, ax=ax)  # Shows the color scale
+    plt.show()
+
+
+
+
 def img_2_params_evaluation(image, true_label, pred_label):
     fig, ax = plt.subplots()
     ax.imshow(image.squeeze(), cmap='gray')  # Display the image

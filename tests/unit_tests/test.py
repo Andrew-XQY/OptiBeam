@@ -1,44 +1,81 @@
-# from conftest import *
-
-
-
-import matplotlib.pyplot as plt
-import numpy as np
+from conftest import *
 from PIL import Image
 
-def plot_image_with_cursor_info(image_path):
-    # Load the image with PIL and convert to grayscale if needed
-    img = Image.open(image_path)
-    if img.mode != 'L':  # Convert to grayscale if not already
-        img = img.convert('L')
-    img = np.array(img)
 
-    # Create a figure and axis for the plot
-    fig, ax = plt.subplots()
-    # Display the image
-    im = ax.imshow(img, cmap='gray', vmin=0, vmax=255)
 
-    # Function to be called when the mouse is moved
-    def on_move(event):
-        if event.inaxes == ax:
-            # Get the x and y pixel coordinates
-            x, y = int(event.xdata), int(event.ydata)
-            # Get the pixel value of the image at the given (x, y) location
-            pixel_value = img[y, x]
-            # Update the figure title with pixel coordinates and value
-            ax.set_title(f'Pixel ({x}, {y}): {pixel_value}')
-            fig.canvas.draw_idle()
+img = simulation.create_mosaic_image()
+increased_data = np.where(img > 0, np.clip(img + 0, 0, 255), 0)
+visualization.check_intensity(increased_data)
 
-    # Connect the motion_notify_event (mouse movement) with the on_move function
-    fig.canvas.mpl_connect('motion_notify_event', on_move)
 
-    # Show the plot
-    plt.colorbar(im, ax=ax)  # Shows the color scale
-    plt.show()
 
-# Example usage
-# plot_image_with_cursor_info('C:/Users/qiyuanxu/Documents/DataWarehouse/MMF/procIMGs/processed/35.png')
-plot_image_with_cursor_info('C:/Users/qiyuanxu/Documents/DataWarehouse/MMF/procIMGs_2/processed/991.png')
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# import matplotlib.pyplot as plt
+# import numpy as np
+# from PIL import Image
+
+# def plot_image_with_cursor_info(image_path):
+#     # Load the image with PIL and convert to grayscale if needed
+#     img = Image.open(image_path)
+#     if img.mode != 'L':  # Convert to grayscale if not already
+#         img = img.convert('L')
+#     img = np.array(img)
+
+#     # Create a figure and axis for the plot
+#     fig, ax = plt.subplots()
+#     # Display the image
+#     im = ax.imshow(img, cmap='gray', vmin=0, vmax=255)
+
+#     # Function to be called when the mouse is moved
+#     def on_move(event):
+#         if event.inaxes == ax:
+#             # Get the x and y pixel coordinates
+#             x, y = int(event.xdata), int(event.ydata)
+#             # Get the pixel value of the image at the given (x, y) location
+#             pixel_value = img[y, x]
+#             # Update the figure title with pixel coordinates and value
+#             ax.set_title(f'Pixel ({x}, {y}): {pixel_value}')
+#             fig.canvas.draw_idle()
+
+#     # Connect the motion_notify_event (mouse movement) with the on_move function
+#     fig.canvas.mpl_connect('motion_notify_event', on_move)
+
+#     # Show the plot
+#     plt.colorbar(im, ax=ax)  # Shows the color scale
+#     plt.show()
+
+# # Example usage
+# # plot_image_with_cursor_info('C:/Users/qiyuanxu/Documents/DataWarehouse/MMF/procIMGs/processed/35.png')
+# plot_image_with_cursor_info('C:/Users/qiyuanxu/Documents/DataWarehouse/MMF/procIMGs_2/processed/991.png')
 
 
 

@@ -6,8 +6,6 @@ import time
 # rotation remodelling (decouple centroids movement as a individual function, apply affine transformation as matrix multiplication)
 # intensity saturation problem (loosing some spatial information? maybe need to fix on the canvas level? depends on the nature and number of distributions?)
 # mimic simplified quadrapole transform in the canvas? (develop some possible transformations on the canvas level)
-# other distributions implementation (Maxwell-Boltzmann, etc)
-
 
 d = 256
 dim = (d, d)
@@ -17,12 +15,10 @@ canvas._distributions = [simulation.StaticGaussianDistribution(canvas) for _ in 
 
 image_arrays = []
 for _ in range(10000):
-    canvas.update(min_std=0.05, max_std=0.1, max_intensity=120, fade_rate=0.96)  # around 0.95 is good
+    canvas.update(min_std=0.05, max_std=0.1, max_intensity=120, fade_rate=0.96)  # around 0.95 looks good
     canvas.thresholding(1)
-    
     # canvas.canvas_pixel_values()
     # break
-
     canvas.plot_canvas(cmap='grey')
     time.sleep(1)
     
@@ -37,6 +33,9 @@ for _ in range(10000):
 
 
 
+
+
+# ---------------------- Dynamic Multiple Guassian distribution ----------------------
 # d = 256
 # dim = (d, d)
 # canvas = simulation.DynamicPatterns(*dim)

@@ -12,6 +12,7 @@ class DynamicPatterns:
     Focusing on image pattern generation only.
     """
     def __init__(self, height: int=128, width: int=128) -> None:
+        self.canvas = None  # The canvas for the dynamic patterns
         self._height = self._validate_and_convert(height)  # canvas height
         self._width = self._validate_and_convert(width) 
         self.clear_canvas()  # Update canvas size
@@ -74,6 +75,19 @@ class DynamicPatterns:
         """
         for dst in self._distributions:
             self.canvas += dst.pattern
+            self.canvas = np.clip(self.canvas, 0, self.max_pixel_value)
+            
+    def apply_specific_distribution(self, index: int) -> None:
+        """
+        Apply the pattern of a specific distribution to the canvas.
+        
+        args:
+        - index: The index of the distribution to be applied.
+        
+        return: None
+        """
+        if 0 <= index < len(self._distributions):
+            self.canvas += self._distributions[index].pattern
             self.canvas = np.clip(self.canvas, 0, self.max_pixel_value)
             
     def remove_distribution(self, index: int) -> None:
@@ -349,9 +363,9 @@ class CauchyDistribution(Distribution):
 
 
 class StaticGaussianDistribution(Distribution):
-    def init(self, canvas: DynamicPatterns) -> None:
+    def __init__(self, canvas: DynamicPatterns) -> None:
         super().__init__(canvas)
-        self._type = "Static Gaussian"
+        self._type = "Static_Gaussian"
         # Gaussian parameters (position, intensity, size and translation)
         self.std_x = 0
         self.std_y = 0
@@ -417,7 +431,7 @@ class StaticGaussianDistribution(Distribution):
         self.update_params(*args, **kwargs)
     
     def get_metadata(self) -> dict:
-        return {"type": "Static Gaussian", "std_x": self.std_x, "std_y": self.std_y, "intensity": self.intensity}
+        return {}
 
     def demo(self) -> None:
         # Plot the transformed Gaussian
