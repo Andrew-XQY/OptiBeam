@@ -1,17 +1,29 @@
 from conftest import *
-from PIL import Image
 
 
-
-img = simulation.create_mosaic_image()
-increased_data = np.where(img > 0, np.clip(img + 0, 0, 255), 0)
-visualization.check_intensity(increased_data)
-
+# img = simulation.create_mosaic_image()
+# increased_data = np.where(img > 0, np.clip(img + 0, 0, 255), 0)
+# visualization.check_intensity(increased_data)
 
 
+import numpy as np
+import time
+from ALP4 import *
 
+DMD = dmd.ViALUXDMD(ALP4(version = '4.3'))
 
+# Specify the shape of the array, for example (3, 3) for a 3x3 array
+array_shape = (256, 256)
 
+while True:
+    # Create an array of ones
+    img = np.ones(array_shape) * 255
+    img = simulation.macro_pixel(img, size=int(1024/img.shape[0]))
+    img = dmd.dmd_img_adjustment(img, 1024)
+    DMD.display_image(img)
+    time.sleep(5)
+
+DMD.end()
 
 
 

@@ -9,7 +9,7 @@ import json
     
     
 # --------------------- Dataset Parameters --------------------
-number_of_images = 60  # for simulation, this is the number of images to generate in this batch
+number_of_images = 4000  # for simulation, this is the number of images to generate in this batch
 is_params = 0  # if the image contains beam parameters (simulation and MNIST don't)
 calibration = 1  # if include a calibration image (first one in the batch)
 load_from_disk = False  # load images from local disk instead of running simulation
@@ -19,10 +19,14 @@ DMD_DIM = 1024  # DMD final loaded image resolution
 
 
 
+
 # ------------------- Hardware Initialization ------------------
 # DMD Initialization
 DMD = dmd.ViALUXDMD(ALP4(version = '4.3'))
-DMD.display_image(simulation.create_mosaic_image(size=DMD_DIM)) # preload one image for camera calibration
+calibration_img = np.ones((256, 256)) * 255
+calibration_img = simulation.macro_pixel(calibration_img, size=int(DMD_DIM/calibration_img.shape[0])) 
+# calibration_img = simulation.create_mosaic_image(size=DMD_DIM)
+DMD.display_image(dmd.dmd_img_adjustment(calibration_img, DMD_DIM)) # preload one image for camera calibration
 
 # Cameras Initialization
 MANAGER = camera.MultiBaslerCameraManager()
@@ -39,7 +43,8 @@ fade_rate = 0.96  # with 100 sim_num. around 0.96 looks good
 min_std=0.05 
 max_std=0.1
 max_intensity=100
-dim = 512   # simulation image resolution  
+dim = 512   # simulation image resolution 
+stride = 5  # number of simulation updates per image 
 CANVAS = simulation.DynamicPatterns(dim, dim)
 CANVAS._distributions = [simulation.StaticGaussianDistribution(CANVAS) for _ in range(sim_num)] 
 # CANVAS._distributions = [simulation.GaussianDistribution(CANVAS) for _ in range(sim_num)] 
@@ -48,7 +53,7 @@ CANVAS._distributions = [simulation.StaticGaussianDistribution(CANVAS) for _ in 
 
 # If load specific images from local disk, set load_from_disk to True
 if load_from_disk:
-    path_to_images = "../../DataWarehouse/MMF/procIMGs_2/processed"
+    path_to_images = "../../DataWarehouse/MMF/procIMGs/processed"
     paths = utils.get_all_file_paths(path_to_images)
     process_funcs = [utils.rgb_to_grayscale, utils.image_normalize, utils.split_image, lambda x : x[0]]
     loader = utils.ImageLoader(process_funcs)
@@ -62,7 +67,7 @@ if load_from_disk:
 # Setting up the experiment metadata
 batch = (DB.get_max("mmf_dataset_metadata", "batch") or 0) + 1  # get the current batch number
 experiment_metadata = {
-    "experiment_description": "Second dataset using DMD, muit-gaussian distributions",
+    "experiment_description": "Second dataset using DMD, muit-gaussian distributions, small scale", # Second dataset using DMD, muit-gaussian distributions, small scale
     "experiment_location": "DITALab, Cockcroft Institute, UK",
     "experiment_date": datetime.datetime.now().strftime('%Y-%m-%d'),
     "batch": batch,
@@ -108,6 +113,7 @@ try:
         elif load_from_disk:
             if count >= len(imgs_array): break # local images are already all loaded
             img = imgs_array[count]
+            img = (img * 255).astype(np.uint8) # convert 0-1 to 0-255, only apply to certain images
         # ---------------------------------------------------------------------------
         
         # -------------------------- simulation (dynamic) ---------------------------
@@ -115,63 +121,64 @@ try:
         #     for _ in range(stride):  # update the simulation
         #         CANVAS.fast_update()
         #     CANVAS.update()
-        #     CANVAS.thresholding(1)    
+        #     # CANVAS.thresholding(1)    
         #     img = CANVAS.get_image()
+        #     img = simulation.pixel_value_remap(img)   # remap the intensity will decrease the diversity of the images
         # ---------------------------------------------------------------------------
         
         # ------------------------------- simulation --------------------------------
-        # else:
-        #     CANVAS.update(min_std=min_std, max_std=max_std, max_intensity=max_intensity, fade_rate=fade_rate)  # around 0.95 looks good
-        #     CANVAS.thresholding(1)
-        #     img = CANVAS.get_image()
+        else:
+            CANVAS.update(min_std=min_std, max_std=max_std, max_intensity=max_intensity, fade_rate=fade_rate)  # around 0.95 looks good
+            # CANVAS.thresholding(1)
+            img = CANVAS.get_image()
         # ---------------------------------------------------------------------------
         
         # ----------------------------- special experiment --------------------------
         # else:  # Intensity correction
-        #     if intensity_sum == 0 or intensity_sum >= 150:
+        #     num_in_group = 15
+        #     group_no = count // num_in_group
+        #     group_index = count % num_in_group
+        #     increment = 10
+        #     if group_index == 0 or group_index == num_in_group:
         #         while True:
         #             CANVAS.update(min_std=min_std, max_std=max_std, max_intensity=max_intensity, fade_rate=fade_rate)
         #             CANVAS.thresholding(1)
         #             img = CANVAS.get_image()
-        #             if img.max() + 150 <= 255 and not CANVAS.is_blank():
+        #             if img.max() + num_in_group*increment <= 255 and not CANVAS.is_blank():
         #                 break
         #         intensity_sum = 0
         #     else:
-        #         img = np.where(img > 0, np.clip(img+10, 0, 255), 0)
-        #     comment = f"intensity test: +{intensity_sum}"  # superposition test, intensity test
+        #         img = np.where(img > 0, np.clip(img+intensity_sum, 0, 255), 0)
+        #     comment = {"item": "intensity_test", 
+        #                "group": group_no, "intensity_increment":intensity_sum}
         #     intensity_sum += 10
         
         
-        # else:  # superposition experiment (assum only two Gaussian distributions in the simulation)
+        # else:  # superposition experiment (assum fixed Gaussian distributions in the simulation)
         #     sim_num = 4
         #     fade_rate = 0
-        #     group = count % (sim_num+1)
+        #     max_intensity = 120
+        #     group_no = count % (sim_num+1)
         #     sub_batch = count // (sim_num+1)
-        #     if group == 0:
+        #     if group_no == 0:
         #         CANVAS._distributions = [simulation.StaticGaussianDistribution(CANVAS) for _ in range(sim_num)] 
-        #         CANVAS.update(min_std=min_std, max_std=max_std, max_intensity=max_intensity, fade_rate=fade_rate)
+        #         CANVAS.update(min_std=min_std, max_std=max_std, 
+        #                       max_intensity=max_intensity, fade_rate=fade_rate)
         #         CANVAS.thresholding(1)
         #     else:
         #         CANVAS.clear_canvas()
-        #         CANVAS.apply_specific_distribution(group-1)
+        #         CANVAS.apply_specific_distribution(group_no-1)
         #     img = CANVAS.get_image()
-        #     comment = f"superposition test: batch |{sub_batch}|{group}"
+        #     comment = {"item": "superposition_test", 
+        #                "group": sub_batch, "distribution_index":group_no}
         # ---------------------------------------------------------------------------
         
         
         # Preprocess the image before displaying on the DMD
-        # img = simulation.pixel_value_remap(img)   # remap the intensity will decrease the diversity of the images
         display = img.copy()
         display = simulation.macro_pixel(display, size=int(DMD_DIM/display.shape[0])) 
-        
         # Because the DMD is rotated by about 45 degrees, we need to rotate the generated image by ~45 degrees back
-        scale = 1 / np.sqrt(2)
-        center = (DMD_DIM // 2, DMD_DIM // 2)
-        M = cv2.getRotationMatrix2D(center, 47, scale)  # 47 is the angle to rotate to the right orientation in this case
-        display = cv2.warpAffine(display, M, (DMD_DIM, DMD_DIM), 
-                                    borderMode=cv2.BORDER_CONSTANT, 
-                                    borderValue=(0, 0, 0))
-
+        display = dmd.dmd_img_adjustment(display, DMD_DIM)
         DMD.display_image(display)  # if loading too fast, the DMD might report memory error
         
         # capture the image from the cameras (Scheduled action command)

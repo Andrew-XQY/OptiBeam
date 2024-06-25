@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from ALP4 import *
 import time
+import cv2
 
 # https://github.com/wavefrontshaping/ALP4lib
 
@@ -136,7 +137,15 @@ class ViALUXDMD(DMD):
         print("DMD Device deallocated, sequence stopped.")
 
 
-
+def dmd_img_adjustment(display, DMD_DIM, angle=47):
+    # Because the DMD is rotated by about 45 degrees, we need to rotate the generated image by ~45 degrees back
+    scale = 1 / np.sqrt(2)
+    center = (DMD_DIM // 2, DMD_DIM // 2)
+    M = cv2.getRotationMatrix2D(center, angle, scale)  # 47 is the angle to rotate to the right orientation in this case
+    display = cv2.warpAffine(display, M, (DMD_DIM, DMD_DIM), 
+                                borderMode=cv2.BORDER_CONSTANT, 
+                                borderValue=(0, 0, 0))
+    return display
 
 
 

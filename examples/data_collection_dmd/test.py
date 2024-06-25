@@ -1,7 +1,26 @@
 from conf import *
-import pandas as pd
 
-DB = database.SQLiteDB(DATABASE_ROOT)
+
+# import pandas as pd
+
+# DB = database.SQLiteDB(DATABASE_ROOT)
+
+
+
+
+
+path_to_images = "../../DataWarehouse/MMF/procIMGs/processed"
+paths = utils.get_all_file_paths(path_to_images)
+process_funcs = [utils.rgb_to_grayscale, utils.image_normalize, utils.split_image, lambda x : x[0]]
+loader = utils.ImageLoader(process_funcs)
+imgs_array = utils.add_progress_bar(iterable_arg_index=0)(loader.load_images)(paths)   
+number_of_images = len(imgs_array)
+
+print(imgs_array[0].max())
+
+
+
+
 
 
 
