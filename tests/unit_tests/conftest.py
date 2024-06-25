@@ -27,5 +27,8 @@ with ChangeDirToFileLocation():
     import optibeam.database as database
     import optibeam.processing as processing
     import optibeam.metadata as metadata
-    import optibeam.dmd as dmd
+    
+    import platform
+    if platform.system() == 'Windows':  # ALP4 driver is only available on Windows
+        import optibeam.dmd as dmd
 
