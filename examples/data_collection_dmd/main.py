@@ -187,7 +187,7 @@ try:
             img_size = (image.shape[0], int(image.shape[1]//2))
             if include_simulation:
                 original_image = cv2.resize(img, (image.shape[0],image.shape[0])) # add the very original image load on the dmd
-                rotated_image = cv2.rotate(original_image, cv2.ROTATE_90_CLOCKWISE)
+                rotated_image = cv2.rotate(original_image, cv2.ROTATE_90_CLOCKWISE)  # TODO: rotation problem
                 image = np.hstack((rotated_image, image))
             filename = str(time.time_ns())
             image_path = save_dir + '/' + filename + '.png'

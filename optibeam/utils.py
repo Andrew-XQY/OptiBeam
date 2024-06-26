@@ -9,6 +9,7 @@ from PIL import Image
 from tqdm import tqdm
 from functools import wraps, reduce
 import time
+import cv2
 from typing import *
 
 
@@ -59,6 +60,9 @@ def preset_kwargs(**preset_kwargs):
 
     Parameters:
     - **preset_kwargs: Arbitrary keyword arguments that will be preset for the decorated function.
+    
+    Returns:
+    - function: The decorated function with the preset keyword arguments. (closure)
     """
     def decorator(func):
         @wraps(func)
@@ -229,11 +233,10 @@ class ImageLoader:
         """
         Load multiple images and return a dataset in numpy array format.
         """
-        temp = []
+        dataset = []
         for image_path in image_paths:
-            temp.append(self.load_image(image_path))
-        dataset = np.array(temp)
-        print(f"Loaded dataset shape: {dataset.shape}")
+            dataset.append(self.load_image(image_path))
+        print(f"Loaded dataset length: {len(dataset)}")
         return dataset
     
     def load(self, input):
@@ -259,25 +262,91 @@ def read_narray_image(image_path):
         return np.array(img)
 
 
-def rgb_to_grayscale(narray_img : np.array):
+def rgb_to_grayscale(narray_img: np.array):
     """
-    input: image in numpy array format
-    output: grayscale image in numpy array format by averaging all the colors
+    Convert an image in numpy array format from RGB or RGBA to grayscale by averaging all the colors, or return
+    the image if it is already in grayscale.
+    
+    Parameters:
+    - narray_img (np.array): Input image in numpy array format.
+
+    Returns:
+    - np.array: Grayscale image in numpy array format.
     """
-    if narray_img.shape[2] == 4:  # If the image has 4 channels (RGBA), ignore the alpha channel.
-        narray_img = narray_img[:, :, :3]
-    return np.mean(narray_img, axis=2)
+    # Check if the image already is a 2D grayscale image
+    if narray_img.ndim == 2:
+        return narray_img
+
+    # Check if the input array is a 3D image array
+    elif narray_img.ndim == 3:
+        if narray_img.shape[-1] == 4:  # If the image has an alpha channel.
+            narray_img = narray_img[:, :, :3]
+        # Calculate the mean across the color channels
+        grayscale_img = np.mean(narray_img, axis=2)
+        return grayscale_img
+    
+    else:
+        raise ValueError("Input array must be either a 2D grayscale or a 3D color image array")
 
 
-def split_image(narray_img : np.array, select='') -> Tuple[np.array, np.array]:
+def crop_images(image: np.array, regions: list[tuple]) -> list:
     """
-    input: image in numpy array format
-    output: two images, split in the middle horizontally
+    Crop multiple regions from an image.
+
+    Args:
+    image (np.array): The input image as a NumPy array.
+    regions (list of tuples): Each tuple contains two tuples, 
+                              defining the top-left and bottom-right 
+                              corners of the rectangle to crop (e.g., ((0,0), (66,66))).
+
+    Returns:
+    list: A list of np.array, each being a cropped region from the input image.
     """
-    left, right = np.array_split(narray_img, 2, axis=1)
-    if select not in ['left', 'right']:
-        return left, right
-    return left if select == 'left' else right
+    cropped_images = []
+    for region in regions:
+        top_left, bottom_right = region
+        # Crop the image using array slicing
+        cropped_image = image[top_left[1]:bottom_right[1], top_left[0]:bottom_right[0]]
+        cropped_images.append(cropped_image)
+    
+    return cropped_images
+
+
+def join_images(image_list, method='largest'):
+    """
+    Join images side by side with resizing based on the specified method.
+
+    Args:
+    image_list (list of np.array): List of images to join.
+    method (str): 'largest' to resize all images to the height of the tallest image,
+                  'smallest' to resize to the height of the shortest image.
+
+    Returns:
+    np.array: A new image consisting of the input images joined side by side.
+    """
+    if not image_list:
+        raise ValueError("image_list cannot be empty")
+
+    # Determine the target height based on the method
+    if method == 'largest':
+        target_height = max(img.shape[0] for img in image_list)
+    elif method == 'smallest':
+        target_height = min(img.shape[0] for img in image_list)
+    else:
+        raise ValueError("Method must be 'largest' or 'smallest'")
+
+    # Resize images and collect them in a list
+    resized_images = []
+    for img in image_list:
+        # Calculate the new width to maintain the aspect ratio
+        scale_ratio = target_height / img.shape[0]
+        new_width = int(img.shape[1] * scale_ratio)
+        resized_img = cv2.resize(img, (new_width, target_height), interpolation=cv2.INTER_AREA)
+        resized_images.append(resized_img)
+
+    # Concatenate all images side by side
+    final_image = np.hstack(resized_images)
+    return final_image
 
 
 def subtract_minimum(arr):

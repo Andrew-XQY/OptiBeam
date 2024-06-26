@@ -14,11 +14,11 @@ from tqdm import tqdm
 DB = database.SQLiteDB(DATABASE_ROOT)
 
 # Select the images to process (could based on other fields, adjust the query accordingly)
-batch = DB.sql_select("SELECT id, image_path, is_params FROM mmf_dataset_metadata WHERE batch IN (1, 2, 3, 4, 5)")
-
+batch = DB.sql_select("SELECT id, image_path, is_params FROM mmf_dataset_metadata WHERE batch Not IN (6)") # WHERE batch IN (1, 2, 3, 4, 5)
+print("Number of images to process:", len(batch))
 
 # ----------------- Update crop position -----------------
-img = cv2.imread(batch['image_path'].iloc[-5])
+img = cv2.imread(batch['image_path'].iloc[0])
 crop_areas = processing.select_crop_areas_center(img, num=2, scale_factor=0.5) 
 print("Defined crop areas:", crop_areas)
 
