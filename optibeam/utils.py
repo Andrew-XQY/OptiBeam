@@ -312,6 +312,17 @@ def crop_images(image: np.array, regions: list[tuple]) -> list:
     return cropped_images
 
 
+def split_image(narray_img : np.array, select='') -> Tuple[np.array, np.array]:
+    """
+    input: image in numpy array format
+    output: two images, split in the middle horizontally
+    """
+    left, right = np.array_split(narray_img, 2, axis=1)
+    if select not in ['left', 'right']:
+        return left, right
+    return left if select == 'left' else right
+
+
 def join_images(image_list, method='largest'):
     """
     Join images side by side with resizing based on the specified method.

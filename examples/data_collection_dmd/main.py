@@ -9,10 +9,10 @@ import json
     
     
 # --------------------- Dataset Parameters --------------------
-number_of_images = 4000  # for simulation, this is the number of images to generate in this batch
-is_params = 0  # if the image contains beam parameters (simulation and MNIST don't)
+number_of_images = 10  # for simulation, this is the number of images to generate in this batch
+is_params = 1  # if the image contains beam parameters (simulation and MNIST don't)
 calibration = 1  # if include a calibration image (first one in the batch)
-load_from_disk = False  # load images from local disk instead of running simulation
+load_from_disk = True  # load images from local disk instead of running simulation
 include_simulation = True  # add the original loaded image into data samples
 DMD_DIM = 1024  # DMD final loaded image resolution
 # -------------------------------------------------------------
@@ -24,8 +24,8 @@ DMD_DIM = 1024  # DMD final loaded image resolution
 # DMD Initialization
 DMD = dmd.ViALUXDMD(ALP4(version = '4.3'))
 calibration_img = np.ones((256, 256)) * 255
+# calibration_img = simulation.dmd_calibration_pattern_generation()
 calibration_img = simulation.macro_pixel(calibration_img, size=int(DMD_DIM/calibration_img.shape[0])) 
-# calibration_img = simulation.create_mosaic_image(size=DMD_DIM)
 DMD.display_image(dmd.dmd_img_adjustment(calibration_img, DMD_DIM)) # preload one image for camera calibration
 
 # Cameras Initialization
@@ -58,7 +58,6 @@ if load_from_disk:
     process_funcs = [utils.rgb_to_grayscale, utils.image_normalize, utils.split_image, lambda x : x[0]]
     loader = utils.ImageLoader(process_funcs)
     imgs_array = utils.add_progress_bar(iterable_arg_index=0)(loader.load_images)(paths)   
-    number_of_images = len(imgs_array)
 
 # minst_path = "../../DataWarehouse/MNIST_ORG/t10k-images.idx3-ubyte"
 # imgs_array = read_MNIST_images(minst_path)

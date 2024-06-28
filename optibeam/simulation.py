@@ -629,3 +629,31 @@ def dmd_calibration_pattern_generation_gradient(size: int=128, point_size: int=5
     image[:, :boundary_width] = 255  # Left boundary
     image[:, -boundary_width:] = 255  # Right boundary
     return image
+
+def generate_moving_blocks(img_size: int=256, block_size: int=32):
+    num_blocks = img_size // block_size
+    base_image = np.zeros((img_size, img_size), dtype=np.uint8)
+    while True:
+        for i in range(num_blocks):
+            for j in range(num_blocks):
+                img_array = base_image.copy()
+                img_array[i*block_size:(i+1)*block_size, j*block_size:(j+1)*block_size] = 255
+                yield img_array
+                
+def generate_radial_gradient(dim: int=256):
+    # Create an empty array of the specified dimensions
+    image = np.zeros((dim, dim), dtype=np.float32)
+    # Calculate the center coordinates
+    center_x, center_y = dim // 2, dim // 2
+    # Maximum distance from the center to a corner (radius for decay)
+    max_radius = np.sqrt(center_x**2 + center_y**2)
+    # Populate the array with intensity values based on radial distance
+    for x in range(dim):
+        for y in range(dim):
+            # Calculate distance from the current pixel to the center
+            distance = np.sqrt((x - center_x)**2 + (y - center_y)**2)
+            # Normalize the distance and calculate intensity
+            if distance <= max_radius:
+                intensity = 255 * (1 - distance / max_radius)
+                image[x, y] = intensity
+    return image.astype(np.uint8)

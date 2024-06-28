@@ -1,9 +1,29 @@
 from conftest import *
 
 
-# img = simulation.create_mosaic_image()
-# increased_data = np.where(img > 0, np.clip(img + 0, 0, 255), 0)
-# visualization.check_intensity(increased_data)
+
+
+# import numpy as np
+# import matplotlib.pyplot as plt
+
+# # Using the generator
+# image_generator = simulation.generate_moving_blocks()
+
+# # Visualize the first 5 images
+# for _ in range(500):
+#     img = next(image_generator)
+#     plt.clf()
+#     plt.imshow(img, cmap='gray', vmin=0, vmax=255)
+#     plt.draw()
+#     plt.pause(1)  # Pause for visibility
+
+    
+    
+
+
+
+
+
 
 
 import numpy as np
