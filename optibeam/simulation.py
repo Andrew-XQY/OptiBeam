@@ -600,8 +600,7 @@ def create_mosaic_image(size: int=1024, n: int=3) -> np.ndarray:
                   j * block_size:(j + 1) * block_size] = values[value_index]
     return image
 
-
-def dmd_calibration_pattern_generation(size: int=128, point_size: int=5, boundary_width: int=10) -> np.ndarray:
+def dmd_calibration_pattern_generation(size: int=256, point_size: int=5, boundary_width: int=5) -> np.ndarray:
     # Create a square image with zeros
     image = np.zeros((size, size), dtype=np.uint8)
     # Define the center point
@@ -615,8 +614,7 @@ def dmd_calibration_pattern_generation(size: int=128, point_size: int=5, boundar
     image[:, -boundary_width:] = 255  # Right boundary
     return image
 
-
-def dmd_calibration_pattern_generation_gradient(size: int=128, point_size: int=5, boundary_width: int=5) -> np.ndarray:
+def dmd_calibration_gradient(size: int=128, point_size: int=5, boundary_width: int=5) -> np.ndarray:
     # Create a square image with gradient background
     image = np.tile(np.linspace(0, 255, size, dtype=np.uint8), (size, 1))
     # Define the center point
@@ -630,26 +628,46 @@ def dmd_calibration_pattern_generation_gradient(size: int=128, point_size: int=5
     image[:, -boundary_width:] = 255  # Right boundary
     return image
 
-def generate_moving_blocks(img_size: int=256, block_size: int=32):
-    num_blocks = img_size // block_size
-    base_image = np.zeros((img_size, img_size), dtype=np.uint8)
-    while True:
-        for i in range(num_blocks):
-            for j in range(num_blocks):
-                img_array = base_image.copy()
-                img_array[i*block_size:(i+1)*block_size, j*block_size:(j+1)*block_size] = 255
-                yield img_array
+def dmd_calibration_corner_dots(size=256, dot_size=10):
+    # Create a blank canvas
+    image = np.zeros((size, size), dtype=np.uint8)
+    # Positions for the center of the dots in each corner
+    corners = [
+        (dot_size, dot_size),  # Top-left corner
+        (size - dot_size - 1, dot_size),  # Top-right corner
+        (dot_size, size - dot_size - 1),  # Bottom-left corner
+        (size - dot_size - 1, size - dot_size - 1)  # Bottom-right corner
+    ]
+    # Draw dots by setting pixels within the dot radius to maximum intensity
+    for x, y in corners:
+        for i in range(-dot_size, dot_size + 1):
+            for j in range(-dot_size, dot_size + 1):
+                if i**2 + j**2 <= dot_size**2:
+                    image[y + i, x + j] = 255  # Ensure we're within bounds automatically due to numpy handling
+    return image
+
+def dmd_calibration_center_dot(size=256, dot_size=10):
+    # Create a square canvas filled with zeros
+    canvas = np.zeros((size, size), dtype=np.uint8)
+    # Calculate the center position
+    center = size // 2
+    # Calculate the coordinates for the dot
+    start = center - dot_size // 2
+    end = center + dot_size // 2
+    # Draw the dot on the canvas
+    canvas[start:end, start:end] = 255
+    return canvas
                 
-def generate_radial_gradient(dim: int=256):
+def generate_radial_gradient(size: int=256):
     # Create an empty array of the specified dimensions
-    image = np.zeros((dim, dim), dtype=np.float32)
+    image = np.zeros((size, size), dtype=np.float32)
     # Calculate the center coordinates
-    center_x, center_y = dim // 2, dim // 2
+    center_x, center_y = size // 2, size // 2
     # Maximum distance from the center to a corner (radius for decay)
     max_radius = np.sqrt(center_x**2 + center_y**2)
     # Populate the array with intensity values based on radial distance
-    for x in range(dim):
-        for y in range(dim):
+    for x in range(size):
+        for y in range(size):
             # Calculate distance from the current pixel to the center
             distance = np.sqrt((x - center_x)**2 + (y - center_y)**2)
             # Normalize the distance and calculate intensity
@@ -657,3 +675,53 @@ def generate_radial_gradient(dim: int=256):
                 intensity = 255 * (1 - distance / max_radius)
                 image[x, y] = intensity
     return image.astype(np.uint8)
+
+
+def generate_upward_arrow(size=256):
+    canvas = np.zeros((size, size), dtype=np.uint8)
+    center_x = size // 2
+    center_y = size // 2
+    # Arrow dimensions
+    arrow_width = size // 10
+    arrow_height = size // 2
+    head_height = size // 6
+    head_width = size // 6
+    # Draw the arrow shaft
+    shaft_start_y = center_y + arrow_height // 2
+    shaft_end_y = center_y - arrow_height // 2
+    canvas[shaft_end_y:shaft_start_y, center_x - arrow_width // 2:center_x + arrow_width // 2] = 255
+    # Draw the arrow head
+    head_start_y = shaft_end_y - size // 6
+    for i in range(head_height):
+        start_x = center_x - (head_width // 2) * (i / head_height)
+        end_x = center_x + (head_width // 2) * (i / head_height)
+        canvas[head_start_y + i:head_start_y + i + 1, int(start_x):int(end_x)] = 255
+    return canvas
+
+# ----------------- Image generator functions -----------------
+def moving_blocks_generator(size: int=256, block_size: int=32, intensity: int=255):
+    num_blocks = size // block_size
+    base_image = np.zeros((size, size), dtype=np.uint8)
+    while True:
+        for i in range(num_blocks):
+            for j in range(num_blocks):
+                img_array = base_image.copy()
+                img_array[i*block_size:(i+1)*block_size, j*block_size:(j+1)*block_size] = intensity
+                yield img_array
+                
+def position_intensity_generator(size: int=256, block_size: int=32, 
+                                 intensity: int=50, intensity_step: int=10):
+    num_blocks = size // block_size
+    base_image = np.zeros((size, size), dtype=np.uint8)
+    while True:
+        for i in range(num_blocks):
+            for j in range(num_blocks):
+                img_array = base_image.copy()
+                img_array[i*block_size:(i+1)*block_size, 
+                        j*block_size:(j+1)*block_size] = intensity
+                nonzero_mask = img_array > 0
+                while np.max(img_array) + intensity_step <= 255:
+                    new_image = img_array.copy()
+                    new_image[nonzero_mask] = np.clip(img_array[nonzero_mask] + intensity_step, 0, 255).astype(np.uint8)
+                    yield new_image
+                    img_array = new_image  # Update image to newly adjusted image

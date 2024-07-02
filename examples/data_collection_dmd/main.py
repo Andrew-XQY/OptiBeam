@@ -9,10 +9,10 @@ import json
     
     
 # --------------------- Dataset Parameters --------------------
-number_of_images = 10  # for simulation, this is the number of images to generate in this batch
+number_of_images = 64  # for simulation, this is the number of images to generate in this batch
 is_params = 1  # if the image contains beam parameters (simulation and MNIST don't)
 calibration = 1  # if include a calibration image (first one in the batch)
-load_from_disk = True  # load images from local disk instead of running simulation
+load_from_disk = False  # load images from local disk instead of running simulation
 include_simulation = True  # add the original loaded image into data samples
 DMD_DIM = 1024  # DMD final loaded image resolution
 # -------------------------------------------------------------
@@ -22,11 +22,16 @@ DMD_DIM = 1024  # DMD final loaded image resolution
 
 # ------------------- Hardware Initialization ------------------
 # DMD Initialization
+DMD_ROTATION = 47+90  # DMD rotation angle
 DMD = dmd.ViALUXDMD(ALP4(version = '4.3'))
 calibration_img = np.ones((256, 256)) * 255
+# calibration_img = simulation.dmd_calibration_corner_dots(size = 256, dot_size= 5)
+# calibration_img = simulation.dmd_calibration_center_dot(size = 256, dot_size= 32) 
 # calibration_img = simulation.dmd_calibration_pattern_generation()
+# calibration_img = simulation.generate_upward_arrow()
+calibration_img = simulation.generate_radial_gradient()
 calibration_img = simulation.macro_pixel(calibration_img, size=int(DMD_DIM/calibration_img.shape[0])) 
-DMD.display_image(dmd.dmd_img_adjustment(calibration_img, DMD_DIM)) # preload one image for camera calibration
+DMD.display_image(dmd.dmd_img_adjustment(calibration_img, DMD_DIM, angle=DMD_ROTATION)) # preload one image for camera calibration
 
 # Cameras Initialization
 MANAGER = camera.MultiBaslerCameraManager()
@@ -38,7 +43,7 @@ ImageMeta = metadata.ImageMetadata()
 ConfMeta = metadata.ConfigMetaData()
 
 # Simulation Initialization (Optional, could just load disk images or any image list instead)
-sim_num = 100    # number of distributions in the simulation
+sim_num = 64 * 20    # number of distributions in the simulation
 fade_rate = 0.96  # with 100 sim_num. around 0.96 looks good
 min_std=0.05 
 max_std=0.1
@@ -61,6 +66,11 @@ if load_from_disk:
 
 # minst_path = "../../DataWarehouse/MNIST_ORG/t10k-images.idx3-ubyte"
 # imgs_array = read_MNIST_images(minst_path)
+
+# another option is to create a image generator
+image_generator = simulation.position_intensity_generator()
+
+
 
 
 # Setting up the experiment metadata
@@ -126,11 +136,17 @@ try:
         # ---------------------------------------------------------------------------
         
         # ------------------------------- simulation --------------------------------
-        else:
-            CANVAS.update(min_std=min_std, max_std=max_std, max_intensity=max_intensity, fade_rate=fade_rate)  # around 0.95 looks good
-            # CANVAS.thresholding(1)
-            img = CANVAS.get_image()
+        # else:
+        #     CANVAS.update(min_std=min_std, max_std=max_std, max_intensity=max_intensity, fade_rate=fade_rate)  # around 0.95 looks good
+        #     # CANVAS.thresholding(1)
+        #     img = CANVAS.get_image()
         # ---------------------------------------------------------------------------
+        
+        # -------------------------------- generator --------------------------------
+        else:  
+            img = next(image_generator)
+        # ---------------------------------------------------------------------------
+        
         
         # ----------------------------- special experiment --------------------------
         # else:  # Intensity correction
@@ -177,7 +193,7 @@ try:
         display = img.copy()
         display = simulation.macro_pixel(display, size=int(DMD_DIM/display.shape[0])) 
         # Because the DMD is rotated by about 45 degrees, we need to rotate the generated image by ~45 degrees back
-        display = dmd.dmd_img_adjustment(display, DMD_DIM)
+        display = dmd.dmd_img_adjustment(display, DMD_DIM, angle=DMD_ROTATION)
         DMD.display_image(display)  # if loading too fast, the DMD might report memory error
         
         # capture the image from the cameras (Scheduled action command)
@@ -186,8 +202,7 @@ try:
             img_size = (image.shape[0], int(image.shape[1]//2))
             if include_simulation:
                 original_image = cv2.resize(img, (image.shape[0],image.shape[0])) # add the very original image load on the dmd
-                rotated_image = cv2.rotate(original_image, cv2.ROTATE_90_CLOCKWISE)  # TODO: rotation problem
-                image = np.hstack((rotated_image, image))
+                image = np.hstack((original_image, image))
             filename = str(time.time_ns())
             image_path = save_dir + '/' + filename + '.png'
              

@@ -1,49 +1,47 @@
 from conftest import *
 
-
-
-
-# import numpy as np
-# import matplotlib.pyplot as plt
-
-# # Using the generator
-# image_generator = simulation.generate_moving_blocks()
-
-# # Visualize the first 5 images
-# for _ in range(500):
-#     img = next(image_generator)
-#     plt.clf()
-#     plt.imshow(img, cmap='gray', vmin=0, vmax=255)
-#     plt.draw()
-#     plt.pause(1)  # Pause for visibility
-
-    
-    
-
-
-
-
+# # Example usage:
+# dot_image = simulation.dmd_calibration_corner_dots(20, 256)
+# visualization.plot_narray(dot_image)
 
 
 
 import numpy as np
-import time
-from ALP4 import *
+import matplotlib.pyplot as plt
 
-DMD = dmd.ViALUXDMD(ALP4(version = '4.3'))
+# Using the generator
+# generator = simulation.generate_moving_blocks(intensity=100)
+intensity_generator = simulation.position_intensity_generator()
 
-# Specify the shape of the array, for example (3, 3) for a 3x3 array
-array_shape = (256, 256)
+# Visualize the first 5 images
+for _ in range(500):
+    img = next(intensity_generator)
+    plt.clf()
+    plt.imshow(img, cmap='gray', vmin=0, vmax=255)
+    plt.draw()
+    plt.pause(0.3)  # Pause for visibility
 
-while True:
-    # Create an array of ones
-    img = np.ones(array_shape) * 255
-    img = simulation.macro_pixel(img, size=int(1024/img.shape[0]))
-    img = dmd.dmd_img_adjustment(img, 1024)
-    DMD.display_image(img)
-    time.sleep(5)
 
-DMD.end()
+
+
+# import numpy as np
+# import time
+# from ALP4 import *
+
+# DMD = dmd.ViALUXDMD(ALP4(version = '4.3'))
+
+# # Specify the shape of the array, for example (3, 3) for a 3x3 array
+# array_shape = (256, 256)
+
+# while True:
+#     # Create an array of ones
+#     img = np.ones(array_shape) * 255
+#     img = simulation.macro_pixel(img, size=int(1024/img.shape[0]))
+#     img = dmd.dmd_img_adjustment(img, 1024)
+#     DMD.display_image(img)
+#     time.sleep(5)
+
+# DMD.end()
 
 
 
