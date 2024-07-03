@@ -137,7 +137,7 @@ def plot_narray(narray_img, channel=1):
         narray_img = (narray_img * 255).astype(np.uint8)
     if len(narray_img.shape) == 2:
         if channel == 1:
-            plt.imshow(narray_img, cmap='gray')  # cmap='gray' sets the colormap to grayscale
+            plt.imshow(narray_img, cmap='gray', vmin=0, vmax=255)  # cmap='gray' sets the colormap to grayscale
         else:
             plt.imshow(narray_img)
         plt.colorbar()  # Add a color bar to show intensity scale

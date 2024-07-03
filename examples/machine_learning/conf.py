@@ -27,8 +27,8 @@ with ChangeDirToFileLocation():
     import optibeam.utils as utils 
     import optibeam.database as database
     import optibeam.processing as processing
-    import optibeam.metadata as metadata
     import optibeam.evaluation as evaluation
-    import optibeam.visualization as visualization
     import optibeam.training as training
+    # import optibeam.metadata as metadata
+    # import optibeam.visualization as visualization
 

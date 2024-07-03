@@ -6,20 +6,54 @@ from conftest import *
 
 
 
+
+
+
 import numpy as np
-import matplotlib.pyplot as plt
+import cv2
 
-# Using the generator
-# generator = simulation.generate_moving_blocks(intensity=100)
-intensity_generator = simulation.position_intensity_generator()
+def generate_solid_circle(dimension=256):
+    image = np.zeros((dimension, dimension), dtype=np.uint8)
+    center = (dimension // 2, dimension // 2)
+    radius = dimension // 2
+    cv2.circle(image, center, radius, 255, -1)
+    return image
 
-# Visualize the first 5 images
-for _ in range(500):
-    img = next(intensity_generator)
-    plt.clf()
-    plt.imshow(img, cmap='gray', vmin=0, vmax=255)
-    plt.draw()
-    plt.pause(0.3)  # Pause for visibility
+
+
+img = generate_solid_circle()
+visualization.plot_narray(img)
+
+
+
+
+
+
+
+# import numpy as np
+# import matplotlib.pyplot as plt
+
+# # Using the generator
+# # generator = simulation.generate_moving_blocks(intensity=100)
+# intensity_generator = simulation.position_intensity_generator()
+
+# # Visualize the first 5 images
+# for _ in range(500):
+#     img = next(intensity_generator)
+#     plt.clf()
+#     plt.imshow(img, cmap='gray', vmin=0, vmax=255)
+#     plt.draw()
+#     plt.pause(0.3)  # Pause for visibility
+
+
+
+
+
+
+
+
+
+
 
 
 

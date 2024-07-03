@@ -589,17 +589,6 @@ def macro_pixel(narray: np.ndarray, size: int=8) -> np.ndarray:
 
 # ----------------- Test functions -----------------
 
-def create_mosaic_image(size: int=1024, n: int=3) -> np.ndarray:
-    image = np.zeros((size, size), dtype=float)
-    values = np.linspace(0, 255, n**2, dtype=int)
-    block_size = size // n
-    for i in range(n):
-        for j in range(n):
-            value_index = i * n + j
-            image[i * block_size:(i + 1) * block_size,
-                  j * block_size:(j + 1) * block_size] = values[value_index]
-    return image
-
 def dmd_calibration_pattern_generation(size: int=256, point_size: int=5, boundary_width: int=5) -> np.ndarray:
     # Create a square image with zeros
     image = np.zeros((size, size), dtype=np.uint8)
@@ -657,7 +646,18 @@ def dmd_calibration_center_dot(size=256, dot_size=10):
     # Draw the dot on the canvas
     canvas[start:end, start:end] = 255
     return canvas
-                
+
+def generate_mosaic_image(size: int=1024, n: int=3) -> np.ndarray:
+    image = np.zeros((size, size), dtype=float)
+    values = np.linspace(0, 255, n**2, dtype=int)
+    block_size = size // n
+    for i in range(n):
+        for j in range(n):
+            value_index = i * n + j
+            image[i * block_size:(i + 1) * block_size,
+                  j * block_size:(j + 1) * block_size] = values[value_index]
+    return image
+
 def generate_radial_gradient(size: int=256):
     # Create an empty array of the specified dimensions
     image = np.zeros((size, size), dtype=np.float32)
@@ -675,7 +675,6 @@ def generate_radial_gradient(size: int=256):
                 intensity = 255 * (1 - distance / max_radius)
                 image[x, y] = intensity
     return image.astype(np.uint8)
-
 
 def generate_upward_arrow(size=256):
     canvas = np.zeros((size, size), dtype=np.uint8)
@@ -697,6 +696,14 @@ def generate_upward_arrow(size=256):
         end_x = center_x + (head_width // 2) * (i / head_height)
         canvas[head_start_y + i:head_start_y + i + 1, int(start_x):int(end_x)] = 255
     return canvas
+
+def generate_solid_circle(size=256):
+    image = np.zeros((size, size), dtype=np.uint8)
+    center = (size // 2, size // 2)
+    radius = size // 2
+    cv2.circle(image, center, radius, 255, -1)
+    return image
+
 
 # ----------------- Image generator functions -----------------
 def moving_blocks_generator(size: int=256, block_size: int=32, intensity: int=255):
@@ -725,3 +732,4 @@ def position_intensity_generator(size: int=256, block_size: int=32,
                     new_image[nonzero_mask] = np.clip(img_array[nonzero_mask] + intensity_step, 0, 255).astype(np.uint8)
                     yield new_image
                     img_array = new_image  # Update image to newly adjusted image
+

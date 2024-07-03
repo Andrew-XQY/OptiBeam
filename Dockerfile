@@ -2,7 +2,7 @@
 FROM tensorflow/tensorflow:latest-gpu
 
 # Install any required packages not included in the base image
-RUN pip install numpy pandas matplotlib
+RUN pip install numpy pandas matplotlib sqlite3 PIL scipy cv2 sklearn IPython multiprocess tqdm skimage
 
 # Copy the entire project directory into /app in the container
 COPY . /app

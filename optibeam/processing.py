@@ -138,6 +138,5 @@ def select_crop_areas_center(original_image, num, scale_factor=1):
     cv2.destroyAllWindows()
     return squares
 
-
-
+# ----------------------------- image processing -----------------------------
 

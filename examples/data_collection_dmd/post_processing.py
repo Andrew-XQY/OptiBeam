@@ -14,7 +14,7 @@ from tqdm import tqdm
 DB = database.SQLiteDB(DATABASE_ROOT)
 
 # Select the images to process (could based on other fields, adjust the query accordingly)
-batch = DB.sql_select("SELECT id, image_path, is_params FROM mmf_dataset_metadata WHERE batch Not IN (6)") # WHERE batch IN (1, 2, 3, 4, 5)
+batch = DB.sql_select("SELECT id, image_path, is_params FROM mmf_dataset_metadata") # WHERE batch IN (1, 2, 3, 4, 5)
 print("Number of images to process:", len(batch))
 
 # ----------------- Update crop position -----------------
@@ -44,6 +44,7 @@ for i in tqdm(range(len(batch))):
         cropped_image = img[0:img.shape[0], 0:img.shape[0]]
         params = json.dumps(evaluation.beam_params(cropped_image))
         DB.update_record("mmf_dataset_metadata", "id", batch['id'].iloc[i], "beam_parameters", params)
+
 
 
 # ---------------- Information Correction  -----------------

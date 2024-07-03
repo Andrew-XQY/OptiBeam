@@ -9,8 +9,8 @@ import json
     
     
 # --------------------- Dataset Parameters --------------------
-number_of_images = 64  # for simulation, this is the number of images to generate in this batch
-is_params = 1  # if the image contains beam parameters (simulation and MNIST don't)
+number_of_images = 64 * 20  # for simulation, this is the number of images to generate in this batch
+is_params = 0  # if the image contains beam parameters (simulation and MNIST don't)
 calibration = 1  # if include a calibration image (first one in the batch)
 load_from_disk = False  # load images from local disk instead of running simulation
 include_simulation = True  # add the original loaded image into data samples
@@ -24,12 +24,12 @@ DMD_DIM = 1024  # DMD final loaded image resolution
 # DMD Initialization
 DMD_ROTATION = 47+90  # DMD rotation angle
 DMD = dmd.ViALUXDMD(ALP4(version = '4.3'))
-calibration_img = np.ones((256, 256)) * 255
+# calibration_img = np.ones((256, 256)) * 255
 # calibration_img = simulation.dmd_calibration_corner_dots(size = 256, dot_size= 5)
-# calibration_img = simulation.dmd_calibration_center_dot(size = 256, dot_size= 32) 
+calibration_img = simulation.dmd_calibration_center_dot(size = 256, dot_size= 32) 
 # calibration_img = simulation.dmd_calibration_pattern_generation()
 # calibration_img = simulation.generate_upward_arrow()
-calibration_img = simulation.generate_radial_gradient()
+# calibration_img = simulation.generate_radial_gradient()
 calibration_img = simulation.macro_pixel(calibration_img, size=int(DMD_DIM/calibration_img.shape[0])) 
 DMD.display_image(dmd.dmd_img_adjustment(calibration_img, DMD_DIM, angle=DMD_ROTATION)) # preload one image for camera calibration
 
@@ -43,7 +43,7 @@ ImageMeta = metadata.ImageMetadata()
 ConfMeta = metadata.ConfigMetaData()
 
 # Simulation Initialization (Optional, could just load disk images or any image list instead)
-sim_num = 64 * 20    # number of distributions in the simulation
+sim_num = 100    # number of distributions in the simulation
 fade_rate = 0.96  # with 100 sim_num. around 0.96 looks good
 min_std=0.05 
 max_std=0.1
@@ -76,7 +76,7 @@ image_generator = simulation.position_intensity_generator()
 # Setting up the experiment metadata
 batch = (DB.get_max("mmf_dataset_metadata", "batch") or 0) + 1  # get the current batch number
 experiment_metadata = {
-    "experiment_description": "Second dataset using DMD, muit-gaussian distributions, small scale", # Second dataset using DMD, muit-gaussian distributions, small scale
+    "experiment_description": "intensity + position shift dataset", # Second dataset using DMD, muit-gaussian distributions, small scale
     "experiment_location": "DITALab, Cockcroft Institute, UK",
     "experiment_date": datetime.datetime.now().strftime('%Y-%m-%d'),
     "batch": batch,
@@ -90,7 +90,7 @@ experiment_metadata = {
     "camera_config": MANAGER.get_metadata(),
     "other_config": {
         "dmd_config": DMD.get_metadata(),
-        "simulation_config": CANVAS.get_metadata() if not load_from_disk else {},
+        "simulation_config": CANVAS.get_metadata() if not load_from_disk else None,
         "light_source": "class 2 laser",
         "temperature": ""
     },
