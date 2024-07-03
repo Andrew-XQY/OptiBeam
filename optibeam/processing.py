@@ -140,3 +140,25 @@ def select_crop_areas_center(original_image, num, scale_factor=1):
 
 # ----------------------------- image processing -----------------------------
 
+def apply_threshold(image, threshold=5):
+    """
+    Apply a threshold to an image array. Pixels below the threshold are set to 0.
+    If the image is normalized (0 to 1), the threshold is also normalized.
+
+    Parameters:
+    - image: numpy array, the input image.
+    - threshold: float, the threshold value.
+
+    Returns:
+    - numpy array, the thresholded image.
+    """
+    # Check if the image is normalized
+    if image.dtype == np.float32 or image.dtype == np.float64:
+        if image.min() >= 0 and image.max() <= 1:
+            normalized_threshold = threshold / 255.0
+        else:
+            normalized_threshold = threshold
+    else:
+        normalized_threshold = threshold
+    thresholded_image = np.where(image >= normalized_threshold, image, 0)
+    return thresholded_image
