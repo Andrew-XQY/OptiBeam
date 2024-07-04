@@ -9,7 +9,7 @@ import json
     
     
 # --------------------- Dataset Parameters --------------------
-number_of_images = 64 * 20  # for simulation, this is the number of images to generate in this batch
+number_of_images = 100  # for simulation, this is the number of images to generate in this batch
 is_params = 0  # if the image contains beam parameters (simulation and MNIST don't)
 calibration = 1  # if include a calibration image (first one in the batch)
 load_from_disk = False  # load images from local disk instead of running simulation
@@ -24,12 +24,13 @@ DMD_DIM = 1024  # DMD final loaded image resolution
 # DMD Initialization
 DMD_ROTATION = 47+90  # DMD rotation angle
 DMD = dmd.ViALUXDMD(ALP4(version = '4.3'))
-# calibration_img = np.ones((256, 256)) * 255
+calibration_img = np.ones((256, 256)) * 255
 # calibration_img = simulation.dmd_calibration_corner_dots(size = 256, dot_size= 5)
-calibration_img = simulation.dmd_calibration_center_dot(size = 256, dot_size= 32) 
+# calibration_img = simulation.dmd_calibration_center_dot(size = 256, dot_size= 32) 
 # calibration_img = simulation.dmd_calibration_pattern_generation()
 # calibration_img = simulation.generate_upward_arrow()
-# calibration_img = simulation.generate_radial_gradient()
+calibration_img = simulation.generate_radial_gradient()
+# calibration_img = simulation.generate_solid_circle()
 calibration_img = simulation.macro_pixel(calibration_img, size=int(DMD_DIM/calibration_img.shape[0])) 
 DMD.display_image(dmd.dmd_img_adjustment(calibration_img, DMD_DIM, angle=DMD_ROTATION)) # preload one image for camera calibration
 
@@ -76,7 +77,7 @@ image_generator = simulation.position_intensity_generator()
 # Setting up the experiment metadata
 batch = (DB.get_max("mmf_dataset_metadata", "batch") or 0) + 1  # get the current batch number
 experiment_metadata = {
-    "experiment_description": "intensity + position shift dataset", # Second dataset using DMD, muit-gaussian distributions, small scale
+    "experiment_description": "Time shift dataset - small scale", # Second dataset using DMD, muit-gaussian distributions, small scale
     "experiment_location": "DITALab, Cockcroft Institute, UK",
     "experiment_date": datetime.datetime.now().strftime('%Y-%m-%d'),
     "batch": batch,
@@ -143,8 +144,8 @@ try:
         # ---------------------------------------------------------------------------
         
         # -------------------------------- generator --------------------------------
-        else:  
-            img = next(image_generator)
+        # else:  
+        #     img = next(image_generator)
         # ---------------------------------------------------------------------------
         
         
@@ -169,8 +170,15 @@ try:
         #     intensity_sum += 10
         
         
+        # else: # time shift experiment, input the same image observe over a long period of time
+        #     img = simulation.generate_radial_gradient()
+        #     pause_time = 10
+        #     time.sleep(pause_time)
+        #     comment = {"item": "time_shift_test", "time": pause_time * count}
+        
+        
         # else:  # superposition experiment (assum fixed Gaussian distributions in the simulation)
-        #     sim_num = 4
+        #     sim_num = 4 
         #     fade_rate = 0
         #     max_intensity = 120
         #     group_no = count % (sim_num+1)
@@ -184,7 +192,7 @@ try:
         #         CANVAS.clear_canvas()
         #         CANVAS.apply_specific_distribution(group_no-1)
         #     img = CANVAS.get_image()
-        #     comment = {"item": "superposition_test", 
+        #     comment = {"item": f"superposition_test_{sim_num}", 
         #                "group": sub_batch, "distribution_index":group_no}
         # ---------------------------------------------------------------------------
         
@@ -199,7 +207,7 @@ try:
         # capture the image from the cameras (Scheduled action command)
         image = MANAGER.schedule_action_command(int(500 * 1e6)) # schedule for milliseconds later
         if image is not None:
-            img_size = (image.shape[0], int(image.shape[1]//2))
+            img_size = (image.shape[0], int(image.shape[1]//2))  
             if include_simulation:
                 original_image = cv2.resize(img, (image.shape[0],image.shape[0])) # add the very original image load on the dmd
                 image = np.hstack((original_image, image))
@@ -213,7 +221,6 @@ try:
                     "num_of_images":3 if include_simulation else 2, 
                     "is_params":is_params,
                     "is_calibration":calibration,
-                    "is_blank":1 if CANVAS.is_blank() else 0,
                     "max_pixel_value":img.max(),
                     "image_descriptions":json.dumps({**({"simulation_img": img_size} if include_simulation else {}), 
                                                      "ground_truth_img": img_size, "fiber_output_img": img_size}),

@@ -3,6 +3,7 @@ import platform, warnings
 import numpy as np
 import multiprocessing, multiprocess
 import threading
+import gc
 
 from skimage.transform import resize
 from PIL import Image
@@ -216,16 +217,28 @@ class ImageLoader:
             funcs = [funcs]
         self.funcs = funcs
     
-    @deprecated("Use ImageLoader.load instead.")
+    # @deprecated("Use ImageLoader.load instead.")
+    # def load_image(self, image_path):
+    #     """
+    #     Load an image from the specified path and apply the specified functions to the image sequentially.
+    #     """
+    #     with Image.open(image_path) as img:
+    #         # Convert the image to a NumPy array
+    #         img = np.array(img)
+    #         for func in self.funcs:
+    #             img = func(img)
+    #     return img
+    
     def load_image(self, image_path):
         """
-        Load an image from the specified path and apply the specified functions to the image sequentially.
+        Load an image from the specified path and apply the specified functions to the image sequentially, managing memory.
         """
         with Image.open(image_path) as img:
-            # Convert the image to a NumPy array
             img = np.array(img)
             for func in self.funcs:
-                img = func(img)
+                new_img = func(img)
+                del img  # Explicitly delete the old image
+                img = new_img  # Reassign the new image back to img
         return img
 
     @deprecated("Use ImageLoader.load instead.")
@@ -237,6 +250,7 @@ class ImageLoader:
         for image_path in image_paths:
             dataset.append(self.load_image(image_path))
         print(f"Loaded dataset length: {len(dataset)}")
+        gc.collect()  # Optionally collect garbage after each major transformation
         return dataset
     
     def load(self, input):
@@ -249,12 +263,12 @@ class ImageLoader:
             return self.load_images(input)
         else:
             raise TypeError("Unsupported input type. Expected a string or a list of strings.")
+        
 
 
+# ------------------- image processing (in place) -------------------
 
-# ------------------- image processing -------------------
-
-def read_narray_image(image_path):
+def read_narray_image(image_path: str) -> np.array:
     """
     Read an image from the specified path and return it as a NumPy array.
     """
@@ -262,7 +276,7 @@ def read_narray_image(image_path):
         return np.array(img)
 
 
-def rgb_to_grayscale(narray_img: np.array):
+def rgb_to_grayscale(narray_img: np.array) -> np.array:
     """
     Convert an image in numpy array format from RGB or RGBA to grayscale by averaging all the colors, or return
     the image if it is already in grayscale.
@@ -289,7 +303,7 @@ def rgb_to_grayscale(narray_img: np.array):
         raise ValueError("Input array must be either a 2D grayscale or a 3D color image array")
 
 
-def crop_images(image: np.array, regions: list[tuple]) -> list:
+def crop_images(image: np.array, regions: list[tuple]) -> list[np.array]:
     """
     Crop multiple regions from an image.
 
@@ -323,7 +337,7 @@ def split_image(narray_img : np.array, select='') -> Tuple[np.array, np.array]:
     return left if select == 'left' else right
 
 
-def join_images(image_list, method='largest'):
+def join_images(image_list: List[np.array], method='largest') -> np.array:
     """
     Join images side by side with resizing based on the specified method.
 
@@ -360,7 +374,7 @@ def join_images(image_list, method='largest'):
     return final_image
 
 
-def subtract_minimum(arr):
+def subtract_minimum(arr: np.array) -> np.array:
     """
     Subtract the minimum value from each element in a 1D NumPy array.
     Parameters:
@@ -375,14 +389,14 @@ def subtract_minimum(arr):
     return processed_arr
 
 
-def minmax_normalization(arr):
+def minmax_normalization(arr: np.array) -> np.array:
     """
     Min-max normalization
     """
     return (arr - np.min(arr)) / (np.max(arr) - np.min(arr))
 
 
-def image_normalize(narray_img: np.array):
+def image_normalize(narray_img: np.array) -> np.array:
     """
     Normalize the input image by scaling its pixel values to the range [0, 1].
     Parameters:
@@ -393,7 +407,7 @@ def image_normalize(narray_img: np.array):
     return narray_img.astype('float32') / 255.
 
 
-def scale_image(narray_img, scaling_factor):
+def scale_image(narray_img: np.array, scaling_factor: float=0.5) -> np.array:
     """
     Scales an image by a given scaling factor.
     
@@ -413,6 +427,10 @@ def scale_image(narray_img, scaling_factor):
     scaled_image = resize(narray_img, new_dimensions, anti_aliasing=True)
     
     return scaled_image
+
+
+def resize_image(narray_img: np.array, new_dimensions: Tuple=(256, 256)) -> np.array:
+    return resize(narray_img, new_dimensions, anti_aliasing=True)
 
 
 # ------------------- system/enviornment -------------------

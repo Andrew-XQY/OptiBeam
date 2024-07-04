@@ -14,7 +14,7 @@ from tqdm import tqdm
 DB = database.SQLiteDB(DATABASE_ROOT)
 
 # Select the images to process (could based on other fields, adjust the query accordingly)
-batch = DB.sql_select("SELECT id, image_path, is_params FROM mmf_dataset_metadata") # WHERE batch IN (1, 2, 3, 4, 5)
+batch = DB.sql_select("SELECT id, image_path, is_params FROM mmf_dataset_metadata WHERE batch NOT IN (1)") # WHERE batch IN (1, 2, 3, 4, 5)
 print("Number of images to process:", len(batch))
 
 # ----------------- Update crop position -----------------

@@ -242,7 +242,7 @@ def save_gif(image_arrays, frame_rate, save_path):
             
 
 
-def save_as_matplotlib_style_gif(image_arrays, frame_rate, save_path):
+def save_as_matplotlib_style_gif(image_arrays, frame_rate, save_path, cmap='gray'):
     """
     Saves a list of numpy arrays as a GIF, styled to resemble matplotlib plots.
 
@@ -258,7 +258,7 @@ def save_as_matplotlib_style_gif(image_arrays, frame_rate, save_path):
     for img in image_arrays:
         # Plot the image array with matplotlib to capture the style
         fig, ax = plt.subplots()
-        ax.imshow(img, aspect='equal', cmap='viridis')  # 'viridis' is a common matplotlib colormap
+        ax.imshow(img, aspect='equal', cmap=cmap)  # 'viridis' is a common matplotlib colormap
         #ax.axis('off')  # Hide axes for a cleaner look
 
         # Convert the matplotlib plot to an image array
@@ -274,6 +274,20 @@ def save_as_matplotlib_style_gif(image_arrays, frame_rate, save_path):
     clip.write_gif(save_path)
 
 
+def create_gif_from_png_paths(png_paths, save_path, duration):
+    """
+    Creates a GIF from a list of .png file paths with the original image appearance.
+
+    Args:
+        png_paths (list of str): List of paths to .png files.
+        save_path (str): Path where the GIF should be saved.
+        duration (float): Duration of each frame in the GIF, in seconds.
+
+    Returns:
+        None
+    """
+    images = [imageio.imread(path) for path in png_paths]
+    imageio.mimsave(save_path, images, duration=duration)
 
 
 
