@@ -4,7 +4,6 @@ from sklearn.decomposition import PCA
 from moviepy.editor import ImageSequenceClip
 import plotly.graph_objects as go
 import matplotlib.pyplot as plt
-import matplotlib.patches
 import seaborn as sns
 import imageio
 
@@ -171,56 +170,6 @@ def check_intensity(img, cmap='gray'):
 
 
 
-def img_2_params_evaluation(image, true_label, pred_label):
-    fig, ax = plt.subplots()
-    ax.imshow(image.squeeze(), cmap='gray')  # Display the image
-
-    # Calculate normalized coordinates based on image dimensions
-    # These are used for plotting the centroids and ellipses
-    true_x = true_label[0] * image.shape[1]
-    true_y = true_label[1] * image.shape[0]
-    pred_x = pred_label[0] * image.shape[1]
-    pred_y = pred_label[1] * image.shape[0]
-
-    # Plot centroids with more professional styling
-    ax.plot(true_x, true_y, 'o', markersize=3, markeredgecolor='blue', markerfacecolor='none', label='True Centroid')
-    ax.plot(pred_x, pred_y, '^', markersize=3, markeredgecolor='darkred', markerfacecolor='none', label='Predicted Centroid')
-
-    # Plot ellipses with professional style
-    true_ellipse = matplotlib.patches.Ellipse((true_x, true_y),
-                                              width=true_label[2] * image.shape[1] * 2, 
-                                              height=true_label[3] * image.shape[0] * 2,
-                                              edgecolor='blue', facecolor='none',
-                                              linewidth=1, linestyle='--', label='True Widths')
-    ax.add_patch(true_ellipse)
-    pred_ellipse = matplotlib.patches.Ellipse((pred_x, pred_y),
-                                              width=pred_label[2] * image.shape[1] * 2,
-                                              height=pred_label[3] * image.shape[0] * 2,
-                                              edgecolor='darkred', facecolor='none',
-                                              linewidth=1, linestyle='--', label='Predicted Widths')
-    ax.add_patch(pred_ellipse)
-
-    # Set labels and title with normalized axis labels
-    ax.set_xlabel('Normalized Horizontal Position')
-    ax.set_ylabel('Normalized Vertical Position')
-    #ax.set_title('img2params model\'s prediction on a random testset sample', pad=20)
-
-    # Improve the granularity of axis labels
-    num_ticks = 10  # More ticks for better granularity
-    tick_values = np.linspace(0, 1, num_ticks)
-    tick_labels = [f"{x:.1f}" for x in tick_values]
-    ax.set_xticks(tick_values * image.shape[1])
-    ax.set_xticklabels(tick_labels)
-    ax.set_yticks(tick_values * image.shape[0])
-    ax.set_yticklabels(tick_labels)
-
-    plt.legend()
-    plt.show()
-
-
-
-
-
 
 def save_gif(image_arrays, frame_rate, save_path):
     """
@@ -242,9 +191,43 @@ def save_gif(image_arrays, frame_rate, save_path):
             
 
 
+# def save_as_matplotlib_style_gif(image_arrays, frame_rate, save_path, cmap='gray'):
+#     """
+#     Saves a list of numpy arrays as a GIF, styled to resemble matplotlib plots.
+
+#     Args:
+#     image_arrays (iterable of np.array): Iterable of numpy arrays where each array represents an image.
+#     frame_rate (float): Number of frames per second.
+#     save_path (str): Path to save the GIF file.
+
+#     Returns:
+#     None
+#     """
+#     images = []
+#     for img in image_arrays:
+#         # Plot the image array with matplotlib to capture the style
+#         fig, ax = plt.subplots()
+#         ax.imshow(img, aspect='equal', cmap=cmap)  # 'viridis' is a common matplotlib colormap
+#         #ax.axis('off')  # Hide axes for a cleaner look
+
+#         # Convert the matplotlib plot to an image array
+#         fig.canvas.draw()
+#         plot_image = np.frombuffer(fig.canvas.tostring_rgb(), dtype='uint8')
+#         plot_image = plot_image.reshape(fig.canvas.get_width_height()[::-1] + (3,))
+
+#         # Append the styled image to the GIF
+#         images.append(plot_image)
+#         plt.close(fig)
+        
+#     clip = ImageSequenceClip(images, fps=frame_rate)
+#     clip.write_gif(save_path)
+
+
+
 def save_as_matplotlib_style_gif(image_arrays, frame_rate, save_path, cmap='gray'):
     """
-    Saves a list of numpy arrays as a GIF, styled to resemble matplotlib plots.
+    Saves a list of numpy arrays as a GIF, styled to resemble matplotlib plots,
+    while maintaining the original pixel values.
 
     Args:
     image_arrays (iterable of np.array): Iterable of numpy arrays where each array represents an image.
@@ -255,23 +238,30 @@ def save_as_matplotlib_style_gif(image_arrays, frame_rate, save_path, cmap='gray
     None
     """
     images = []
+    # Find global min and max across all images to set a fixed range for the colormap
+    vmin = min([img.min() for img in image_arrays])
+    vmax = max([img.max() for img in image_arrays])
+    
     for img in image_arrays:
-        # Plot the image array with matplotlib to capture the style
         fig, ax = plt.subplots()
-        ax.imshow(img, aspect='equal', cmap=cmap)  # 'viridis' is a common matplotlib colormap
-        #ax.axis('off')  # Hide axes for a cleaner look
+        # Ensure that imshow uses the same color scale for all frames; set aspect for proper scaling
+        ax.imshow(img, aspect='equal', cmap=cmap, vmin=vmin, vmax=vmax)
+        ax.axis('off')  # Optionally turn off the axis.
 
         # Convert the matplotlib plot to an image array
         fig.canvas.draw()
         plot_image = np.frombuffer(fig.canvas.tostring_rgb(), dtype='uint8')
         plot_image = plot_image.reshape(fig.canvas.get_width_height()[::-1] + (3,))
 
-        # Append the styled image to the GIF
+        # Append the styled image to the list for GIF creation
         images.append(plot_image)
         plt.close(fig)
         
+    # Create GIF using moviepy
     clip = ImageSequenceClip(images, fps=frame_rate)
     clip.write_gif(save_path)
+
+
 
 
 def create_gif_from_png_paths(png_paths, save_path, duration):
@@ -288,6 +278,4 @@ def create_gif_from_png_paths(png_paths, save_path, duration):
     """
     images = [imageio.imread(path) for path in png_paths]
     imageio.mimsave(save_path, images, duration=duration)
-
-
 

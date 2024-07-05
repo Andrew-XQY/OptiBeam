@@ -1,6 +1,8 @@
 from .utils import *
 from .evaluation import *
-from .visualization import *
+# from .visualization import *
+import matplotlib.pyplot as plt
+import matplotlib.patches
 
 from tensorflow.keras.callbacks import Callback
 from sklearn.model_selection import train_test_split
@@ -221,7 +223,49 @@ class Logger:
         return self.log_file
 
 
+# ------------------- intermediate results visualization -------------------
+def img_2_params_evaluation(image, true_label, pred_label):
+    fig, ax = plt.subplots()
+    ax.imshow(image.squeeze(), cmap='gray')  # Display the image
 
+    # Calculate normalized coordinates based on image dimensions
+    # These are used for plotting the centroids and ellipses
+    true_x = true_label[0] * image.shape[1]
+    true_y = true_label[1] * image.shape[0]
+    pred_x = pred_label[0] * image.shape[1]
+    pred_y = pred_label[1] * image.shape[0]
 
+    # Plot centroids with more professional styling
+    ax.plot(true_x, true_y, 'o', markersize=3, markeredgecolor='blue', markerfacecolor='none', label='True Centroid')
+    ax.plot(pred_x, pred_y, '^', markersize=3, markeredgecolor='darkred', markerfacecolor='none', label='Predicted Centroid')
 
+    # Plot ellipses with professional style
+    true_ellipse = matplotlib.patches.Ellipse((true_x, true_y),
+                                              width=true_label[2] * image.shape[1] * 2, 
+                                              height=true_label[3] * image.shape[0] * 2,
+                                              edgecolor='blue', facecolor='none',
+                                              linewidth=1, linestyle='--', label='True Widths')
+    ax.add_patch(true_ellipse)
+    pred_ellipse = matplotlib.patches.Ellipse((pred_x, pred_y),
+                                              width=pred_label[2] * image.shape[1] * 2,
+                                              height=pred_label[3] * image.shape[0] * 2,
+                                              edgecolor='darkred', facecolor='none',
+                                              linewidth=1, linestyle='--', label='Predicted Widths')
+    ax.add_patch(pred_ellipse)
 
+    # Set labels and title with normalized axis labels
+    ax.set_xlabel('Normalized Horizontal Position')
+    ax.set_ylabel('Normalized Vertical Position')
+    #ax.set_title('img2params model\'s prediction on a random testset sample', pad=20)
+
+    # Improve the granularity of axis labels
+    num_ticks = 10  # More ticks for better granularity
+    tick_values = np.linspace(0, 1, num_ticks)
+    tick_labels = [f"{x:.1f}" for x in tick_values]
+    ax.set_xticks(tick_values * image.shape[1])
+    ax.set_xticklabels(tick_labels)
+    ax.set_yticks(tick_values * image.shape[0])
+    ax.set_yticklabels(tick_labels)
+
+    plt.legend()
+    plt.show()
