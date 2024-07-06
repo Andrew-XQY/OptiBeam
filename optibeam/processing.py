@@ -1,6 +1,54 @@
 import cv2
 import numpy as np
 
+
+# ----------------------------- dataset preparation -----------------------------
+
+# class HDF5DatasetWriter:
+#     def __init__(self, dims, output_path, data_key="images", buf_size=1000):
+#         # Check if the output path exists
+#         if os.path.exists(output_path):
+#             raise ValueError("The supplied 'output_path' already exists and cannot be overwritten. "
+#                              "Please specify a different 'output_path'.")
+
+#         # Open the HDF5 database for writing and create two datasets: one to store the images/features and another
+#         # to store the class labels
+#         self.db = h5py.File(output_path, "w")
+#         self.data = self.db.create_dataset(data_key, dims, dtype="float")
+#         self.labels = self.db.create_dataset("labels", (dims[0],), dtype="int")
+
+#         # Store the buffer size and initialize the buffer itself
+#         self.buf_size = buf_size
+#         self.buffer = {"data": [], "labels": []}
+#         self.idx = 0
+
+#     def add(self, rows, labels):
+#         # Add the rows and labels to the buffer
+#         self.buffer["data"].extend(rows)
+#         self.buffer["labels"].extend(labels)
+
+#         # Check to see if the buffer needs to be flushed to disk
+#         if len(self.buffer["data"]) >= self.buf_size:
+#             self.flush()
+
+#     def flush(self):
+#         # Write the buffers to disk then reset the buffer
+#         i = self.idx + len(self.buffer["data"])
+#         self.data[self.idx:i] = self.buffer["data"]
+#         self.labels[self.idx:i] = self.buffer["labels"]
+#         self.idx = i
+#         self.buffer = {"data": [], "labels": []}
+
+#     def store_class_labels(self, class_labels):
+#         # Create a dataset to store the actual class label names
+
+
+
+
+
+
+# ----------------------------- image sample post processing -----------------------------
+
 def crop_images_from_clicks(click_list, image):
     """
     Crop images based on a list of click positions that define the rectangle corners.
@@ -162,3 +210,5 @@ def apply_threshold(image, threshold=5):
         normalized_threshold = threshold
     thresholded_image = np.where(image >= normalized_threshold, image, 0)
     return thresholded_image
+
+
