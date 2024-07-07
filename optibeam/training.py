@@ -269,3 +269,14 @@ def img_2_params_evaluation(image, true_label, pred_label):
 
     plt.legend()
     plt.show()
+
+
+# ------------------- other functions -------------------
+
+def check_tensorflow_gpu():
+    gpus = tf.config.list_physical_devices('GPU')
+    if gpus:
+        print(f"Success: TensorFlow is using the following GPU(s): {gpus}")
+    else:
+        print("Failure: TensorFlow did not find any GPUs.")
+
