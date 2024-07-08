@@ -60,7 +60,9 @@ class ConfigMetaData(Metadata):
         self._set_hash()
     
     def _set_hash(self):
-        temp_metadata = {key: value for key, value in self.metadata.items() if key != 'hash'}
+        excluded_keys = ['hash', 'experiment_date', 'batch']
+        temp_metadata = {key: value for key, value in self.metadata.items() if key not in excluded_keys}
+        # temp_metadata = {key: value for key, value in self.metadata.items() if key != 'hash'}
         serialized_data = json.dumps(temp_metadata, sort_keys=True)
         hash_object = hashlib.sha512(serialized_data.encode())
         self.metadata["hash"] = hash_object.hexdigest()

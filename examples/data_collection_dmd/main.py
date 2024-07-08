@@ -9,7 +9,7 @@ import json
     
     
 # --------------------- Dataset Parameters --------------------
-number_of_images = 100  # for simulation, this is the number of images to generate in this batch
+number_of_images = 8000  # for simulation, this is the number of images to generate in this batch
 is_params = 0  # if the image contains beam parameters (simulation and MNIST don't)
 calibration = 1  # if include a calibration image (first one in the batch)
 load_from_disk = False  # load images from local disk instead of running simulation
@@ -24,13 +24,13 @@ DMD_DIM = 1024  # DMD final loaded image resolution
 # DMD Initialization
 DMD_ROTATION = 47+90  # DMD rotation angle
 DMD = dmd.ViALUXDMD(ALP4(version = '4.3'))
-calibration_img = np.ones((256, 256)) * 255
+# calibration_img = np.ones((256, 256)) * 255
 # calibration_img = simulation.dmd_calibration_corner_dots(size = 256, dot_size= 5)
 # calibration_img = simulation.dmd_calibration_center_dot(size = 256, dot_size= 32) 
 # calibration_img = simulation.dmd_calibration_pattern_generation()
 # calibration_img = simulation.generate_upward_arrow()
-calibration_img = simulation.generate_radial_gradient()
 # calibration_img = simulation.generate_solid_circle()
+calibration_img = simulation.generate_radial_gradient()
 calibration_img = simulation.macro_pixel(calibration_img, size=int(DMD_DIM/calibration_img.shape[0])) 
 DMD.display_image(dmd.dmd_img_adjustment(calibration_img, DMD_DIM, angle=DMD_ROTATION)) # preload one image for camera calibration
 
@@ -77,7 +77,7 @@ image_generator = simulation.position_intensity_generator()
 # Setting up the experiment metadata
 batch = (DB.get_max("mmf_dataset_metadata", "batch") or 0) + 1  # get the current batch number
 experiment_metadata = {
-    "experiment_description": "Time shift dataset - small scale", # Second dataset using DMD, muit-gaussian distributions, small scale
+    "experiment_description": "Intensity test, different exposure, similar intensity level", # Second dataset using DMD, muit-gaussian distributions, small scale
     "experiment_location": "DITALab, Cockcroft Institute, UK",
     "experiment_date": datetime.datetime.now().strftime('%Y-%m-%d'),
     "batch": batch,
@@ -108,6 +108,8 @@ if not os.path.exists(save_dir): # Create the directory
 ConfMeta.set_metadata(experiment_metadata) 
 if not DB.record_exists("mmf_experiment_config", "hash", ConfMeta.get_hash()):
     DB.sql_execute(ConfMeta.to_sql_insert("mmf_experiment_config")) # save the experiment metadata to the database
+else:
+    raise ValueError("The experiment metadata already exists in the database.")
 config_id = DB.get_max("mmf_experiment_config", "id")
 
 
@@ -144,8 +146,8 @@ try:
         # ---------------------------------------------------------------------------
         
         # -------------------------------- generator --------------------------------
-        # else:  
-        #     img = next(image_generator)
+        else:  
+            img = next(image_generator)
         # ---------------------------------------------------------------------------
         
         
@@ -205,7 +207,7 @@ try:
         DMD.display_image(display)  # if loading too fast, the DMD might report memory error
         
         # capture the image from the cameras (Scheduled action command)
-        image = MANAGER.schedule_action_command(int(500 * 1e6)) # schedule for milliseconds later
+        image = MANAGER.schedule_action_command(int(1000 * 1e6)) # schedule for milliseconds later
         if image is not None:
             img_size = (image.shape[0], int(image.shape[1]//2))  
             if include_simulation:
