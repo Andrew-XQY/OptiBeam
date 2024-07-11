@@ -1,5 +1,4 @@
 import os
-
 script_path = os.path.abspath(__file__)  # Get the absolute path of the current .py file
 up_two_levels = os.path.join(os.path.dirname(script_path), '../../')
 normalized_path = os.path.normpath(up_two_levels)
@@ -13,10 +12,10 @@ import tensorflow as tf
 import numpy as np 
 import datetime, time
 
-
-import os
 print(os.getcwd())
 
+DATASET = "2024-07-06"
+SAVE_TO = '../results/'
 
 def check_tensorflow_gpu():
     gpus = tf.config.list_physical_devices('GPU')
@@ -29,7 +28,6 @@ def check_tensorflow_gpu():
 # training.check_tensorflow_gpu() # check if the GPU is available
 
 check_tensorflow_gpu()
-
 
 # ------------------------------ prepare datasets ------------------------------
 def read_images_as_grayscale(directory):
@@ -50,15 +48,16 @@ def image_generator(images):
         r = r[np.newaxis, ..., np.newaxis]
         yield r.astype('float32') / 255.0, l.astype('float32') / 255.0
 
-narray_list = read_images_as_grayscale('../dataset/2024-07-06')
 
-train_size = int(0.7 * len(narray_list))
-val_size = int(0.2 * len(narray_list))
-test_size = len(narray_list) - train_size - val_size
+narray_list = read_images_as_grayscale(f'../dataset/{DATASET}/training')
+train_size = int(0.9 * len(narray_list))
+val_size = int(0.1 * len(narray_list))
+# test_size = len(narray_list) - train_size - val_size
 
 train_images = narray_list[:train_size]
-val_images = narray_list[train_size:train_size + val_size]
-test_images = narray_list[train_size + val_size:]
+val_images = narray_list[train_size:]
+test_images = read_images_as_grayscale(f'../dataset/{DATASET}/test')
+
 
 # Create datasets using the from_generator method
 shape = [1, 256, 256, 1]
@@ -72,13 +71,11 @@ for i in [train_images, val_images, test_images]:
 
 train_dataset, val_dataset, test_dataset = datasets
 
-
 for inp, re in train_dataset.take(1):
     inp, re = inp[0], re[0]
     print("Input shape:", inp.shape)
     print("Reconstructed shape:", re.shape)
     break
-    
 # ------------------------------------------------------------------------------
 
 
@@ -87,7 +84,7 @@ for inp, re in train_dataset.take(1):
 
 
 # ------------------------------ prepare models --------------------------------
-save_to = '../results/'
+
 # testing case
 down_model = model.downsample(3, 4)
 down_result = down_model(tf.expand_dims(inp, 0))
@@ -97,9 +94,9 @@ up_result = up_model(down_result)
 print(up_result.shape)
 
 generator = model.Generator()
-tf.keras.utils.plot_model(generator, show_shapes=True, dpi=64, to_file=save_to + 'generator.png')
+# tf.keras.utils.plot_model(generator, show_shapes=True, dpi=64, to_file=SAVE_TO + 'generator.png')
 discriminator = model.Discriminator()
-tf.keras.utils.plot_model(discriminator, show_shapes=True, dpi=64, to_file=save_to + 'discriminator.png')
+# tf.keras.utils.plot_model(discriminator, show_shapes=True, dpi=64, to_file=SAVE_TO + 'discriminator.png')
 
 
 generator_optimizer = tf.keras.optimizers.Adam(2e-4, beta_1=0.5)
@@ -155,7 +152,7 @@ def fit(train_ds, test_ds, steps):
             if step != 0:
                 print(f'Time taken for 1000 steps: {time.time()-start:.2f} sec\n')
             start = time.time()
-            model.generate_images(generator, example_input, example_target, save_path=save_to)
+            model.generate_images(generator, example_input, example_target, save_path=SAVE_TO + "evaluation/")
             print(f"Step: {step//1000}k")
         train_step(input_image, target, step)
         # Training step
@@ -171,7 +168,7 @@ def fit(train_ds, test_ds, steps):
 '''Start training the model'''
 # if the total training set is 800, since they recommand batch size of 1 image
 # so 40,000 steps (batchs) is equal to 50 epochs (full rounds).
-epoch = 10
+epoch = 3
 
 training_steps = epoch * total_sample
 print('total training steps: ', training_steps)
@@ -184,6 +181,6 @@ fit(train_dataset, val_dataset, steps=training_steps)
 current_time_seconds = time.time()
 timestamp = str(current_time_seconds * 1e9)
 model_name = f'{timestamp}.keras'
-generator.save(f'../results/models/{model_name}')
+generator.save(SAVE_TO + f'models/{model_name}')
 print('model saved!')
 

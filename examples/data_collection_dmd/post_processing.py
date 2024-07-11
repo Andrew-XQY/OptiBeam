@@ -14,7 +14,7 @@ from tqdm import tqdm
 DB = database.SQLiteDB(DATABASE_ROOT)
 
 # Select the images to process (could based on other fields, adjust the query accordingly)
-batch = DB.sql_select("SELECT id, image_path, is_params FROM mmf_dataset_metadata") # WHERE batch NOT IN (1, 2, 3, 4, 5)
+batch = DB.sql_select("SELECT id, image_path, is_params FROM mmf_dataset_metadata WHERE batch NOT IN (1)") # WHERE batch NOT IN (1, 2, 3, 4, 5)
 print("Number of images to process:", len(batch))
 
 # ----------------- Update crop position -----------------
@@ -37,13 +37,13 @@ DB.sql_execute(sql, multiple=True)
 
 
 # ----------------- Update beam parameters -----------------
-print("Calculating beam parameters...")
-for i in tqdm(range(len(batch))):
-    if batch['is_params'].iloc[i]:
-        img = utils.read_narray_image(batch['image_path'].iloc[i])
-        cropped_image = img[0:img.shape[0], 0:img.shape[0]]
-        params = json.dumps(evaluation.beam_params(cropped_image))
-        DB.update_record("mmf_dataset_metadata", "id", batch['id'].iloc[i], "beam_parameters", params)
+# print("Calculating beam parameters...")
+# for i in tqdm(range(len(batch))):
+#     if batch['is_params'].iloc[i]:
+#         img = utils.read_narray_image(batch['image_path'].iloc[i])
+#         cropped_image = img[0:img.shape[0], 0:img.shape[0]]
+#         params = json.dumps(evaluation.beam_params(cropped_image))
+#         DB.update_record("mmf_dataset_metadata", "id", batch['id'].iloc[i], "beam_parameters", params)
 
 
 

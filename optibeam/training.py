@@ -7,7 +7,6 @@ import matplotlib.patches
 from tensorflow.keras.callbacks import Callback
 from sklearn.model_selection import train_test_split
 from IPython.display import clear_output
-import matplotlib.pyplot as plt
 import tensorflow as tf
 import json
 from datetime import datetime

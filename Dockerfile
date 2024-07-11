@@ -9,10 +9,13 @@ RUN apt-get update && apt-get install -y \
 # Install any required packages not included in the base image
 RUN pip install numpy pandas scipy scikit-learn opencv-python matplotlib scikit-image Pillow IPython multiprocess tqdm 
 
-# Copy the entire project directory into /app in the container
-COPY . /app
+# # Copy the entire project directory into /app in the container
+# COPY . /app
 
-# Set the working directory
+# Create an empty /app directory
+RUN mkdir /app
+
+# Set the working directory to /app
 WORKDIR /app
 
 # Command to run the main script

@@ -46,7 +46,7 @@ class MultiBaslerCameraManager:
         """
         mount the camera control functions to the cv2 trackbars
         """
-        type = {'Exposure':500000, 'Gain':360} # exposure time in microseconds
+        type = {'Exposure':100000, 'Gain':360} # exposure time in microseconds
         for i in range(len(self.cameras)):
             params = create_camera_control_functions(self.cameras[i])
             for key, val in type.items():
