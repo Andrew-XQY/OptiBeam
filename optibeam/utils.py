@@ -1,16 +1,14 @@
 import os
-import platform, warnings
-import numpy as np
-import multiprocessing, multiprocess
-import threading
 import gc
-
+import cv2
+import numpy as np
+import threading
+import platform, warnings
+import multiprocessing, multiprocess
 from skimage.transform import resize
+from functools import wraps, reduce
 from PIL import Image
 from tqdm import tqdm
-from functools import wraps, reduce
-import time
-import cv2
 from typing import *
 
 
@@ -217,28 +215,16 @@ class ImageLoader:
             funcs = [funcs]
         self.funcs = funcs
     
-    # @deprecated("Use ImageLoader.load instead.")
-    # def load_image(self, image_path):
-    #     """
-    #     Load an image from the specified path and apply the specified functions to the image sequentially.
-    #     """
-    #     with Image.open(image_path) as img:
-    #         # Convert the image to a NumPy array
-    #         img = np.array(img)
-    #         for func in self.funcs:
-    #             img = func(img)
-    #     return img
-    
+    @deprecated("Use ImageLoader.load instead.")
     def load_image(self, image_path):
         """
-        Load an image from the specified path and apply the specified functions to the image sequentially, managing memory.
+        Load an image from the specified path and apply the specified functions to the image sequentially.
         """
         with Image.open(image_path) as img:
+            # Convert the image to a NumPy array
             img = np.array(img)
             for func in self.funcs:
-                new_img = func(img)
-                del img  # Explicitly delete the old image
-                img = new_img  # Reassign the new image back to img
+                img = func(img)
         return img
 
     @deprecated("Use ImageLoader.load instead.")
