@@ -30,3 +30,19 @@ process_funcs = [np.array, utils.rgb_to_grayscale, utils.image_normalize, utils.
 loader = utils.ImageLoader(process_funcs)
 data = utils.add_progress_bar(iterable_arg_index=0)(loader.load_images)(paths)
 
+
+
+data_cleaned, label_cleaned = [], []
+
+for i in range(len(data)):
+    d, l = training.clean_tensor(data[i][0].squeeze())
+    if d is not None and l is not None:
+        data_cleaned.append(data[i]) 
+        label_cleaned.append(l)
+
+data_cleaned, label_cleaned = np.array(data_cleaned), np.array(label_cleaned)
+print(len(data_cleaned), len(label_cleaned))
+print(data_cleaned.shape)
+
+
+

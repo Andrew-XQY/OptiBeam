@@ -215,7 +215,7 @@ class ImageLoader:
             funcs = [funcs]
         self.funcs = funcs
     
-    @deprecated("Use ImageLoader.load instead.")
+    #@deprecated("Use ImageLoader.load instead.")
     def load_image(self, image_path):
         """
         Load an image from the specified path and apply the specified functions to the image sequentially.
@@ -227,7 +227,7 @@ class ImageLoader:
                 img = func(img)
         return img
 
-    @deprecated("Use ImageLoader.load instead.")
+    #@deprecated("Use ImageLoader.load instead.")
     def load_images(self, image_paths):
         """
         Load multiple images and return a dataset in numpy array format.
