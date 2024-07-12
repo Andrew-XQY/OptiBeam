@@ -465,7 +465,14 @@ def get_system_info():
     }
     return system_info
 
-
+def check_and_create_folder(path):
+    # Check if the specified path exists
+    if not os.path.exists(path):
+        # Create the folder if it does not exist
+        os.makedirs(path)
+        print(f"Folder created at: {path}")
+    else:
+        print(f"Folder already exists at: {path}")
 
 
 

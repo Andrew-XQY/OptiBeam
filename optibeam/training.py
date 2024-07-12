@@ -1,15 +1,23 @@
 from .utils import *
 from .evaluation import *
-# from .visualization import *
 import matplotlib.pyplot as plt
 import matplotlib.patches
-
-from tensorflow.keras.callbacks import Callback
-from sklearn.model_selection import train_test_split
-from IPython.display import clear_output
 import tensorflow as tf
 import json
 from datetime import datetime
+from tensorflow.keras.callbacks import Callback
+from sklearn.model_selection import train_test_split
+from IPython.display import clear_output
+
+
+# ------------------- check basic enviornment -------------------
+def check_tensorflow_gpu():
+    gpus = tf.config.list_physical_devices('GPU')
+    if gpus:
+        print(f"Success: TensorFlow is using the following GPU(s): {gpus}")
+    else:
+        print("Failure: TensorFlow did not find any GPUs.")
+
 
 # ------------------- callback functions for tensorflow fit -------------------
 class ImageReconstructionCallback(Callback):

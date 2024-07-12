@@ -14,20 +14,12 @@ import datetime, time
 
 print(os.getcwd())
 
-DATASET = "2024-07-06"
+DATASET = "2024-07-11"
 SAVE_TO = '../results/'
-
-def check_tensorflow_gpu():
-    gpus = tf.config.list_physical_devices('GPU')
-    if gpus:
-        print(f"Success: TensorFlow is using the following GPU(s): {gpus}")
-    else:
-        print("Failure: TensorFlow did not find any GPUs.")
-
+IMAGE_SHAPE = (256, 256, 1)
 
 # training.check_tensorflow_gpu() # check if the GPU is available
-
-check_tensorflow_gpu()
+training.check_tensorflow_gpu()
 
 # ------------------------------ prepare datasets ------------------------------
 def read_images_as_grayscale(directory):
@@ -49,27 +41,20 @@ def image_generator(images):
         yield r.astype('float32') / 255.0, l.astype('float32') / 255.0
 
 
-narray_list = read_images_as_grayscale(f'../dataset/{DATASET}/training')
-train_size = int(0.9 * len(narray_list))
-val_size = int(0.1 * len(narray_list))
-# test_size = len(narray_list) - train_size - val_size
-
-train_images = narray_list[:train_size]
-val_images = narray_list[train_size:]
+train_images = read_images_as_grayscale(f'../dataset/{DATASET}/training')
 test_images = read_images_as_grayscale(f'../dataset/{DATASET}/test')
 
-
 # Create datasets using the from_generator method
-shape = [1, 256, 256, 1]
+shape = [1, *IMAGE_SHAPE]
 datasets = []
-total_sample = len(narray_list)
+total_sample = len(train_images)
 
-for i in [train_images, val_images, test_images]:
+for i in [train_images, test_images]:
     datasets.append(tf.data.Dataset.from_generator(lambda i=i: image_generator(i),
                                                    output_types=(tf.float32, tf.float32),
                                                    output_shapes=(shape, shape)))
 
-train_dataset, val_dataset, test_dataset = datasets
+train_dataset, test_dataset = datasets
 
 for inp, re in train_dataset.take(1):
     inp, re = inp[0], re[0]
@@ -77,8 +62,6 @@ for inp, re in train_dataset.take(1):
     print("Reconstructed shape:", re.shape)
     break
 # ------------------------------------------------------------------------------
-
-
 
 
 
@@ -94,14 +77,12 @@ up_result = up_model(down_result)
 print(up_result.shape)
 
 generator = model.Generator()
-# tf.keras.utils.plot_model(generator, show_shapes=True, dpi=64, to_file=SAVE_TO + 'generator.png')
 discriminator = model.Discriminator()
+# tf.keras.utils.plot_model(generator, show_shapes=True, dpi=64, to_file=SAVE_TO + 'generator.png')
 # tf.keras.utils.plot_model(discriminator, show_shapes=True, dpi=64, to_file=SAVE_TO + 'discriminator.png')
-
 
 generator_optimizer = tf.keras.optimizers.Adam(2e-4, beta_1=0.5)
 discriminator_optimizer = tf.keras.optimizers.Adam(2e-4, beta_1=0.5)
-
 
 # for example_input, example_target in train_dataset:
 #     model.generate_images(generator, example_input, example_target)
@@ -112,9 +93,12 @@ discriminator_optimizer = tf.keras.optimizers.Adam(2e-4, beta_1=0.5)
 
 
 
-
-
 # ------------------------------ train models ----------------------------------
+
+log_dir=SAVE_TO + f"logs/"
+summary_writer = tf.summary.create_file_writer(
+  log_dir + "fit/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S"))
+
 
 @tf.function
 def train_step(input_image, target, step):
@@ -138,11 +122,11 @@ def train_step(input_image, target, step):
     discriminator_optimizer.apply_gradients(zip(discriminator_gradients,
                                               discriminator.trainable_variables))
     # save the loss history
-#     with summary_writer.as_default():
-#         tf.summary.scalar('gen_total_loss', gen_total_loss, step=step//1000)
-#         tf.summary.scalar('gen_gan_loss', gen_gan_loss, step=step//1000)
-#         tf.summary.scalar('gen_l1_loss', gen_l1_loss, step=step//1000)
-#         tf.summary.scalar('disc_loss', disc_loss, step=step//1000)
+    with summary_writer.as_default():
+        tf.summary.scalar('gen_total_loss', gen_total_loss, step=step//1000)
+        tf.summary.scalar('gen_gan_loss', gen_gan_loss, step=step//1000)
+        tf.summary.scalar('gen_l1_loss', gen_l1_loss, step=step//1000)
+        tf.summary.scalar('disc_loss', disc_loss, step=step//1000)
 
 def fit(train_ds, test_ds, steps):
     example_input, example_target = next(iter(test_ds.take(1)))
@@ -152,7 +136,7 @@ def fit(train_ds, test_ds, steps):
             if step != 0:
                 print(f'Time taken for 1000 steps: {time.time()-start:.2f} sec\n')
             start = time.time()
-            model.generate_images(generator, example_input, example_target, save_path=SAVE_TO + "evaluation/")
+            model.generate_images(generator, example_input, example_target, save_path=SAVE_TO + "evaluations/")
             print(f"Step: {step//1000}k")
         train_step(input_image, target, step)
         # Training step
@@ -164,23 +148,22 @@ def fit(train_ds, test_ds, steps):
     print('training complete!')
     
 
-
 '''Start training the model'''
 # if the total training set is 800, since they recommand batch size of 1 image
 # so 40,000 steps (batchs) is equal to 50 epochs (full rounds).
-epoch = 3
-
+epoch = 80
 training_steps = epoch * total_sample
-print('total training steps: ', training_steps)
-fit(train_dataset, val_dataset, steps=training_steps)
-
-
+print('total training steps: ', training_steps//1000)
+fit(train_dataset, test_dataset, steps=training_steps)
 # ------------------------------------------------------------------------------
 
 
+
+# ------------------------------ save models -----------------------------------
 current_time_seconds = time.time()
 timestamp = str(current_time_seconds * 1e9)
 model_name = f'{timestamp}.keras'
 generator.save(SAVE_TO + f'models/{model_name}')
 print('model saved!')
+
 
