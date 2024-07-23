@@ -13,7 +13,7 @@ import tensorflow as tf
 print(os.getcwd())
 training.check_tensorflow_gpu()
 
-DATASET = "2024-07-11"
+DATASET = "2024-07-23"
 SAVE_TO = '../results/'
 save_path=SAVE_TO + "evaluations/"
 IMAGE_SHAPE = (256, 256, 1)
@@ -44,7 +44,6 @@ class ImageReconstructionCallback(tf.keras.callbacks.Callback):
         plt.imshow(ground_truth[..., 0], cmap='gray')
         plt.title("Ground Truth")
         plt.axis('off')
-
         timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
         file_path = f"{save_path}/{timestamp}.png"
         plt.savefig(file_path)  # Save the figure with all subplots
@@ -107,6 +106,25 @@ class Autoencoder(tf.keras.Model):
 
 # ------------------------------ dataset preparation -----------------------------------
 
+
+# roots = ['C:/Users/qiyuanxu/Documents/DataWarehouse/MMF/procIMGs_2/processed/']
+# paths = utils.get_all_file_paths(roots) 
+
+# process_funcs = [np.array, utils.rgb_to_grayscale, utils.image_normalize, utils.split_image, 
+#                  lambda x : (np.expand_dims(x[0], axis=-1), np.expand_dims(x[1], axis=-1))]
+
+# loader = utils.ImageLoader(process_funcs)
+# data = utils.add_progress_bar(iterable_arg_index=0)(loader.load_images)(paths)
+
+# splite = 0.9
+# train = np.array(data[:int(len(data)*splite)])
+# val = np.array(data[int(len(data)*splite):])
+# train_X = train[:, 1, :, :, :]
+# train_Y = train[:, 0, :, :, :]
+# val_X = val[:, 1, :, :, :]
+# val_Y = val[:, 0, :, :, :]
+
+
 paths = utils.get_all_file_paths(f'../dataset/{DATASET}/training') 
 process_funcs = [np.array, utils.rgb_to_grayscale, utils.image_normalize, utils.split_image, 
                  lambda x : (np.expand_dims(x[0], axis=-1), np.expand_dims(x[1], axis=-1))]
@@ -124,6 +142,8 @@ data = utils.add_progress_bar(iterable_arg_index=0)(loader.load_images)(paths)
 data = np.array(data)
 val_X = data[:, 1, :, :, :]
 val_Y = data[:, 0, :, :, :]
+
+
 
 print(f"training input shape:{train_X.shape}\n" + f"training output shape:{train_Y.shape}")
 print(f"validation input shape:{val_X.shape}\n" + f"validation output shape:{val_Y.shape}")

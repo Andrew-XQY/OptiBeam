@@ -26,7 +26,7 @@ DMD_ROTATION = 47+90  # DMD rotation angle
 DMD = dmd.ViALUXDMD(ALP4(version = '4.3'))
 # calibration_img = np.ones((256, 256)) * 255
 # calibration_img = simulation.dmd_calibration_corner_dots(size = 256, dot_size= 5)
-# calibration_img = simulation.dmd_calibration_center_dot(size = 256, dot_size= 32) 
+# calibration_img = simulation.dmd_calibration_center_dot(size = 256, dot_size= 64) 
 # calibration_img = simulation.dmd_calibration_pattern_generation()
 # calibration_img = simulation.generate_upward_arrow()
 # calibration_img = simulation.generate_solid_circle()
@@ -72,7 +72,7 @@ if load_from_disk:
 # ------------------- Define Image Generator Here ------------------
 # another option is to create a image generator
 # image_generator = simulation.position_intensity_generator()
-image_generator = TODO
+image_generator = None
 
 
 
