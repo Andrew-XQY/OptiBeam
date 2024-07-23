@@ -5,23 +5,18 @@ normalized_path = os.path.normpath(up_two_levels)
 os.chdir(normalized_path) # Change the current working directory to the normalized path
 
 from conf import *
-from tqdm import tqdm
 import numpy as np 
-import datetime, time
+from datetime import datetime
 import matplotlib.pyplot as plt
 import tensorflow as tf
-from tensorflow.keras import optimizers, layers, Model, losses
 
 print(os.getcwd())
+training.check_tensorflow_gpu()
 
 DATASET = "2024-07-11"
 SAVE_TO = '../results/'
 save_path=SAVE_TO + "evaluations/"
 IMAGE_SHAPE = (256, 256, 1)
-
-# training.check_tensorflow_gpu() # check if the GPU is available
-training.check_tensorflow_gpu()
-
 
 class ImageReconstructionCallback(tf.keras.callbacks.Callback):
     def __init__(self, val_inputs, val_labels):
@@ -55,27 +50,51 @@ class ImageReconstructionCallback(tf.keras.callbacks.Callback):
         plt.savefig(file_path)  # Save the figure with all subplots
         plt.close()  # Close the plot to free up memory
 
-
-class Autoencoder(Model):
+    
+class Autoencoder(tf.keras.Model):
     def __init__(self, input_shape):
         super(Autoencoder, self).__init__()
+        initializer = tf.random_normal_initializer(0., 0.02)
         self.encoder = tf.keras.Sequential([
-            layers.Input(shape=input_shape),
-            layers.Conv2D(64, kernel_size=4, strides=2, activation='relu', padding='same'),
-            layers.Conv2D(128, kernel_size=4, strides=2, activation='relu', padding='same'),
-            layers.Conv2D(256, kernel_size=4, strides=2, activation='relu', padding='same'),
-            layers.Conv2D(512, kernel_size=4, strides=2, activation='relu', padding='same'),
-            layers.Conv2D(512, kernel_size=4, strides=2, ctivation='relu', padding='same'),
-            layers.Conv2D(1024, kernel_size=4, strides=2, activation='relu', padding='same')
+            tf.keras.layers.Input(shape=input_shape),
+            tf.keras.layers.Conv2D(64, kernel_size=4, strides=2, padding='same', kernel_initializer=initializer, use_bias=False),
+            tf.keras.layers.Conv2D(128, kernel_size=4, strides=2, padding='same', kernel_initializer=initializer, use_bias=False),
+            tf.keras.layers.BatchNormalization(),
+            tf.keras.layers.LeakyReLU(),
+            tf.keras.layers.Conv2D(256, kernel_size=4, strides=2, padding='same', kernel_initializer=initializer, use_bias=False),
+            tf.keras.layers.BatchNormalization(),
+            tf.keras.layers.LeakyReLU(),
+            tf.keras.layers.Conv2D(512, kernel_size=4, strides=2, padding='same', kernel_initializer=initializer, use_bias=False),
+            tf.keras.layers.BatchNormalization(),
+            tf.keras.layers.LeakyReLU(),
+            tf.keras.layers.Conv2D(512, kernel_size=4, strides=2, padding='same', kernel_initializer=initializer, use_bias=False),
+            tf.keras.layers.BatchNormalization(),
+            tf.keras.layers.LeakyReLU(),
+            tf.keras.layers.Conv2D(1024, kernel_size=4, strides=2, padding='same', kernel_initializer=initializer, use_bias=False),
+            tf.keras.layers.BatchNormalization(),
+            tf.keras.layers.LeakyReLU()
         ])
         self.decoder = tf.keras.Sequential([
-            layers.Conv2DTranspose(1024, kernel_size=4, strides=2, activation='relu', padding='same'),
-            layers.Conv2DTranspose(512, kernel_size=4, strides=2, activation='relu', padding='same'),
-            layers.Conv2DTranspose(512, kernel_size=4, strides=2, activation='relu', padding='same'),
-            layers.Conv2DTranspose(256, kernel_size=4, strides=2, activation='relu', padding='same'),
-            layers.Conv2DTranspose(128, kernel_size=4, strides=2, activation='relu', padding='same'),
-            layers.Conv2DTranspose(64, kernel_size=4, strides=2, activation='relu', padding='same'),
-            layers.Conv2D(input_shape[-1], kernel_size=4, activation='sigmoid', padding='same')
+            tf.keras.layers.Conv2DTranspose(1024, kernel_size=4, strides=2, padding='same', kernel_initializer=initializer, use_bias=False),
+            tf.keras.layers.BatchNormalization(),
+            tf.keras.layers.Dropout(0.5),
+            tf.keras.layers.ReLU(),
+            tf.keras.layers.Conv2DTranspose(512, kernel_size=4, strides=2, padding='same', kernel_initializer=initializer, use_bias=False),
+            tf.keras.layers.BatchNormalization(),
+            tf.keras.layers.ReLU(),
+            tf.keras.layers.Conv2DTranspose(512, kernel_size=4, strides=2, padding='same', kernel_initializer=initializer, use_bias=False),
+            tf.keras.layers.BatchNormalization(),
+            tf.keras.layers.ReLU(),
+            tf.keras.layers.Conv2DTranspose(256, kernel_size=4, strides=2, padding='same', kernel_initializer=initializer, use_bias=False),
+            tf.keras.layers.BatchNormalization(),
+            tf.keras.layers.ReLU(),
+            tf.keras.layers.Conv2DTranspose(128, kernel_size=4, strides=2, padding='same', kernel_initializer=initializer, use_bias=False),
+            tf.keras.layers.BatchNormalization(),
+            tf.keras.layers.ReLU(),
+            tf.keras.layers.Conv2DTranspose(64, kernel_size=4, strides=2, padding='same', kernel_initializer=initializer, use_bias=False),
+            tf.keras.layers.BatchNormalization(),
+            tf.keras.layers.ReLU(),
+            tf.keras.layers.Conv2D(input_shape[-1], kernel_size=4, activation='sigmoid', padding='same')
         ])
 
     def call(self, x):
@@ -85,50 +104,48 @@ class Autoencoder(Model):
 
 
 
+
 # ------------------------------ dataset preparation -----------------------------------
-paths = utils.get_all_file_paths(roots) 
+
+paths = utils.get_all_file_paths(f'../dataset/{DATASET}/training') 
 process_funcs = [np.array, utils.rgb_to_grayscale, utils.image_normalize, utils.split_image, 
                  lambda x : (np.expand_dims(x[0], axis=-1), np.expand_dims(x[1], axis=-1))]
 loader = utils.ImageLoader(process_funcs)
 data = utils.add_progress_bar(iterable_arg_index=0)(loader.load_images)(paths)
+data = np.array(data)
+train_X = data[:, 1, :, :, :]
+train_Y = data[:, 0, :, :, :]
 
+paths = utils.get_all_file_paths(f'../dataset/{DATASET}/test') 
+process_funcs = [np.array, utils.rgb_to_grayscale, utils.image_normalize, utils.split_image, 
+                 lambda x : (np.expand_dims(x[0], axis=-1), np.expand_dims(x[1], axis=-1))]
+loader = utils.ImageLoader(process_funcs)
+data = utils.add_progress_bar(iterable_arg_index=0)(loader.load_images)(paths)
+data = np.array(data)
+val_X = data[:, 1, :, :, :]
+val_Y = data[:, 0, :, :, :]
 
-splite = 0.9
-train = np.array(data[:int(len(data)*splite)])
-val = np.array(data[int(len(data)*splite):])
-train_X = train[:, 1, :, :, :]
-train_Y = train[:, 0, :, :, :]
-val_X = val[:, 1, :, :, :]
-val_Y = val[:, 0, :, :, :]
-
-print(f"training input shape:{train_X.shape}\n", f"training output shape:{train_Y.shape}")
-print(f"validation input shape:{val_X.shape}\n", f"validation output shape:{val_Y.shape}")
+print(f"training input shape:{train_X.shape}\n" + f"training output shape:{train_Y.shape}")
+print(f"validation input shape:{val_X.shape}\n" + f"validation output shape:{val_Y.shape}")
 
 
 shape = train_X.shape[1:]
 autoencoder = Autoencoder(shape)
 autoencoder.build((None, *shape))
 autoencoder.summary()
-
-
-adam_optimizer = optimizers.Adam(learning_rate=0.00001)
-autoencoder.compile(optimizer=adam_optimizer, loss=losses.MeanSquaredError())
+adam_optimizer = tf.keras.optimizers.Adam(learning_rate=0.0001)
+autoencoder.compile(optimizer=adam_optimizer, 
+                    loss=tf.keras.losses.MeanSquaredError())
 history = autoencoder.fit(train_X, train_Y,
                         epochs=5,
-                        batch_size=4,
+                        batch_size=8,
                         shuffle=True,
                         validation_data=(val_X, val_Y),
                         callbacks=[ImageReconstructionCallback(val_X, val_Y)]
                         )
 
-
 # ------------------------------ save models -----------------------------------
-current_time_seconds = time.time()
-timestamp = str(current_time_seconds * 1e9)
-model_name = f'{timestamp}.keras'
-generator.save(SAVE_TO + f'models/{model_name}')
+# Save the encoder and decoder
+autoencoder.encoder.save(SAVE_TO+'models/encoder.h5')
+autoencoder.decoder.save(SAVE_TO+'models/decoder.h5')
 print('model saved!')
-
-
-
-
