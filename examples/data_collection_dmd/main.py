@@ -68,9 +68,11 @@ if load_from_disk:
 # minst_path = "../../DataWarehouse/MNIST_ORG/t10k-images.idx3-ubyte"
 # imgs_array = read_MNIST_images(minst_path)
 
-# another option is to create a image generator
-image_generator = simulation.position_intensity_generator()
 
+# ------------------- Define Image Generator Here ------------------
+# another option is to create a image generator
+# image_generator = simulation.position_intensity_generator()
+image_generator = TODO
 
 
 
@@ -139,15 +141,15 @@ try:
         # ---------------------------------------------------------------------------
         
         # ------------------------------- simulation --------------------------------
-        else:
-            CANVAS.update(min_std=min_std, max_std=max_std, max_intensity=max_intensity, fade_rate=fade_rate)  # around 0.95 looks good
-            # CANVAS.thresholding(1)
-            img = CANVAS.get_image()
+        # else:
+        #     CANVAS.update(min_std=min_std, max_std=max_std, max_intensity=max_intensity, fade_rate=fade_rate)  # around 0.95 looks good
+        #     # CANVAS.thresholding(1)
+        #     img = CANVAS.get_image()
         # ---------------------------------------------------------------------------
         
         # -------------------------------- generator --------------------------------
-        # else:  
-        #     img = next(image_generator)
+        else:  
+            img = next(image_generator)
         # ---------------------------------------------------------------------------
         
         
