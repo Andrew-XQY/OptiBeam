@@ -5,7 +5,6 @@ import matplotlib.patches
 import tensorflow as tf
 import json
 from datetime import datetime
-from tensorflow.keras.callbacks import Callback
 from sklearn.model_selection import train_test_split
 from IPython.display import clear_output
 
@@ -20,41 +19,74 @@ def check_tensorflow_gpu():
 
 
 # ------------------- callback functions for tensorflow fit -------------------
-class ImageReconstructionCallback(Callback):
-    def __init__(self, model, test_data_generator, num_images=3, dim=(128,128)):
-        super().__init__()
-        self.model = model
-        self.test_data_generator = test_data_generator
-        self.num_images = num_images
-        self.dim = dim
 
-    def on_epoch_end(self, epoch, logs=None):
-        # Clear the previous figure
+class ImageReconstructionCallback(tf.keras.callbacks.Callback):
+    def __init__(self, val_inputs, val_labels):
+        super(ImageReconstructionCallback, self).__init__()
+        self.val_inputs = val_inputs
+        self.val_labels = val_labels
+
+    def on_epoch_begin(self, epoch, logs=None):
         plt.clf()
         clear_output(wait=True)
-        x_test, y_test = next(self.test_data_generator)  # Get a batch of test data
-        predicted_y = self.model.predict(x_test)  # Get reconstructed images
-        plt.figure(figsize=(15, 5))   # Plot the original and reconstructed images
-        for i in range(self.num_images):
-            ax = plt.subplot(3, self.num_images, i + 1)
-            plt.imshow(x_test[i].reshape(*self.dim), cmap="gray")
-            plt.title("Input")
-            plt.axis("off")
-            ax = plt.subplot(3, self.num_images, i + 1 + self.num_images)
-            plt.imshow(y_test[i].reshape(*self.dim), cmap="gray")
-            plt.title("Label")
-            plt.axis("off")
-            ax = plt.subplot(3, self.num_images, i + 1 + 2 * self.num_images)
-            plt.imshow(predicted_y[i].reshape(*self.dim), cmap="gray")
-            plt.title("Reconstructed")
-            plt.axis("off")
-        plt.tight_layout()
+        # Randomly choose one sample from the validation data
+        idx = np.random.randint(0, len(self.val_inputs))
+        input_image = self.val_inputs[idx:idx+1]  # Keep batch dimension
+        ground_truth = self.val_labels[idx]
+        reconstructed = self.model.predict(input_image)
+        # Plotting
+        plt.figure(figsize=(9, 3))
+        plt.subplot(1, 3, 1)
+        plt.imshow(input_image[0, ..., 0], cmap='gray')
+        plt.title("Input")
+        plt.axis('off')
+        plt.subplot(1, 3, 2)
+        plt.imshow(reconstructed[0, ..., 0], cmap='gray')
+        plt.title("Reconstructed")
+        plt.axis('off')
+        plt.subplot(1, 3, 3)
+        plt.imshow(ground_truth[..., 0], cmap='gray')
+        plt.title("Ground Truth")
+        plt.axis('off')
         plt.show()
 
 
 
+# class ImageReconstructionCallback(tf.keras.callbacks.Callback):
+#     def __init__(self, model, test_data_generator, num_images=3, dim=(128,128)):
+#         super().__init__()
+#         self.model = model
+#         self.test_data_generator = test_data_generator
+#         self.num_images = num_images
+#         self.dim = dim
 
-class PlotPredictionParamsCallback(Callback):
+#     def on_epoch_end(self, epoch, logs=None):
+#         # Clear the previous figure
+#         plt.clf()
+#         clear_output(wait=True)
+#         x_test, y_test = next(self.test_data_generator)  # Get a batch of test data
+#         predicted_y = self.model.predict(x_test)  # Get reconstructed images
+#         plt.figure(figsize=(15, 5))   # Plot the original and reconstructed images
+#         for i in range(self.num_images):
+#             ax = plt.subplot(3, self.num_images, i + 1)
+#             plt.imshow(x_test[i].reshape(*self.dim), cmap="gray")
+#             plt.title("Input")
+#             plt.axis("off")
+#             ax = plt.subplot(3, self.num_images, i + 1 + self.num_images)
+#             plt.imshow(y_test[i].reshape(*self.dim), cmap="gray")
+#             plt.title("Label")
+#             plt.axis("off")
+#             ax = plt.subplot(3, self.num_images, i + 1 + 2 * self.num_images)
+#             plt.imshow(predicted_y[i].reshape(*self.dim), cmap="gray")
+#             plt.title("Reconstructed")
+#             plt.axis("off")
+#         plt.tight_layout()
+#         plt.show()
+
+
+
+
+class PlotPredictionParamsCallback(tf.keras.callbacks.Callback):
     """
     Callback to plot the true and predicted beam parameters on a random validation image
     input: val_images (np.array, (m, n)), val_labels (np.array, (l, 1), normalized), val_beam_image (np.array, (p, q))
@@ -76,7 +108,7 @@ class PlotPredictionParamsCallback(Callback):
         img_2_params_evaluation(image, true_label, pred_label)
         
 
-class PlotPredictionImageCallback(Callback):
+class PlotPredictionImageCallback(tf.keras.callbacks.Callback):
     """
     Callback to plot the true and predicted images on a random validation image
     input: x_data (np.array, (n x m), speckle pattern), y_data (np.array, (p x q), beam image)

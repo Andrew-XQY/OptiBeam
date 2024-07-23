@@ -455,21 +455,6 @@ class Lens(ABC):
 
 
 # ----------------- 2D narray affine transformation -----------------
-
-
-# class Transformation:
-#     @staticmethod
-#     def transformation_matrix_opencv(center, angle, scale, translate):
-#         M = cv2.getRotationMatrix2D(center, angle, scale)
-#         M[0, 2] += translate[0]
-#         M[1, 2] += translate[1]
-#         return M
-
-#     def apply_transform(self, image, translate=(0, 0), angle=0, scale=1):
-#         rows, cols = image.shape[:2]
-#         center = (cols / 2, rows / 2)
-#         M = ImageTransformer.transformation_matrix_opencv(center, angle, scale, translate)
-#         return cv2.warpAffine(image, M, (cols, rows)) 
     
     
 def transform_image(image, rotate=0, scale=1.0, translate=(0, 0), implementation='opencv'):
@@ -587,7 +572,7 @@ def macro_pixel(narray: np.ndarray, size: int=8) -> np.ndarray:
     return expanded_image    
 
 
-# ----------------- Test functions -----------------
+# ----------------- Test Pattern functions -----------------
 
 def dmd_calibration_pattern_generation(size: int=256, point_size: int=5, boundary_width: int=5) -> np.ndarray:
     # Create a square image with zeros
@@ -732,4 +717,5 @@ def position_intensity_generator(size: int=256, block_size: int=32,
                     new_image[nonzero_mask] = np.clip(img_array[nonzero_mask] + intensity_step, 0, 255).astype(np.uint8)
                     yield new_image
                     img_array = new_image  # Update image to newly adjusted image
+
 

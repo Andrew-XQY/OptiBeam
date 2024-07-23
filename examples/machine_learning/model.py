@@ -138,49 +138,6 @@ def discriminator_loss(disc_real_output, disc_generated_output):
     return total_disc_loss
 
 
-# during training, demo result images
-# def generate_images(model, test_input, tar):
-#     prediction = model(test_input, training=True) # when on testset, this still should be True
-#     plt.figure(figsize=(15, 15))
-
-#     display_list = [test_input[0], tar[0], prediction[0]]
-#     title = ['MMF Speckle Pattern (Input)', 'Original Beam Distribution (Ground Truth)',
-#              'Reconstructed Image (Output)']
-
-#     for i in range(3):  # present the result in a nice visual way
-#         plt.subplot(1, 3, i+1)
-#         plt.title(title[i])
-#         # Getting the pixel values in the [0, 1] range to plot. 
-#         # plt.imshow(display_list[i] * 0.5 + 0.5)
-#         plt.imshow(display_list[i] * 0.5 + 0.5, cmap='Greys_r') # original image
-#         plt.axis('off')
-#     plt.show()
-
-
-# def generate_images(model, test_input, tar, save_path):
-#     prediction = model(test_input, training=True)  # Keep training=True even on the test set
-
-#     display_list = [test_input[0], tar[0], prediction[0]]
-#     title = ['MMF Speckle Pattern (Input)', 'Original Beam Distribution (Ground Truth)',
-#              'Reconstructed Image (Output)']
-
-#     # Get the current timestamp to use in file names
-#     timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
-
-#     # Save each of the images in the display list to the specified path
-#     for i in range(3):
-#         plt.figure(figsize=(5, 5))  # Create a new figure for each image
-#         plt.title(title[i])
-#         plt.imshow(display_list[i] * 0.5 + 0.5, cmap='Greys_r')
-#         plt.axis('off')
-#         # Build the file path using the timestamp and index to avoid overwriting
-#     file_path = f"{save_path}/{timestamp}.png"
-#     plt.savefig(file_path)  # Save the figure to the file path
-#     plt.close()  # Close the plot to free up memory
-#     plt.clf()
-
-
-
 def generate_images(model, test_input, tar, save_path):
     prediction = model(test_input, training=True)  # Keep training=True even on the test set
 
