@@ -1,10 +1,9 @@
-from conf import *
+# from conf import *
 # import pandas as pd
 # DB = database.SQLiteDB(DATABASE_ROOT)
 
-
-
-
+import tensorflow as tf
+print(tf.__version__)
 
 # path_to_images = "../../DataWarehouse/MMF/procIMGs/processed"
 # paths = utils.get_all_file_paths(path_to_images)
