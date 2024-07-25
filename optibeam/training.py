@@ -28,12 +28,12 @@ def check_tensorflow_version():
     
 
 # ------------------- callback functions for tensorflow fit -------------------
-
 class ImageReconstructionCallback(tf.keras.callbacks.Callback):
-    def __init__(self, val_inputs, val_labels):
+    def __init__(self, val_inputs, val_labels, save_path: str=None):
         super(ImageReconstructionCallback, self).__init__()
         self.val_inputs = val_inputs
         self.val_labels = val_labels
+        self.save_path = save_path
 
     def on_epoch_begin(self, epoch, logs=None):
         plt.clf()
@@ -57,8 +57,16 @@ class ImageReconstructionCallback(tf.keras.callbacks.Callback):
         plt.imshow(ground_truth[..., 0], cmap='gray')
         plt.title("Ground Truth")
         plt.axis('off')
-        plt.show()
-
+        if self.save_path:
+            timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+            file_path = f"{self.save_path}/{timestamp}.png"
+            plt.savefig(file_path)  # Save the figure with all subplots
+            plt.close()  # Close the plot to free up memory
+        else:
+            plt.show()
+        print(f"input image max pixel: {input_image.max()}", 
+              f"ground truth image max pixel: {ground_truth.max()}", 
+              f"reconstructed image max pixel: {reconstructed.max()}")
 
 
 # class ImageReconstructionCallback(tf.keras.callbacks.Callback):
