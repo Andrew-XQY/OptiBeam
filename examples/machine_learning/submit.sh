@@ -6,7 +6,7 @@
 #SBATCH --nodes=1                                       # Number of nodes
 #SBATCH --ntasks-per-node=1                             # Number of tasks per node
 #SBATCH --gres=gpu:1                                    # Number of GPUs per task
-#SBATCH --mem=20G                                       # Memory per node
+#SBATCH --mem=32G                                       # Memory per node
 #SBATCH --cpus-per-task=4                               # Number of CPU cores per task
 #SBATCH --time=12:00:00                                 # Time limit hrs:min:sec
 

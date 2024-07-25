@@ -3,21 +3,20 @@ script_path = os.path.abspath(__file__)  # Get the absolute path of the current 
 up_two_levels = os.path.join(os.path.dirname(script_path), '../../')
 normalized_path = os.path.normpath(up_two_levels)
 os.chdir(normalized_path) # Change the current working directory to the normalized path
-os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
+# os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
 
 from conf import *
 import numpy as np 
 from datetime import datetime
 import matplotlib.pyplot as plt
 import tensorflow as tf
-
+import pickle
 print(os.getcwd())
-print(tf.__version__)
 training.check_tensorflow_gpu()
+training.check_tensorflow_version()
 
-DATASET = "2024-07-23"
 SAVE_TO = '../results/'
-save_path=SAVE_TO + "evaluations/"
+save_path=SAVE_TO + "logs/"
 IMAGE_SHAPE = (256, 256, 1)
 
 class ImageReconstructionCallback(tf.keras.callbacks.Callback):
@@ -50,63 +49,13 @@ class ImageReconstructionCallback(tf.keras.callbacks.Callback):
         file_path = f"{save_path}/{timestamp}.png"
         plt.savefig(file_path)  # Save the figure with all subplots
         plt.close()  # Close the plot to free up memory
-        print(input_image.max(), ground_truth.max(), reconstructed.max())
-
-    
-class Autoencoder(tf.keras.Model):
-    def __init__(self, input_shape):
-        super(Autoencoder, self).__init__()
-        initializer = tf.random_normal_initializer(0., 0.02)
-        self.encoder = tf.keras.Sequential([
-            tf.keras.layers.Input(shape=input_shape),
-            tf.keras.layers.Conv2D(64, kernel_size=4, strides=2, padding='same', kernel_initializer=initializer, use_bias=False),
-            tf.keras.layers.LeakyReLU(),
-            tf.keras.layers.Conv2D(128, kernel_size=4, strides=2, padding='same', kernel_initializer=initializer, use_bias=False),
-            tf.keras.layers.BatchNormalization(),
-            tf.keras.layers.LeakyReLU(),
-            tf.keras.layers.Conv2D(256, kernel_size=4, strides=2, padding='same', kernel_initializer=initializer, use_bias=False),
-            tf.keras.layers.BatchNormalization(),
-            tf.keras.layers.LeakyReLU(),
-            tf.keras.layers.Conv2D(512, kernel_size=4, strides=2, padding='same', kernel_initializer=initializer, use_bias=False),
-            tf.keras.layers.BatchNormalization(),
-            tf.keras.layers.LeakyReLU(),
-            tf.keras.layers.Conv2D(512, kernel_size=4, strides=2, padding='same', kernel_initializer=initializer, use_bias=False),
-            tf.keras.layers.BatchNormalization(),
-            tf.keras.layers.LeakyReLU(),
-            tf.keras.layers.Conv2D(1024, kernel_size=4, strides=2, padding='same', kernel_initializer=initializer, use_bias=False),
-            tf.keras.layers.BatchNormalization(),
-            tf.keras.layers.LeakyReLU()
-        ])
-        self.decoder = tf.keras.Sequential([
-            tf.keras.layers.Conv2DTranspose(1024, kernel_size=4, strides=2, padding='same', kernel_initializer=initializer, use_bias=False),
-            tf.keras.layers.BatchNormalization(),
-            tf.keras.layers.Dropout(0.5),
-            tf.keras.layers.ReLU(),
-            tf.keras.layers.Conv2DTranspose(512, kernel_size=4, strides=2, padding='same', kernel_initializer=initializer, use_bias=False),
-            tf.keras.layers.BatchNormalization(),
-            tf.keras.layers.ReLU(),
-            tf.keras.layers.Conv2DTranspose(512, kernel_size=4, strides=2, padding='same', kernel_initializer=initializer, use_bias=False),
-            tf.keras.layers.BatchNormalization(),
-            tf.keras.layers.ReLU(),
-            tf.keras.layers.Conv2DTranspose(256, kernel_size=4, strides=2, padding='same', kernel_initializer=initializer, use_bias=False),
-            tf.keras.layers.BatchNormalization(),
-            tf.keras.layers.ReLU(),
-            tf.keras.layers.Conv2DTranspose(128, kernel_size=4, strides=2, padding='same', kernel_initializer=initializer, use_bias=False),
-            tf.keras.layers.BatchNormalization(),
-            tf.keras.layers.ReLU(),
-            tf.keras.layers.Conv2DTranspose(64, kernel_size=4, strides=2, padding='same', kernel_initializer=initializer, use_bias=False),
-            tf.keras.layers.BatchNormalization(),
-            tf.keras.layers.ReLU(),
-            tf.keras.layers.Conv2D(input_shape[-1], kernel_size=4, activation='sigmoid', padding='same')
-        ])
-
-    def call(self, x):
-        encoded = self.encoder(x)
-        decoded = self.decoder(encoded)
-        return decoded
+        print(f"input image max pixel: {input_image.max()}", 
+              f"ground truth image max pixel: {ground_truth.max()}", 
+              f"reconstructed image max pixel: {reconstructed.max()}"
+              )
 
 
-
+@tf.keras.utils.register_keras_serializable()
 def downsample(filters, size, apply_batchnorm=True):
     initializer = tf.random_normal_initializer(0., 0.02)
     result = tf.keras.Sequential()
@@ -118,7 +67,7 @@ def downsample(filters, size, apply_batchnorm=True):
     result.add(tf.keras.layers.LeakyReLU())
     return result
 
-
+@tf.keras.utils.register_keras_serializable()
 def upsample(filters, size, apply_dropout=False):
     initializer = tf.random_normal_initializer(0., 0.02)
     result = tf.keras.Sequential()
@@ -134,57 +83,53 @@ def upsample(filters, size, apply_dropout=False):
     return result
 
 
-# class Autoencoder(tf.keras.Model):
-#     def __init__(self, input_shape):
-#         super(Autoencoder, self).__init__()
-#         initializer = tf.random_normal_initializer(0., 0.02)
-#         self.inputs = tf.keras.layers.Input(shape=input_shape) # (batch_size, 256, 256, 1)
-#         self.encoder = [
-#             downsample(64, 4, apply_batchnorm=False),  # (batch_size, 128, 128, 64)
-#             downsample(128, 4),  # (batch_size, 64, 64, 128)
-#             downsample(256, 4),  # (batch_size, 32, 32, 256)
-#             downsample(512, 4),  # (batch_size, 16, 16, 512)
-#             downsample(512, 4),  # (batch_size, 8, 8, 512)
-#             downsample(1024, 4),  # (batch_size, 4, 4, 1024)
-#         ]
-#         self.decoder = [
-#             upsample(1024, 4, apply_dropout=True),  # (batch_size, 4, 4, 1024)
-#             upsample(512, 4),  # (batch_size, 8, 8, 512)
-#             upsample(512, 4),  # (batch_size, 16, 16, 512)
-#             upsample(256, 4),  # (batch_size, 32, 32, 256)
-#             upsample(128, 4),  # (batch_size, 64, 64, 128)
-#             upsample(64, 4),  # (batch_size, 128, 128, 64)
-#         ]
-#         last = tf.keras.layers.Conv2DTranspose(input_shape[-1], 4,
-#                                             strides=2,
-#                                             padding='same',
-#                                             kernel_initializer=initializer,
-#                                             activation='tanh')   # (batch_size, 256, 256, 1)
-#         self.decoder.append(last)
+def Autoencoder(input_shape=[256, 256, 1]):
+    inputs = tf.keras.layers.Input(shape=input_shape)
+    down_stack = [
+    downsample(64, 4, apply_batchnorm=False),  # (batch_size, 128, 128, 64)
+    downsample(128, 4),  # (batch_size, 64, 64, 128)
+    downsample(256, 4),  # (batch_size, 32, 32, 256)
+    downsample(512, 4),  # (batch_size, 16, 16, 512)
+    downsample(1024, 4),  # (batch_size, 8, 8, 512)
+    downsample(1024, 4),  # (batch_size, 4, 4, 512)
+    ]
+    up_stack = [
+    upsample(1024, 4, apply_dropout=True),  # (batch_size, 4, 4, 1024)
+    upsample(1024, 4, apply_dropout=True),  # (batch_size, 8, 8, 1024)
+    upsample(512, 4, apply_dropout=True),  # (batch_size, 16, 16, 1024)
+    upsample(256, 4),  # (batch_size, 32, 32, 512)
+    upsample(128, 4),  # (batch_size, 64, 64, 256)
+    upsample(64, 4),  # (batch_size, 128, 128, 128)
+    ]
 
-#     def call(self, x):
-#         x = self.inputs 
-#         skips = []
-#         for down in self.encoder:  # connnected in forward sequence
-#             x = down(x)
-#             skips.append(x)
-#         skips = reversed(skips[:-1])
-#         # Upsampling and establishing the skip connections
-#         for up, skip in zip(self.decoder[:-1], skips):
-#             x = up(x)
-#             x = tf.keras.layers.Concatenate()([x, skip])  
-#         x = self.decoder[-1](x)
-#         return tf.keras.Model(inputs=self.inputs, outputs=x)
-    
+    initializer = tf.random_normal_initializer(0., 0.02)
+    last = tf.keras.layers.Conv2DTranspose(1, 4,
+                                            strides=2,
+                                            padding='same',
+                                            kernel_initializer=initializer,
+                                            activation='tanh')  # (batch_size, 256, 256, 1)
+    x = inputs
+    # Downsampling through the model
+    skips = []
+    for down in down_stack:
+        x = down(x)
+        skips.append(x)
 
+    skips = reversed(skips[:-1])
 
-
-
+    # Upsampling and establishing the skip connections
+    for up, skip in zip(up_stack, skips):
+        x = up(x)
+        #x = tf.keras.layers.Concatenate()([x, skip])
+    x = last(x)
+    return tf.keras.Model(inputs=inputs, outputs=x)
 
 
 # ------------------------------ dataset preparation -----------------------------------
+DATASET = "2024-07-11"
 
-paths = utils.get_all_file_paths(f'../dataset/{DATASET}/test')[:300]
+
+paths = utils.get_all_file_paths(f'../dataset/{DATASET}/test')[:50]
 process_funcs = [np.array, utils.rgb_to_grayscale, utils.image_normalize, utils.split_image, 
                  lambda x : (np.expand_dims(x[0], axis=-1), np.expand_dims(x[1], axis=-1))]
 loader = utils.ImageLoader(process_funcs)
@@ -197,7 +142,6 @@ train_X = train[:, 1, :, :, :]
 train_Y = train[:, 0, :, :, :]
 val_X = val[:, 1, :, :, :]
 val_Y = val[:, 0, :, :, :]
-
 
 # paths = utils.get_all_file_paths(f'../dataset/{DATASET}/training') 
 # process_funcs = [np.array, utils.rgb_to_grayscale, utils.image_normalize, utils.split_image, 
@@ -217,36 +161,50 @@ val_Y = val[:, 0, :, :, :]
 # val_X = data[:, 1, :, :, :]
 # val_Y = data[:, 0, :, :, :]
 
-
 print(f"training input shape:{train_X.shape}\n" + f"training output shape:{train_Y.shape}")
 print(f"validation input shape:{val_X.shape}\n" + f"validation output shape:{val_Y.shape}")
 
 
 # ------------------------------ model training -----------------------------------
-shape = train_X.shape[1:]
-autoencoder = Autoencoder(shape)
-sample_data = np.random.random((1, *shape))  # Batch size of 1
-autoencoder(sample_data)
+# shape = train_X.shape[1:]
+# autoencoder = Autoencoder(shape)
+# sample_data = np.random.random((1, *shape))  # Batch size of 1
+# autoencoder(sample_data)
 
-
-
+autoencoder = Autoencoder()
 autoencoder.summary()
 print(f"model size: {autoencoder.count_params() * 4 / (1024**2)} MB") 
 
-# adam_optimizer = tf.keras.optimizers.Adam(learning_rate=0.001)
-adam_optimizer = tf.keras.optimizers.Adam(learning_rate=1e-4, beta_1=0.9, beta_2=0.999, epsilon=1e-07)
+
+# Initialize early stopping
+early_stopping = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=10,
+                                                  verbose=1, mode='min', restore_best_weights=True)
+adam_optimizer = tf.keras.optimizers.Adam(learning_rate=0.0001)
 autoencoder.compile(optimizer=adam_optimizer, 
                     loss=tf.keras.losses.MeanSquaredError())
 history = autoencoder.fit(train_X, train_Y,
-                        epochs=80,
+                        epochs=1,
                         batch_size=4,
                         shuffle=True,
                         validation_data=(val_X, val_Y),
-                        callbacks=[ImageReconstructionCallback(val_X, val_Y)]
+                        callbacks=[ImageReconstructionCallback(val_X, val_Y), early_stopping],
+                        verbose=1  
                         )
 
 # ------------------------------ save models -----------------------------------
 # Save the encoder and decoder
-autoencoder.encoder.save(SAVE_TO+'models/encoder.keras')
-autoencoder.decoder.save(SAVE_TO+'models/decoder.keras')
+# autoencoder.encoder.save(SAVE_TO+'models/encoder.keras')
+# autoencoder.decoder.save(SAVE_TO+'models/decoder.keras')
+
+autoencoder.save(SAVE_TO+'models/autoencoder.keras')
+# autoencoder.save(SAVE_TO+'models/autoencoder.keras')
 print('model saved!')
+
+
+# Save the training history
+with open(save_path+'training_history.pkl', 'wb') as file:
+    pickle.dump(history.history, file)
+
+
+
+

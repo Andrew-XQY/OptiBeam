@@ -18,6 +18,15 @@ def check_tensorflow_gpu():
         print("Failure: TensorFlow did not find any GPUs.")
 
 
+def check_tensorflow_version():
+    print('TensorFlow version:', tf.__version__)
+    try:
+        import keras
+        print('Keras version:', keras.__version__)
+    except ImportError:
+        print('Keras is not installed as a separate package. Using integrated Keras with TensorFlow.')
+    
+
 # ------------------- callback functions for tensorflow fit -------------------
 
 class ImageReconstructionCallback(tf.keras.callbacks.Callback):
