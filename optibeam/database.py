@@ -48,10 +48,10 @@ class SQLiteDB(Database):
         """
         Initializes the SQLite database connection and cursor.
         
-        args:
+        Args:
             db_path (str): Path to the SQLite database file.
         
-        returns:
+        Returns:
             None
         """
         super().__init__()
@@ -66,10 +66,10 @@ class SQLiteDB(Database):
         """
         Returns a list of all tables in the database.
         
-        args:
+        Args:
             None
             
-        returns:
+        Returns:
             List[str]: List of table names.
         """
         self.cursor.execute("SELECT name FROM sqlite_master WHERE type='table'")
@@ -79,11 +79,11 @@ class SQLiteDB(Database):
         """
         Creates a new table in the database.
         
-        args:
+        Args:
             table_name (str): Name of the table to create.
             schema (dict): Dictionary of column names and their SQL data types.
             
-        returns:
+        Returns:
             None
         """
         if table_name in self.tables:
@@ -97,10 +97,10 @@ class SQLiteDB(Database):
         """
         Executes a raw SQL command.
         
-        args:
+        Args:
             sql (str): SQL command to execute.
             
-        returns:
+        Returns:
             None
         """
         if multiple:
@@ -114,13 +114,13 @@ class SQLiteDB(Database):
         """
         Executes a raw SQL SELECT command.
         
-        args:
+        Args:
             sql (str): SQL SELECT command to execute.
             
-        returns:
+        Returns:
             DataFrame: Pandas DataFrame containing the results of the SELECT command.
         
-        raises:
+        Raises:
             Exception: If SQL execution fails.
         """
         try:
@@ -133,12 +133,12 @@ class SQLiteDB(Database):
         """
         Add a new field to an existing table.
         
-        args:
+        Args:
             table_name (str): Name of the table.
             column_name (str): Name of the new column.
             data_type (str): Data type of the new column.
             
-        returns:
+        Returns:
             None
         """
         self.cursor.execute(f"ALTER TABLE {table_name} ADD COLUMN {column_name} {data_type}")
@@ -148,12 +148,12 @@ class SQLiteDB(Database):
         """
         Rename a field in a table.
         
-        args:
+        Args:
             table_name (str): Name of the table.
             old_column_name (str): Name of the column to rename.
             new_column_name (str): New name for the column.
             
-        returns:
+        Returns:
             None
         """
         self.cursor.execute(f"ALTER TABLE {table_name} RENAME COLUMN {old_column_name} TO {new_column_name}")
@@ -163,12 +163,12 @@ class SQLiteDB(Database):
         """
         Change the data type of a field in a table.
         
-        args:
+        Args:
             table_name (str): Name of the table.
             column_name (str): Name of the column to change.
             new_data_type (str): New data type for the column.
             
-        returns:
+        Returns:
             None
         """
         self.cursor.execute(f"ALTER TABLE {table_name} ALTER COLUMN {column_name} TYPE {new_data_type}")
@@ -178,10 +178,10 @@ class SQLiteDB(Database):
         """
         Deletes a table from the database.
         
-        args:
+        Args:
             table_name (str): Name of the table to delete.
             
-        returns:
+        Returns:
             None
         """
         self.cursor.execute(f"DROP TABLE IF EXISTS {table_name}")
@@ -192,11 +192,11 @@ class SQLiteDB(Database):
         """
         Inserts a new record into the specified table.
         
-        args:
+        Args:
             table_name (str): Name of the table.
             record (dict): Dictionary representing the record to insert.
             
-        returns:
+        Returns:
             None
         """
         columns = ', '.join(record.keys())
@@ -209,12 +209,12 @@ class SQLiteDB(Database):
         """
         Deletes a single record from a table based on the key column and key value.
         
-        args:
+        Args:
             table_name (str): Name of the table.
             key_column (str): Name of the key column to match for deletion.
             key_value (Any): Value of the key to match for deletion.
             
-        returns:
+        Returns:
             None
         """
         self.cursor.execute(f"DELETE FROM {table_name} WHERE {key_column} = ?", (key_value,))
@@ -224,7 +224,7 @@ class SQLiteDB(Database):
         """
         Generate an SQL string and update a single value in an SQLite table.
 
-        args:
+        Args:
             table_name (str): Name of the table.
             key_field (str): Name of the key field.
             key_value (Any): Value of the key field.
@@ -247,11 +247,11 @@ class SQLiteDB(Database):
         """
         Get the maximum value of a column in a table, have to be a numeric column.
         
-        args:
+        Args:
             table_name (str): Name of the table.
             column_name (str): Name of the column.
             
-        returns:
+        Returns:
             float: Maximum value in the column.
         """
         query = f"SELECT MAX({column_name}) FROM {table_name}"
@@ -262,11 +262,11 @@ class SQLiteDB(Database):
         """
         Get the minimum value of a column in a table, have to be a numeric column.
         
-        args:
+        Args:
             table_name (str): Name of the table.
             column_name (str): Name of the column.
             
-        returns:
+        Returns:
             float: Minimum value in the column.
         """
         query = f"SELECT MIN({column_name}) FROM {table_name}"
@@ -277,12 +277,12 @@ class SQLiteDB(Database):
         """
         Check if an record exists in the table.
         
-        args:
+        Args:
             table_name (str): Name of the table.
             column_name (str): Name of the column.
             value (Any): Value to check for existence.
             
-        returns:
+        Returns:
             bool: True if the record exists, False otherwise.
         """
         query = f"SELECT EXISTS(SELECT 1 FROM {table_name} WHERE {column_name} = ? LIMIT 1)"
@@ -294,12 +294,12 @@ class SQLiteDB(Database):
         """
         Generate SQL UPDATE statements for updating rows in an SQLite table based on a DataFrame.
 
-        args:
+        Args:
             table_name (str): Name of the SQLite table to be updated.
             primary_key (str): Column name in the table and DataFrame to use as a primary key.
             df (pd.DataFrame): DataFrame containing the data to update.
 
-        returns:
+        Returns:
             str: SQL string that contains all the update commands.
         """
         sql_commands = []
@@ -315,12 +315,12 @@ class SQLiteDB(Database):
         """
         Construct a SQL DELETE statement for batch deletions based on primary key values.
 
-        args:
+        Args:
             table_name (str): Name of the table from which to delete rows.
             id_column (str): Column name which is the primary key.
             id_list (list): List of primary key values that indicate rows to be deleted.
 
-        returns:
+        Returns:
             str: SQL DELETE statement.
         """
         # Prepare the parameter placeholders and the SQL statement
@@ -332,10 +332,10 @@ class SQLiteDB(Database):
         """
         Close the database connection.
         
-        args:
+        Args:
             None
             
-        returns:
+        Returns:
             Nones
         """
         self.cursor.close()
