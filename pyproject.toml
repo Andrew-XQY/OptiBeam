@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "optibeam"
-version = "0.1.49"
+version = "0.1.50"
 description = "Python modules for processing images, analyzing data, visualizing results, and machine learning in accelerator physics."
 readme = "README.md"
 authors = [
