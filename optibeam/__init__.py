@@ -41,5 +41,5 @@ if platform.system() == 'Windows':
 # Package metadata
 __author__ = 'Andrew Xu'
 __email__ = 'qiyuanxu95@gmail.com'
-__version__ = '0.1.47'
+__version__ = '0.1.48'
 
