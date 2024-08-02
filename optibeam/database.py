@@ -294,13 +294,13 @@ class SQLiteDB(Database):
         """
         Generate SQL UPDATE statements for updating rows in an SQLite table based on a DataFrame.
 
-        Args:
-        - table_name (str): Name of the SQLite table to be updated.
-        - primary_key (str): Column name in the table and DataFrame to use as a primary key.
-        - df (pd.DataFrame): DataFrame containing the data to update.
+        args:
+            table_name (str): Name of the SQLite table to be updated.
+            primary_key (str): Column name in the table and DataFrame to use as a primary key.
+            df (pd.DataFrame): DataFrame containing the data to update.
 
-        Returns:
-        - str: SQL string that contains all the update commands.
+        returns:
+            str: SQL string that contains all the update commands.
         """
         sql_commands = []
         for _, row in df.iterrows():
@@ -315,12 +315,12 @@ class SQLiteDB(Database):
         """
         Construct a SQL DELETE statement for batch deletions based on primary key values.
 
-        Args:
+        args:
             table_name (str): Name of the table from which to delete rows.
             id_column (str): Column name which is the primary key.
             id_list (list): List of primary key values that indicate rows to be deleted.
 
-        Returns:
+        returns:
             str: SQL DELETE statement.
         """
         # Prepare the parameter placeholders and the SQL statement
