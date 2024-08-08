@@ -210,6 +210,20 @@ class DynamicPatterns:
         fig.canvas.mpl_connect('motion_notify_event', on_move)
         plt.colorbar(im, ax=ax)  # Shows the color scale
         plt.show()
+        
+    def num_of_distributions(self) -> int:
+        """
+        Return the number of distributions in the canvas. Need to call the is_empty method of all the distribution objects.
+        
+        args: None
+        
+        return: int
+        """
+        num = 0
+        for dst in self._distributions:
+            if not dst.is_empty():
+                num += 1
+        return num
 
     def get_metadata(self) -> dict:
         """
@@ -221,7 +235,7 @@ class DynamicPatterns:
         """
         config = {}
         config["simulation_resolution"] = (self._height, self._width)
-        config["num_of_distributions"] = len(self._distributions)
+        config["num_of_distributions"] = self.num_of_distributions()
         config["types"] = list(set([dst._type for dst in self._distributions]))
         return config
 
@@ -259,6 +273,10 @@ class Distribution(ABC):
     
     @abstractmethod
     def get_metadata(self) -> dict:
+        pass
+    
+    @abstractmethod
+    def is_empty(self) -> bool:
         pass
 
 
@@ -346,6 +364,9 @@ class GaussianDistribution(Distribution):
 
     def get_metadata(self) -> dict:
         return {}
+    
+    def is_empty(self) -> bool:
+        return True if np.all(self._pattern == 0) else False
         
 
 class MaxwellBoltzmannDistribution(Distribution):
@@ -373,6 +394,7 @@ class StaticGaussianDistribution(Distribution):
         self.rotation = 0
         self.dx = 0  # translation in x
         self.dy = 0  # translation in y
+        self._empty = True  # flag to check if the distribution is empty
         
     def update_params(self, min_std: float=0.03, max_std: float=0.1, max_intensity: int=10, fade_rate: float=0.5) -> None:
         """
@@ -383,10 +405,11 @@ class StaticGaussianDistribution(Distribution):
         # Random sigmas
         self.std_x = np.random.uniform(low=min_std, high=max_std)
         self.std_y = np.random.uniform(low=self.std_x*0.5, high=self.std_x*1.5)
-        # Random intensity with condition (uniform distribution)
-        min_intensity = fade_rate * max_intensity/(fade_rate - 1)
-        self.intensity = np.random.uniform(min_intensity, max_intensity)
+        # Random intensity with condition (uniform distribution) 
+        min_intensity = fade_rate * max_intensity/(fade_rate - 1) 
+        self.intensity = np.random.uniform(min_intensity, max_intensity) # this is where to control whether to set this distribution to empty or not probabilistically
         if self.intensity > 0:  # intensity inversely proportional to area through probabilistic modeling
+            self._empty = False
             area_scaling = (self._width * self._height) / (self.std_x * self.std_y)
             self.intensity += np.random.uniform(0, area_scaling/3)
         # Random Rotation
@@ -429,9 +452,6 @@ class StaticGaussianDistribution(Distribution):
     def fast_update(self, *args, **kwargs) -> None:
         """Update the distribution's parameters without actually plotting the new pattern."""
         self.update_params(*args, **kwargs)
-    
-    def get_metadata(self) -> dict:
-        return {}
 
     def demo(self) -> None:
         # Plot the transformed Gaussian
@@ -441,6 +461,14 @@ class StaticGaussianDistribution(Distribution):
         plt.title('Randomly Transformed Anisotropic Gaussian Distribution')
         plt.draw()
         plt.pause(0.5)
+        
+    def is_empty(self) -> bool:
+        return self._empty
+    
+    def get_metadata(self) -> dict:
+        return {'is_empty': self.is_empty(), 'intensity': self.intensity, 'std_x': self.std_x, 'std_y': self.std_y,
+                'rotation': self.rotation, 'x': self.dx, 'y': self.dy}
+    
 
 
 class Polygon:

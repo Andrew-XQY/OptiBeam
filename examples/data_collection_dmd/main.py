@@ -9,11 +9,11 @@ import json
     
     
 # --------------------- Dataset Parameters --------------------
-number_of_images = 3000  # for simulation, this is the number of images to generate in this batch
+number_of_images = 20000  # for simulation, this is the number of images to generate in this batch
 is_params = 0  # if the image contains beam parameters (simulation and MNIST don't)
 calibration = 1  # if include a calibration image (first one in the batch)
 load_from_disk = False  # load images from local disk instead of running simulation
-include_simulation = True  # add the original loaded image into data samples
+include_simulation = False  # add the original loaded image into data samples
 DMD_DIM = 1024  # DMD final loaded image resolution
 # -------------------------------------------------------------
 
@@ -47,9 +47,10 @@ ConfMeta = metadata.ConfigMetaData()
 sim_num = 100    # number of distributions in the simulation
 fade_rate = 0.96  # with 100 sim_num. around 0.96 looks good
 min_std=0.05 
-max_std=0.1
+max_std=0.2
 max_intensity=100
 dim = 512   # simulation image resolution 
+
 stride = 5  # number of simulation updates per image 
 CANVAS = simulation.DynamicPatterns(dim, dim)
 CANVAS._distributions = [simulation.StaticGaussianDistribution(CANVAS) for _ in range(sim_num)] 
@@ -141,16 +142,17 @@ try:
         # ---------------------------------------------------------------------------
         
         # ------------------------------- simulation --------------------------------
-        # else:
-        #     CANVAS.update(min_std=min_std, max_std=max_std, max_intensity=max_intensity, fade_rate=fade_rate)  # around 0.95 looks good
-        #     # CANVAS.thresholding(1)
-        #     img = CANVAS.get_image()
+        else:
+            CANVAS.update(min_std=min_std, max_std=max_std, max_intensity=max_intensity, fade_rate=fade_rate) 
+            #CANVAS.thresholding(1)
+            img = CANVAS.get_image()
+            comment = CANVAS.num_of_distributions()
         # ---------------------------------------------------------------------------
         
         # -------------------------------- generator --------------------------------
-        else:  
-            img = next(image_generator)
-            comment = "data_augmentation"
+        # else:  
+        #     img, sample_info = next(image_generator)
+        #     comment = sample_info
         # ---------------------------------------------------------------------------
         
         

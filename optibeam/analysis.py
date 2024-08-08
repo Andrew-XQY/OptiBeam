@@ -25,19 +25,6 @@ def calculate_median(data: np.array) -> float:
     """
     return np.median(data)
 
-def calculate_mode(data: np.array) -> tuple:
-    """
-    The most frequently occurring value(s) in the dataset. A dataset may have one mode (unimodal), two modes (bimodal), or multiple modes (multimodal).
-    
-    Args:
-        data: np.array
-        
-    Returns:
-        tuple
-    """
-    mode_result = stats.mode(data)
-    return mode_result.mode[0], mode_result.count[0]  # Returns mode and count of mode
-
 def calculate_variance(data: np.array) -> float:
     """
     A measure of the dispersion of the dataset, indicating how far each data point in the set is from the mean. Higher variance indicates more spread out data.
@@ -125,7 +112,6 @@ def get_statistics(data):
     return {
         "mean": calculate_mean(data),
         "median": calculate_median(data),
-        "mode": calculate_mode(data),
         "variance": calculate_variance(data),
         "standard_deviation": calculate_standard_deviation(data),
         "range": calculate_range(data),

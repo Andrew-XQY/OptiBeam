@@ -107,6 +107,23 @@ def fit_2d_gaussian(image):
     return res  # Returns the optimized parameters (A, x0, y0, sigma_x, sigma_y)
 
 
+# ------------------- evaluation functions -------------------
+def calculate_rmse(y_actual: Iterable, y_predicted: Iterable):
+    """
+    Calculate the Root Mean Square Error (RMSE) between actual and predicted values.
+
+    Args:
+    y_actual (iterable): Iterable (like a list or numpy array) of actual values.
+    y_predicted (iterable): Iterable (like a list or numpy array) of predicted values.
+
+    Returns:
+    float: The RMSE of the predictions.
+    """
+    y_actual = np.array(y_actual)
+    y_predicted = np.array(y_predicted)
+    mse = np.mean((y_actual - y_predicted) ** 2)  # Mean squared error
+    rmse = np.sqrt(mse)  # Root Mean Square Error
+    return rmse
 
 
 
