@@ -390,11 +390,10 @@ class StaticGaussianDistribution(Distribution):
         # Gaussian parameters (position, intensity, size and translation)
         self.std_x = 0
         self.std_y = 0
-        self.intensity = 0
+        self.intensity = 0   # also the flag to check if the distribution is empty
         self.rotation = 0
         self.dx = 0  # translation in x
         self.dy = 0  # translation in y
-        self._empty = True  # flag to check if the distribution is empty
         
     def update_params(self, min_std: float=0.03, max_std: float=0.1, max_intensity: int=10, fade_rate: float=0.5) -> None:
         """
@@ -409,24 +408,23 @@ class StaticGaussianDistribution(Distribution):
         min_intensity = fade_rate * max_intensity/(fade_rate - 1) 
         self.intensity = np.random.uniform(min_intensity, max_intensity) # this is where to control whether to set this distribution to empty or not probabilistically
         if self.intensity > 0:  # intensity inversely proportional to area through probabilistic modeling
-            self._empty = False
             area_scaling = (self._width * self._height) / (self.std_x * self.std_y)
             self.intensity += np.random.uniform(0, area_scaling/3)
-        # Random Rotation
-        angle_degrees = np.random.uniform(0, 360)
-        self.rotation = np.deg2rad(angle_degrees)  # Convert angle to radians for rotation
-        self.dx = np.random.uniform(0, self._width//2.5)
-        self.dy = np.random.uniform(0, self._height//2.5)
+            # Random Rotation
+            angle_degrees = np.random.uniform(0, 360)
+            self.rotation = np.deg2rad(angle_degrees)  # Convert angle to radians for rotation
+            self.dx = np.random.uniform(0, self._width//2.5)
+            self.dy = np.random.uniform(0, self._height//2.5)
         
     def pattern_generation(self) -> np.ndarray:
         """
         Generate a 2D Gaussian distribution based on the current state of the distribution.
         """
         # Check if intensity is negative
-        if self.intensity < 0:
-            return np.zeros((self._height, self._width))  # Set Gaussian to zero (black canvas)
+        if self.intensity <= 0:
+            return np.zeros((self._height, self._width))  # Set Gaussian to zero (blank canvas)
         else:
-        # Create a coordinate grid
+            # Create a coordinate grid
             x = np.linspace(0, self._width-1, self._width)
             y = np.linspace(0, self._height-1, self._height)
             x, y = np.meshgrid(x, y)
@@ -463,7 +461,7 @@ class StaticGaussianDistribution(Distribution):
         plt.pause(0.5)
         
     def is_empty(self) -> bool:
-        return self._empty
+        return True if self.intensity <= 0 else False
     
     def get_metadata(self) -> dict:
         return {'is_empty': self.is_empty(), 'intensity': self.intensity, 'std_x': self.std_x, 'std_y': self.std_y,
