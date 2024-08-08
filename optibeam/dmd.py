@@ -107,9 +107,14 @@ class ViALUXDMD(DMD):
     def get_width(self) -> int:
         return self.dmd.nSizeX
     
+    def free_memory(self) -> None:
+        # Stop the sequence display
+        self.dmd.Halt()
+        # Free the sequence from the onboard memory
+        self.dmd.FreeSeq()
+    
     def display_image(self, image: np.ndarray, bitDepth: int=8) -> None:
         image = self.adjust_image(image)
-        
         imgSeq = image.ravel()
         # Allocate the onboard memory for the image sequence
         self.dmd.SeqAlloc(nbImg = 1, bitDepth = bitDepth)

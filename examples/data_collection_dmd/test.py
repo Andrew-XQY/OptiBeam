@@ -1,6 +1,6 @@
-# from conf import *
+from conf import *
 # import pandas as pd
-# DB = database.SQLiteDB(DATABASE_ROOT)
+DB = database.SQLiteDB(DATABASE_ROOT)
 
 import tensorflow as tf
 print(tf.__version__)
@@ -39,7 +39,7 @@ print(tf.__version__)
 
 
 # # Delete images and database according to batch number!!!
-# BATCH = 2
+BATCH = 2
 # 
 # select_batch = f"""
 #     SELECT image_path FROM mmf_dataset_metadata WHERE batch = {BATCH};
@@ -49,14 +49,14 @@ print(tf.__version__)
 #     if os.path.exists(image):
 #         os.remove(image)
 
-# tables = ["mmf_dataset_metadata", "mmf_experiment_config"]
-# for table in tables:
-#     sql = f"""
-#         DELETE FROM {table} WHERE batch = {BATCH};
-#     """
-#     DB.sql_execute(sql)
+tables = ["mmf_dataset_metadata", "mmf_experiment_config"]
+for table in tables:
+    sql = f"""
+        DELETE FROM {table} WHERE batch = {BATCH};
+    """
+    DB.sql_execute(sql)
 
-# DB.close()
+DB.close()
 
 
 

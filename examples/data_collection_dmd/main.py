@@ -9,7 +9,7 @@ import json
     
     
 # --------------------- Dataset Parameters --------------------
-number_of_images = 20000  # for simulation, this is the number of images to generate in this batch
+number_of_images = 14000  # for simulation, this is the number of images to generate in this batch
 is_params = 0  # if the image contains beam parameters (simulation and MNIST don't)
 calibration = 1  # if include a calibration image (first one in the batch)
 load_from_disk = False  # load images from local disk instead of running simulation
@@ -46,7 +46,7 @@ ConfMeta = metadata.ConfigMetaData()
 # Simulation Initialization (Optional, could just load disk images or any image list instead)
 sim_num = 100    # number of distributions in the simulation
 fade_rate = 0.96  # with 100 sim_num. around 0.96 looks good
-min_std=0.05 
+min_std=0.02 
 max_std=0.2
 max_intensity=100
 dim = 512   # simulation image resolution 
@@ -80,7 +80,7 @@ image_generator = None
 # Setting up the experiment metadata
 batch = (DB.get_max("mmf_dataset_metadata", "batch") or 0) + 1  # get the current batch number
 experiment_metadata = {
-    "experiment_description": "Static Gaussian simulation on dmd-1", # Second dataset using DMD, muit-gaussian distributions, small scale
+    "experiment_description": "Static Gaussian simulation on dmd-3", # Second dataset using DMD, muit-gaussian distributions, small scale
     "experiment_location": "DITALab, Cockcroft Institute, UK",
     "experiment_date": datetime.datetime.now().strftime('%Y-%m-%d'),
     "batch": batch,
@@ -236,11 +236,15 @@ try:
                     "comments":comment
                     }
             ImageMeta.set_metadata(meta)
+            # final resize and save the image
+            # save_dim = (3840, 1200) // 2
+            # image = cv2.resize(image, save_dim)
             cv2.imwrite(image_path, image)
             DB.sql_execute(ImageMeta.to_sql_insert("mmf_dataset_metadata")) 
             print(f"Image {count+1} captured.")
             count += 1
             calibration = 0
+            DMD.free_memory()
             
 except Exception as e:
     print(f"An error occured, data collection stopped. {e}")
