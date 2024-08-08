@@ -51,7 +51,7 @@ max_std=0.2
 max_intensity=100
 dim = 512   # simulation image resolution 
 
-stride = 5  # number of simulation updates per image 
+stride = 5  # number of simulation updates per image, only for dynamic simulation
 CANVAS = simulation.DynamicPatterns(dim, dim)
 CANVAS._distributions = [simulation.StaticGaussianDistribution(CANVAS) for _ in range(sim_num)] 
 # CANVAS._distributions = [simulation.GaussianDistribution(CANVAS) for _ in range(sim_num)] 
@@ -96,8 +96,7 @@ experiment_metadata = {
         "dmd_config": DMD.get_metadata(),
         "simulation_config": CANVAS.get_metadata() if not load_from_disk else None,
         "light_source": "class 2 laser",
-        "temperature": ""
-    },
+        "other_notes": f"sim_num={sim_num}; fade_rate={fade_rate}; min_std={min_std}; max_std={max_std}; max_intensity={max_intensity}; dim={dim}"},  # if simulation
     "purtubations": None,
     "radiation":None
 }
@@ -212,7 +211,7 @@ try:
         DMD.display_image(display)  # if loading too fast, the DMD might report memory error
         
         # capture the image from the cameras (Scheduled action command)
-        image = MANAGER.schedule_action_command(int(300 * 1e6)) # schedule for milliseconds later
+        image = MANAGER.schedule_action_command(int(500 * 1e6)) # schedule for milliseconds later
         if image is not None:
             img_size = (image.shape[0], int(image.shape[1]//2))  
             if include_simulation:

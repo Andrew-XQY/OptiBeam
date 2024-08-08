@@ -24,7 +24,7 @@ schema = {
             "comments":"TEXT",
             "create_time":"TIMESTAMP DEFAULT CURRENT_TIMESTAMP",
             "update_time":"TIMESTAMP DEFAULT CURRENT_TIMESTAMP",
-            "is_deleted":"BOOLEAN DEFAULT FALSE" # soft delete flag
+            "is_deleted":"BOOLEAN DEFAULT FALSE" # soft delete flag, could used to flag abnormal data
          }  # schema for the main experimental metadata table
 
 # create the main table
