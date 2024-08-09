@@ -52,7 +52,6 @@ class MultiBaslerCameraManager:
         self.group_mask = params.get("group_mask")  # pylon.AllGroupMask or 0xffffffff
         self.boardcast_ip = params.get("boardcast_ip") # Broadcast to all devices in the network
         self.grab_timeout = params.get("grab_timeout")
-        self.initialize()
         
     def _start_grabbing(self) -> None:
         """
@@ -160,6 +159,7 @@ class MultiBaslerCameraManager:
         Press 'f' key to flip the image logic (the order when combining images). 'speckle' and 'ground truth' or 'ground truth' and 'speckle'
         It set the flag variable self.flip to True or False and influence the function _combine_images
         this function will also create a window to display the images and allow the user to adjust the exposure and gain of the cameras.
+        The callibration process will be done in this step.
     
         Args:
             None
@@ -216,6 +216,28 @@ class MultiBaslerCameraManager:
         cam.ActionGroupKey.SetValue(self.group_key)
         cam.ActionGroupMask.SetValue(self.group_mask)
         
+    def snapshoot(self) -> np.ndarray:
+        """
+        Return a single snapshoot the images from all cameras and combine them using the current camera configuration.
+        
+        Args:
+            None
+        
+        Returns:
+            np.ndarray: combined image
+        """
+        self._start_grabbing()
+        grabResults = self._grab_results()
+        combined_image = None
+        if len(grabResults) > 1:
+            imgs = [grabResult.GetArray() for grabResult in grabResults]
+            combined_image = imgs[0]
+            for img in imgs[1:]:
+                combined_image = self._combine_images(combined_image, img)
+        self._grab_release(grabResults)
+        self._stop_grabbing()
+        return combined_image
+        
     @timeout(500)
     def initialize(self) -> None:
         """
@@ -241,6 +263,7 @@ class MultiBaslerCameraManager:
             camera.AcquisitionFrameRateEnable.Value = True
             camera.AcquisitionFrameRateAbs.Value = 20.0
             self.cameras.append(camera)
+            
         self._flip_order()
         
         for i in self.cameras:  # prepare for PTP and scheduled action command

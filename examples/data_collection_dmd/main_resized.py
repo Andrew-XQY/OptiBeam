@@ -9,7 +9,7 @@ import json
     
     
 # --------------------- Dataset Parameters --------------------
-number_of_images = 14000  # for simulation, this is the number of images to generate in this batch
+number_of_images = 20000  # for simulation, this is the number of images to generate in this batch
 is_params = 0  # if the image contains beam parameters (simulation and MNIST don't)
 calibration = 1  # if include a calibration image (first one in the batch)
 load_from_disk = False  # load images from local disk instead of running simulation
@@ -38,6 +38,15 @@ DMD.display_image(dmd.dmd_img_adjustment(calibration_img, DMD_DIM, angle=DMD_ROT
 MANAGER = camera.MultiBaslerCameraManager()
 MANAGER.initialize()
 MANAGER.synchronization()
+# take a sample image to select crop areas for later resizing
+calibration_img = simulation.dmd_calibration_pattern_generation()
+calibration_img = simulation.macro_pixel(calibration_img, size=int(DMD_DIM/calibration_img.shape[0]))
+DMD.display_image(dmd.dmd_img_adjustment(calibration_img, DMD_DIM, angle=DMD_ROTATION))
+test_img = MANAGER.schedule_action_command(int(300 * 1e6)) # schedule for milliseconds later
+crop_areas = processing.select_crop_areas_center(test_img, num=2, scale_factor=0.4) 
+
+
+
 
 # Database Initialization
 DB = database.SQLiteDB(DATABASE_ROOT)
@@ -81,7 +90,7 @@ image_generator = None
 # Setting up the experiment metadata
 batch = (DB.get_max("mmf_dataset_metadata", "batch") or 0) + 1  # get the current batch number
 experiment_metadata = {
-    "experiment_description": "Static Gaussian simulation on dmd-3", # Second dataset using DMD, muit-gaussian distributions, small scale
+    "experiment_description": "Static Gaussian simulation on dmd-1", # Second dataset using DMD, muit-gaussian distributions, small scale
     "experiment_location": "DITALab, Cockcroft Institute, UK",
     "experiment_date": datetime.datetime.now().strftime('%Y-%m-%d'),
     "batch": batch,
@@ -212,7 +221,7 @@ try:
         DMD.display_image(display)  # if loading too fast, the DMD might report memory error
         
         # capture the image from the cameras (Scheduled action command)
-        image = MANAGER.schedule_action_command(int(500 * 1e6)) # schedule for milliseconds later
+        image = MANAGER.schedule_action_command(int(300 * 1e6)) # schedule for milliseconds later
         if image is not None:
             img_size = (image.shape[0], int(image.shape[1]//2))  
             if include_simulation:
@@ -238,8 +247,7 @@ try:
                     }
             ImageMeta.set_metadata(meta)
             # final resize and save the image
-            # save_dim = (3840, 1200) // 2
-            # image = cv2.resize(image, save_dim)
+            image = processing.crop_image_from_coordinates(image, crop_areas)
             cv2.imwrite(image_path, image)
             DB.sql_execute(ImageMeta.to_sql_insert("mmf_dataset_metadata")) 
             print(f"Image {count+1} captured.")

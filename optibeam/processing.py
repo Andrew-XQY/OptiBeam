@@ -1,5 +1,6 @@
 import cv2
 import numpy as np
+from .utils import crop_images, resize_image, join_images
 
 
 # ----------------------------- dataset preparation -----------------------------
@@ -43,7 +44,45 @@ import numpy as np
 #         # Create a dataset to store the actual class label names
 
 
+# ----------------------------- image processing -----------------------------
 
+def apply_threshold(image: np.ndarray, threshold=5) -> np.ndarray:
+    """
+    Apply a threshold to an image array. Pixels below the threshold are set to 0.
+    If the image is normalized (0 to 1), the threshold is also normalized.
+
+    Parameters:
+    - image: numpy array, the input image.
+    - threshold: float, the threshold value.
+
+    Returns:
+    - numpy array, the thresholded image.
+    """
+    # Check if the image is normalized
+    if image.dtype == np.float32 or image.dtype == np.float64:
+        if image.min() >= 0 and image.max() <= 1:
+            normalized_threshold = threshold / 255.0
+        else:
+            normalized_threshold = threshold
+    else:
+        normalized_threshold = threshold
+    thresholded_image = np.where(image >= normalized_threshold, image, 0)
+    return thresholded_image
+
+
+def ensure_grayscale(image: np.ndarray) -> np.ndarray:
+    """
+    Ensure that the input image is a single-channel grayscale image.
+    """
+    # Check if the image has 2 dimensions (grayscale) or more
+    if len(image.shape) > 2:
+        # Convert from BGR or BGRA to Grayscale
+        return cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    elif len(image.shape) == 2:
+        # Image is already single-channel grayscale
+        return image
+    else:
+        raise ValueError("Unsupported image format")
 
 
 
@@ -73,7 +112,6 @@ def crop_images_from_clicks(click_list, image):
         cropped_images.append(cropped)
     
     return cropped_images
-
 
 
 def select_crop_areas_corner(original_image, num, scale_factor=1):
@@ -130,10 +168,45 @@ def select_crop_areas_corner(original_image, num, scale_factor=1):
     return rectangles
 
 
-def select_crop_areas_center(original_image, num, scale_factor=1):
+def detect_round_and_draw_bounds(image: np.ndarray) -> np.ndarray:
+    """
+    Detect round shapes in the image and draw the bounds around them.
+    Have to carefully tune the parameters for the Hough Circle Transform.
+    
+    Args:
+        image (numpy.ndarray): The input image.
+
+    Returns:
+        numpy.ndarray: The image with the bounds drawn around the detected circles
+    """
+    image = ensure_grayscale(image)
+    # Threshold the image to isolate the dots
+    _, thresh = cv2.threshold(image, 100, 255, cv2.THRESH_BINARY)
+    # Apply morphological dilation to merge the dots
+    kernel = np.ones((5,5), np.uint8)
+    dilated = cv2.dilate(thresh, kernel, iterations=3)
+    cimg = cv2.cvtColor(image, cv2.COLOR_GRAY2BGR)
+
+    # Use Hough Circle Transform to detect the circle
+    circles = cv2.HoughCircles(dilated, cv2.HOUGH_GRADIENT, 1, minDist=250,
+                               param1=220, param2=10, minRadius=400, maxRadius=600)
+    # Draw circles that are detected. 
+    if circles is not None:
+        circles = np.uint16(np.around(circles))
+        for i in circles[0,:]:
+            # Draw the outer circle
+            cv2.circle(cimg, (i[0], i[1]), i[2], (0, 255, 0), 2)
+            # Draw the center of the circle
+            cv2.circle(cimg, (i[0], i[1]), 2, (0, 0, 255), 3)
+    return cimg
+
+
+def select_crop_areas_center(original_image: np.ndarray, num: int, scale_factor: float=1) -> list:
     # Helper variables
     points = []
     squares = []
+    
+    original_image = detect_round_and_draw_bounds(original_image)
 
     def mouse_click(event, x, y, flags, param):
         nonlocal points, squares
@@ -186,29 +259,11 @@ def select_crop_areas_center(original_image, num, scale_factor=1):
     cv2.destroyAllWindows()
     return squares
 
-# ----------------------------- image processing -----------------------------
 
-def apply_threshold(image, threshold=5):
-    """
-    Apply a threshold to an image array. Pixels below the threshold are set to 0.
-    If the image is normalized (0 to 1), the threshold is also normalized.
-
-    Parameters:
-    - image: numpy array, the input image.
-    - threshold: float, the threshold value.
-
-    Returns:
-    - numpy array, the thresholded image.
-    """
-    # Check if the image is normalized
-    if image.dtype == np.float32 or image.dtype == np.float64:
-        if image.min() >= 0 and image.max() <= 1:
-            normalized_threshold = threshold / 255.0
-        else:
-            normalized_threshold = threshold
-    else:
-        normalized_threshold = threshold
-    thresholded_image = np.where(image >= normalized_threshold, image, 0)
-    return thresholded_image
-
-
+def crop_image_from_coordinates(image: np.ndarray, crop_areas: list, DIM=(256, 256)) -> np.ndarray:
+    img1, img2 = crop_images(image, regions=crop_areas)
+    img1 = resize_image(img1, new_dimensions=DIM)
+    img2 = resize_image(img2, new_dimensions=DIM)
+    image = join_images([img1, img2])
+    image = (image * 255).astype(np.uint8)
+    return image
