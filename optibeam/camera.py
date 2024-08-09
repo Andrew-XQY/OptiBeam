@@ -216,27 +216,6 @@ class MultiBaslerCameraManager:
         cam.ActionGroupKey.SetValue(self.group_key)
         cam.ActionGroupMask.SetValue(self.group_mask)
         
-    def snapshoot(self) -> np.ndarray:
-        """
-        Return a single snapshoot the images from all cameras and combine them using the current camera configuration.
-        
-        Args:
-            None
-        
-        Returns:
-            np.ndarray: combined image
-        """
-        self._start_grabbing()
-        grabResults = self._grab_results()
-        combined_image = None
-        if len(grabResults) > 1:
-            imgs = [grabResult.GetArray() for grabResult in grabResults]
-            combined_image = imgs[0]
-            for img in imgs[1:]:
-                combined_image = self._combine_images(combined_image, img)
-        self._grab_release(grabResults)
-        self._stop_grabbing()
-        return combined_image
         
     @timeout(500)
     def initialize(self) -> None:

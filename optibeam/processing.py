@@ -1,6 +1,6 @@
 import cv2
 import numpy as np
-from .utils import crop_images, resize_image, join_images
+from .utils import crop_images, resize_image, join_images, resize_image_high_quality
 
 
 # ----------------------------- dataset preparation -----------------------------

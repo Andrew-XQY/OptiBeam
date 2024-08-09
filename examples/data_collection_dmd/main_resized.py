@@ -38,14 +38,15 @@ DMD.display_image(dmd.dmd_img_adjustment(calibration_img, DMD_DIM, angle=DMD_ROT
 MANAGER = camera.MultiBaslerCameraManager()
 MANAGER.initialize()
 MANAGER.synchronization()
+
 # take a sample image to select crop areas for later resizing
-calibration_img = simulation.dmd_calibration_pattern_generation()
-calibration_img = simulation.macro_pixel(calibration_img, size=int(DMD_DIM/calibration_img.shape[0]))
-DMD.display_image(dmd.dmd_img_adjustment(calibration_img, DMD_DIM, angle=DMD_ROTATION))
-test_img = MANAGER.schedule_action_command(int(300 * 1e6)) # schedule for milliseconds later
-crop_areas = processing.select_crop_areas_center(test_img, num=2, scale_factor=0.4) 
-
-
+# calibration_img = simulation.dmd_calibration_pattern_generation()
+# calibration_img = simulation.macro_pixel(calibration_img, size=int(DMD_DIM/calibration_img.shape[0]))
+# DMD.display_image(dmd.dmd_img_adjustment(calibration_img, DMD_DIM, angle=DMD_ROTATION))
+# test_img = MANAGER.schedule_action_command(int(300 * 1e6)) # schedule for milliseconds later
+# crop_areas = processing.select_crop_areas_center(test_img, num=2, scale_factor=0.4) 
+# print("Crop areas selected: ", crop_areas)
+crop_areas = [((870, 432), (1030, 592)), ((2315, 57), (3385, 1127))]  # manually set the crop areas
 
 
 # Database Initialization
@@ -70,7 +71,8 @@ CANVAS._distributions = [simulation.StaticGaussianDistribution(CANVAS) for _ in 
 
 # If load specific images from local disk, set load_from_disk to True
 if load_from_disk:
-    path_to_images = "../../DataWarehouse/MMF/procIMGs/processed"
+    path_to_images = ["../../DataWarehouse/MMF/procIMGs/processed",
+                      "../../DataWarehouse/MMF/procIMGs_2/processed"]
     paths = utils.get_all_file_paths(path_to_images)
     process_funcs = [utils.rgb_to_grayscale, utils.image_normalize, utils.split_image, lambda x : x[0]]
     loader = utils.ImageLoader(process_funcs)

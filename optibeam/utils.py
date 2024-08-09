@@ -416,8 +416,16 @@ def scale_image(narray_img: np.array, scaling_factor: float=0.5) -> np.array:
 
 
 def resize_image(narray_img: np.array, new_dimensions: Tuple=(256, 256)) -> np.array:
-    return resize(narray_img, new_dimensions, anti_aliasing=True)
+     # order=3: Cubic spline, similar to Lanczos
+    return resize(narray_img, new_dimensions, order=3, anti_aliasing=True) 
 
+
+def resize_image_high_quality(narray_img: np.array, new_dimensions: Tuple=(256, 256)) -> np.array:
+    # Convert NumPy array to PIL Image
+    image = Image.fromarray(narray_img)
+    resized_image = image.resize(new_dimensions, Image.LANCZOS)
+    # Convert PIL Image back to NumPy array
+    return np.array(resized_image)
 
 # ------------------- system/enviornment -------------------
 
