@@ -1,3 +1,6 @@
+"""_summary_
+Image Reconstruction training using Autoencoder (Optimized from Pix2Pix GAN)
+"""
 import os
 script_path = os.path.abspath(__file__)  # Get the absolute path of the current .py file
 up_two_levels = os.path.join(os.path.dirname(script_path), '../../')
@@ -14,6 +17,14 @@ import pickle
 print(os.getcwd())
 training.check_tensorflow_gpu()
 training.check_tensorflow_version()
+
+DATASET = "2024-08-09"
+SAVE_TO = f'../results/{DATASET}/' 
+save_path=SAVE_TO + "logs/"
+utils.check_and_create_folder(SAVE_TO)
+utils.check_and_create_folder(SAVE_TO+'models')
+utils.check_and_create_folder(save_path)
+
 
 @tf.keras.utils.register_keras_serializable()
 def downsample(filters, size, apply_batchnorm=True):
@@ -98,8 +109,10 @@ def Autoencoder(input_shape):
     # return tf.keras.Model(inputs=inputs, outputs=x)
 
 
+
+
+
 # ------------------------------ dataset preparation -----------------------------------
-DATASET = "2024-07-11"
 
 paths = utils.get_all_file_paths(f'../dataset/{DATASET}/training')
 process_funcs = [np.array, utils.rgb_to_grayscale, utils.image_normalize, utils.split_image, 
@@ -121,8 +134,6 @@ print(f"validation input shape:{val_X.shape}\n" + f"validation output shape:{val
 
 
 # ------------------------------ model training -----------------------------------
-SAVE_TO = '../results/'
-save_path=SAVE_TO + "logs/"
 
 shape = train_X.shape[1:]
 autoencoder = Autoencoder(shape)
@@ -145,7 +156,8 @@ history = autoencoder.fit(train_X, train_Y,
                         )
 
 # ------------------------------ save models -----------------------------------
-autoencoder.save(SAVE_TO+'models/autoencoder.keras')
+
+autoencoder.save(SAVE_TO+'models/model.keras')
 print('model saved!')
 
 # Save the training history
