@@ -426,17 +426,15 @@ class StaticGaussianDistribution(Distribution):
             else:
                 self.std_y = std 
                 self.std_x = self.std_y * np.random.uniform(0.5, 1.5)
-        
         # rescale the stds to the canvas size
         self.std_x *= self._width
         self.std_y *= self._height
-        
         # Random intensity with condition (uniform distribution) 
         min_intensity = fade_rate * max_intensity/(fade_rate - 1) 
         self.intensity = np.random.uniform(min_intensity, max_intensity) # this is where to control whether to set this distribution to empty or not probabilistically
         if self.intensity > 0:  # intensity inversely proportional to area through probabilistic modeling
             area_scaling = (self._width * self._height) / (self.std_x * self.std_y)
-            self.intensity += np.random.uniform(0, area_scaling/3)
+            self.intensity += np.random.uniform(0, area_scaling/4)
             # Random Rotation
             angle_degrees = np.random.uniform(0, 360)
             self.rotation = np.deg2rad(angle_degrees)  # Convert angle to radians for rotation

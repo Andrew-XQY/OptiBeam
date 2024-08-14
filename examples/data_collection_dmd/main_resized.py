@@ -110,7 +110,7 @@ experiment_metadata = {
         "dmd_config": DMD.get_metadata(),
         "simulation_config": CANVAS.get_metadata() if not load_from_disk else None,
         "light_source": "class 2 laser",
-        "other_notes": f"sim_num={sim_num}; fade_rate={fade_rate}; min_std={min_std}; max_std={max_std}; max_intensity={max_intensity}; dim={dim}"},  # if simulation
+        "other_notes": f"sim_num={sim_num}; fade_rate={fade_rate}; min_std={std_1}; max_std={std_2}; max_intensity={max_intensity}; dim={dim}"},  # if simulation
     "purtubations": None,
     "radiation":None
 }
