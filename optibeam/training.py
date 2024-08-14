@@ -46,15 +46,15 @@ class ImageReconstructionCallback(tf.keras.callbacks.Callback):
         # Plotting
         plt.figure(figsize=(9, 3))
         plt.subplot(1, 3, 1)
-        plt.imshow(input_image[0, ..., 0], cmap='gray')
+        plt.imshow(input_image[0, ..., 0], cmap='gray', vmin=0, vmax=1)
         plt.title("Input")
         plt.axis('off')
         plt.subplot(1, 3, 2)
-        plt.imshow(reconstructed[0, ..., 0], cmap='gray')
+        plt.imshow(reconstructed[0, ..., 0], cmap='gray', vmin=0, vmax=1)
         plt.title("Reconstructed")
         plt.axis('off')
         plt.subplot(1, 3, 3)
-        plt.imshow(ground_truth[..., 0], cmap='gray')
+        plt.imshow(ground_truth[..., 0], cmap='gray', vmin=0, vmax=1)
         plt.title("Ground Truth")
         plt.axis('off')
         if self.save_path:
