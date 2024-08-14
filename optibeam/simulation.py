@@ -4,7 +4,7 @@ import cv2
 
 from typing import *
 from abc import ABC, abstractmethod
-
+from scipy.stats import beta
 
 class DynamicPatterns:
     """
@@ -394,16 +394,43 @@ class StaticGaussianDistribution(Distribution):
         self.rotation = 0
         self.dx = 0  # translation in x
         self.dy = 0  # translation in y
-        
-    def update_params(self, min_std: float=0.03, max_std: float=0.1, max_intensity: int=10, fade_rate: float=0.5) -> None:
+    
+    def update_params(self, std_1: float=0.15, std_2: float=0.12,
+                      max_intensity: int=10, fade_rate: float=0.5, 
+                      distribution: str="") -> None:
         """
         Update the parameters of the Gaussian distribution.
         """
-        min_std *= min(self._width, self._height) 
-        max_std *= max(self._width, self._height)
-        # Random sigmas
-        self.std_x = np.random.uniform(low=min_std, high=max_std)
-        self.std_y = np.random.uniform(low=self.std_x*0.5, high=self.std_x*1.5)
+        if distribution == "beta":
+            c_x = std_1  # This is the Central value (mode) of the distribution
+            c_y = std_2
+            loc = 0.01  # This shifts the start of the range to +loc from 0
+            scale = 1-loc  # This scales the distribution to span from loc to 1 - loc
+            decay_factor_a = 5 # Multiplying by a factor, e.g., 15, for faster decay
+            decay_factor_b = 15
+            a_x = decay_factor_a * 2 * c_x  
+            b_x = decay_factor_b * 2 * (1 - c_x)
+            a_y = decay_factor_a * 2 * c_y  
+            b_y = decay_factor_b * 2 * (1 - c_y)
+            self.std_x = beta.rvs(a_x, b_x, loc=loc, scale=scale)
+            self.std_y = beta.rvs(a_y, b_y, loc=loc, scale=scale)
+        else:
+            min_std = min(std_1, std_2)
+            max_std = max(std_1, std_2)
+            # Random sigmas in uniform distribution
+            temp = np.random.uniform(low=-1, high=1)
+            std = np.random.uniform(low=min_std, high=max_std)
+            if temp < 0: # ensure the size between x and y are not too different
+                self.std_x = std
+                self.std_y = self.std_x * np.random.uniform(0.5, 1.5)
+            else:
+                self.std_y = std 
+                self.std_x = self.std_y * np.random.uniform(0.5, 1.5)
+        
+        # rescale the stds to the canvas size
+        self.std_x *= self._width
+        self.std_y *= self._height
+        
         # Random intensity with condition (uniform distribution) 
         min_intensity = fade_rate * max_intensity/(fade_rate - 1) 
         self.intensity = np.random.uniform(min_intensity, max_intensity) # this is where to control whether to set this distribution to empty or not probabilistically
