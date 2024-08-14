@@ -415,9 +415,9 @@ def scale_image(narray_img: np.array, scaling_factor: float=0.5) -> np.array:
     return scaled_image
 
 
-def resize_image(narray_img: np.array, new_dimensions: Tuple=(256, 256)) -> np.array:
-     # order=3: Cubic spline, similar to Lanczos
-    return resize(narray_img, new_dimensions, order=3, anti_aliasing=True) 
+def resize_image(narray_img: np.array, new_dimensions: Tuple=(256, 256), order=1) -> np.array:
+    # order=3: Cubic spline, similar to Lanczos
+    return resize(narray_img, new_dimensions, order=order, anti_aliasing=True) 
 
 
 def resize_image_high_quality(narray_img: np.array, new_dimensions: Tuple=(256, 256)) -> np.array:
