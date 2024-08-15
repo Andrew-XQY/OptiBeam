@@ -155,7 +155,7 @@ history = autoencoder.fit(train_X, train_Y,
                         shuffle=True,
                         validation_data=(val_X, val_Y),
                         callbacks=[training.ImageReconstructionCallback(val_X, val_Y, save_path), early_stopping],
-                        verbose=1  
+                        verbose=2  # slurm might record too much if 1
                         )
 
 # ------------------------------ save models -----------------------------------
