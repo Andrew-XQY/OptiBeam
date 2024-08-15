@@ -14,11 +14,13 @@ from datetime import datetime
 import matplotlib.pyplot as plt
 import tensorflow as tf
 import pickle
+import random
+
 print(os.getcwd())
 training.check_tensorflow_gpu()
 training.check_tensorflow_version()
 
-DATASET = "2024-08-09"
+DATASET = "2024-08-15"
 SAVE_TO = f'../results/{DATASET}/' 
 save_path=SAVE_TO + "logs/"
 utils.check_and_create_folder(SAVE_TO)
@@ -124,6 +126,7 @@ train_X = data[:, 1, :, :, :]
 train_Y = data[:, 0, :, :, :]
 
 paths = utils.get_all_file_paths(f'../dataset/{DATASET}/test')
+paths = random.sample(paths, 1000) # randomly select 1000 images for validation
 data = utils.add_progress_bar(iterable_arg_index=0)(loader.load_images)(paths)
 data = np.array(data)
 val_X = data[:, 1, :, :, :]
