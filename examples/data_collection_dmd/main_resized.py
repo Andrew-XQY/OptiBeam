@@ -9,10 +9,10 @@ import json
     
     
 # --------------------- Dataset Parameters --------------------
-number_of_images = 30000  # for simulation, this is the number of images to generate in this batch
-is_params = 0  # if the image contains beam parameters (simulation and MNIST don't)
+number_of_images = 7000  # for simulation, this is the number of images to generate in this batch
+is_params = 1  # if the image contains beam parameters (simulation and MNIST don't)
 calibration = 1  # if include a calibration image (first one in the batch)
-load_from_disk = False  # load images from local disk instead of running simulation
+load_from_disk = True  # load images from local disk instead of running simulation
 include_simulation = False  # add the original loaded image into data samples
 DMD_DIM = 1024  # DMD final loaded image resolution
 # -------------------------------------------------------------
@@ -57,7 +57,7 @@ ConfMeta = metadata.ConfigMetaData()
 # Simulation Initialization (Optional, could just load disk images or any image list instead)
 sim_num = 100    # number of distributions in the simulation
 fade_rate = 0.96  # with 100 sim_num. around 0.96 looks good
-std_1=0.02 
+std_1=0.03 
 std_2=0.2
 # std_1 = 0.15
 # std_2 = 0.12
@@ -94,7 +94,7 @@ image_generator = None
 # Setting up the experiment metadata
 batch = (DB.get_max("mmf_dataset_metadata", "batch") or 0) + 1  # get the current batch number
 experiment_metadata = {
-    "experiment_description": "Gaussian simulation on dmd-training set", # Second dataset using DMD, muit-gaussian distributions, small scale
+    "experiment_description": "Gaussian simulation on dmd-test set", # Second dataset using DMD, muit-gaussian distributions, small scale
     "experiment_location": "DITALab, Cockcroft Institute, UK",
     "experiment_date": datetime.datetime.now().strftime('%Y-%m-%d'),
     "batch": batch,
@@ -217,7 +217,7 @@ try:
         DMD.display_image(display)  # if loading too fast, the DMD might report memory error
         
         # capture the image from the cameras (Scheduled action command)
-        image = MANAGER.schedule_action_command(int(300 * 1e6)) # schedule for milliseconds later
+        image = MANAGER.schedule_action_command(int(200 * 1e6)) # schedule for milliseconds later
         if image is not None:
             img_size = (image.shape[0], int(image.shape[1]//2))  
             if include_simulation:

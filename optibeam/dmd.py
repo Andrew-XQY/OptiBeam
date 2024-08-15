@@ -124,7 +124,7 @@ class ViALUXDMD(DMD):
         self.dmd.SetTiming(pictureTime = 20000) # in microseconds. 50 Hz = 20000 us
         # Run the sequence in a loop
         self.dmd.Run()
-        time.sleep(0.01)
+        # time.sleep(0.01)
 
     def get_metadata(self) -> dict:
         config = {}
