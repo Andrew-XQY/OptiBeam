@@ -753,20 +753,19 @@ def moving_blocks_generator(size: int=256, block_size: int=32, intensity: int=25
                 yield img_array
                 
 def position_intensity_generator(size: int=256, block_size: int=32, 
-                                 intensity: int=50, intensity_step: int=10):
+                                 intensity: int=50, intensity_step: int=5):
     num_blocks = size // block_size
     base_image = np.zeros((size, size), dtype=np.uint8)
-    while True:
-        for i in range(num_blocks):
-            for j in range(num_blocks):
-                img_array = base_image.copy()
-                img_array[i*block_size:(i+1)*block_size, 
-                        j*block_size:(j+1)*block_size] = intensity
-                nonzero_mask = img_array > 0
-                while np.max(img_array) + intensity_step <= 255:
-                    new_image = img_array.copy()
-                    new_image[nonzero_mask] = np.clip(img_array[nonzero_mask] + intensity_step, 0, 255).astype(np.uint8)
-                    yield new_image
-                    img_array = new_image  # Update image to newly adjusted image
+    for i in range(num_blocks):
+        for j in range(num_blocks):
+            img_array = base_image.copy()
+            img_array[i*block_size:(i+1)*block_size, 
+                    j*block_size:(j+1)*block_size] = intensity
+            nonzero_mask = img_array > 0
+            while np.max(img_array) + intensity_step <= 255:
+                new_image = img_array.copy()
+                new_image[nonzero_mask] = np.clip(img_array[nonzero_mask] + intensity_step, 0, 255).astype(np.uint8)
+                yield new_image
+                img_array = new_image  # Update image to newly adjusted image
 
 
