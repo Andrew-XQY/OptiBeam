@@ -1,8 +1,73 @@
 from .utils import *
 import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
+from scipy.stats import pearsonr
+from skimage.metrics import structural_similarity 
 
 '''TODO: This module needs to be refactored and tested'''
+
+
+
+# ------------------- Image based similarity evaluation -------------------
+
+def ssim(image1, image2):
+    assert image1.shape == image2.shape, "Images must have the same dimensions."
+    # Determine the data range based on the image type
+    if image1.dtype == 'float32' or image1.dtype == 'float64':
+        data_range = image1.max() - image1.min()  # Assumes the images are normalized in the same way
+    else:
+        data_range = 255  # Assumes images are 8-bit unsigned integers
+    # Compute SSIM between two images
+    ssim_value = structural_similarity(image1, image2, data_range=data_range)
+    return ssim_value
+
+
+def pcc(image1, image2):
+    # Flatten the images to 1D arrays
+    image1_flat = image1.flatten()
+    image2_flat = image2.flatten()
+    # Compute Pearson correlation coefficient
+    correlation, _ = pearsonr(image1_flat, image2_flat)
+    return correlation
+
+
+def psnr(image1, image2):
+    mse = np.mean((image1 - image2) ** 2)
+    if mse == 0:
+        return float('inf')  # Means the two images are identical
+    max_pixel = 1.0  # Assuming the image pixel values are in the range [0,1]
+    psnr = 20 * np.log10(max_pixel / np.sqrt(mse))
+    return psnr
+
+
+def rmse(image1, image2):
+    """
+    Calculate the root mean squared error between two single-channel images.
+    
+    Parameters:
+    image1 (np.array): First image array.
+    image2 (np.array): Second image array.
+    
+    Returns:
+    float: Root mean squared error between the two images.
+    """
+    # Ensure the images have the same dimensions
+    if image1.shape != image2.shape:
+        raise ValueError("Both images must have the same dimensions")
+    
+    # Calculate RMSE
+    mse = np.mean((image1 - image2) ** 2)
+    return np.sqrt(mse)
+
+
+
+
+
+
+
+
+
+
 
 # ------------------- Image to Parameters Metrics -------------------
 

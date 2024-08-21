@@ -765,7 +765,7 @@ def position_intensity_generator(size: int=256, block_size: int=32,
             while np.max(img_array) + intensity_step <= 255:
                 new_image = img_array.copy()
                 new_image[nonzero_mask] = np.clip(img_array[nonzero_mask] + intensity_step, 0, 255).astype(np.uint8)
-                yield new_image
+                yield new_image, {"position": (i, j), "intensity": np.max(new_image)}
                 img_array = new_image  # Update image to newly adjusted image
 
 

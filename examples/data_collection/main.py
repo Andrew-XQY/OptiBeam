@@ -10,7 +10,7 @@ import json
     
 # --------------------- Dataset Parameters --------------------
 
-number_of_images = 2400 # for simulation, this is the number of images to generate in this batch
+number_of_images = 5000 # for simulation, this is the number of images to generate in this batch
 is_params = 0  # if the image contains beam parameters (simulation and MNIST don't)
 calibration = 1  # if include a calibration image (first one in the batch)
 load_from_disk = False  # load images from local disk instead of running simulation
@@ -57,9 +57,9 @@ ConfMeta = metadata.ConfigMetaData()
 
 # Simulation Initialization (Optional, could just load disk images or any image list instead)
 sim_num = 100    # number of distributions in the simulation
-fade_rate = 0.96  # with 100 sim_num. around 0.96 looks good
-std_1=0.03 
-std_2=0.2
+fade_rate = 0.95  # with 100 sim_num. around 0.96 looks good
+std_1=0.02 
+std_2=0.25
 # std_1 = 0.15
 # std_2 = 0.12
 max_intensity=100
@@ -95,7 +95,7 @@ image_generator = simulation.position_intensity_generator()
 # Setting up the experiment metadata
 batch = (DB.get_max("mmf_dataset_metadata", "batch") or 0) + 1  # get the current batch number
 experiment_metadata = {
-    "experiment_description": "Superposition-7", # Second dataset using DMD, muit-gaussian distributions, small scale
+    "experiment_description": "intensity-position correlation", # Second dataset using DMD, muit-gaussian distributions, small scale
     "experiment_location": "DITALab, Cockcroft Institute, UK",
     "experiment_date": datetime.datetime.now().strftime('%Y-%m-%d'),
     "batch": batch,
@@ -156,11 +156,12 @@ try:
         # ---------------------------------------------------------------------------
         
         # -------------------------------- generator --------------------------------
-        # else:  
-        #     img, sample_info = next(image_generator)
-        #     comment = sample_info
-        # else:  
-        #     img = next(image_generator)
+        else:  
+            output = next(image_generator)
+            if isinstance(output, tuple):
+                img, comment = output
+            else:
+                img = output
         # ---------------------------------------------------------------------------
         
         
@@ -192,23 +193,23 @@ try:
         #     comment = {"item": "time_shift_test", "time": pause_time * count}
         
         
-        else:  # superposition experiment (assum fixed Gaussian distributions in the simulation)
-            sim_num = 7 
-            fade_rate = 0
-            max_intensity = 120
-            group_no = count % (sim_num+1)
-            sub_batch = count // (sim_num+1)
-            if group_no == 0:
-                CANVAS._distributions = [simulation.StaticGaussianDistribution(CANVAS) for _ in range(sim_num)] 
-                CANVAS.update(std_1=std_1, std_2=std_2,
-                              max_intensity=max_intensity, fade_rate=fade_rate)
-                CANVAS.thresholding(1)
-            else:
-                CANVAS.clear_canvas()
-                CANVAS.apply_specific_distribution(group_no-1)
-            img = CANVAS.get_image()
-            comment = {"item": f"superposition_test_{sim_num}", 
-                       "group": sub_batch, "distribution_index":group_no}
+        # else:  # superposition experiment (assum fixed Gaussian distributions in the simulation)
+        #     sim_num = 11 
+        #     fade_rate = 0
+        #     max_intensity = 120
+        #     group_no = count % (sim_num+1)
+        #     sub_batch = count // (sim_num+1)
+        #     if group_no == 0:
+        #         CANVAS._distributions = [simulation.StaticGaussianDistribution(CANVAS) for _ in range(sim_num)] 
+        #         CANVAS.update(std_1=std_1, std_2=std_2,
+        #                       max_intensity=max_intensity, fade_rate=fade_rate)
+        #         CANVAS.thresholding(1)
+        #     else:
+        #         CANVAS.clear_canvas()
+        #         CANVAS.apply_specific_distribution(group_no-1)
+        #     img = CANVAS.get_image()
+        #     comment = {"item": f"superposition_test_{sim_num}", 
+        #                "group": sub_batch, "distribution_index":group_no}
         # ---------------------------------------------------------------------------
         
         
