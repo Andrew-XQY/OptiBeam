@@ -422,10 +422,10 @@ class StaticGaussianDistribution(Distribution):
             std = np.random.uniform(low=min_std, high=max_std)
             if temp < 0: # ensure the size between x and y are not too different
                 self.std_x = std
-                self.std_y = self.std_x * np.random.uniform(0.5, 1.5)
+                self.std_y = self.std_x * np.random.uniform(0.5, 2)
             else:
                 self.std_y = std 
-                self.std_x = self.std_y * np.random.uniform(0.5, 1.5)
+                self.std_x = self.std_y * np.random.uniform(0.5, 2)
         # rescale the stds to the canvas size
         self.std_x *= self._width
         self.std_y *= self._height
@@ -438,8 +438,8 @@ class StaticGaussianDistribution(Distribution):
             # Random Rotation
             angle_degrees = np.random.uniform(0, 360)
             self.rotation = np.deg2rad(angle_degrees)  # Convert angle to radians for rotation
-            self.dx = np.random.uniform(0, self._width//2.5)
-            self.dy = np.random.uniform(0, self._height//2.5)
+            self.dx = np.random.uniform(0, self._width//2.25)
+            self.dy = np.random.uniform(0, self._height//2.25)
         
     def pattern_generation(self) -> np.ndarray:
         """

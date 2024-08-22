@@ -10,10 +10,10 @@ import json
     
 # --------------------- Dataset Parameters --------------------
 
-number_of_images = 5000 # for simulation, this is the number of images to generate in this batch
-is_params = 0  # if the image contains beam parameters (simulation and MNIST don't)
+number_of_images = 7000 # for simulation, this is the number of images to generate in this batch
+is_params = 1  # if the image contains beam parameters (simulation and MNIST don't)
 calibration = 1  # if include a calibration image (first one in the batch)
-load_from_disk = False  # load images from local disk instead of running simulation
+load_from_disk = True  # load images from local disk instead of running simulation
 include_simulation = False  # add the original loaded image into data samples
 DMD_DIM = 1024  # DMD final loaded image resolution
 # -------------------------------------------------------------
@@ -57,12 +57,12 @@ ConfMeta = metadata.ConfigMetaData()
 
 # Simulation Initialization (Optional, could just load disk images or any image list instead)
 sim_num = 100    # number of distributions in the simulation
-fade_rate = 0.95  # with 100 sim_num. around 0.96 looks good
-std_1=0.02 
-std_2=0.25
+fade_rate = 0.94  # with 100 sim_num. around 0.96 looks good
+std_1=0.01 
+std_2=0.2
 # std_1 = 0.15
 # std_2 = 0.12
-max_intensity=100
+max_intensity=85
 dim = 512   # simulation image resolution 
 
 stride = 5  # number of simulation updates per image, only for dynamic simulation
@@ -95,7 +95,7 @@ image_generator = simulation.position_intensity_generator()
 # Setting up the experiment metadata
 batch = (DB.get_max("mmf_dataset_metadata", "batch") or 0) + 1  # get the current batch number
 experiment_metadata = {
-    "experiment_description": "intensity-position correlation", # Second dataset using DMD, muit-gaussian distributions, small scale
+    "experiment_description": "DMD-training-50000", # Second dataset using DMD, muit-gaussian distributions, small scale
     "experiment_location": "DITALab, Cockcroft Institute, UK",
     "experiment_date": datetime.datetime.now().strftime('%Y-%m-%d'),
     "batch": batch,
@@ -146,22 +146,22 @@ try:
         # ---------------------------------------------------------------------------
         
         # ------------------------------- simulation --------------------------------
-        # else:
-        #     CANVAS.update(std_1=std_1, std_2=std_2,
-        #                   max_intensity=max_intensity, fade_rate=fade_rate,
-        #                   distribution='normal') 
-        #     #CANVAS.thresholding(1)
-        #     img = CANVAS.get_image()
-        #     comment = CANVAS.num_of_distributions()
+        else:
+            CANVAS.update(std_1=std_1, std_2=std_2,
+                          max_intensity=max_intensity, fade_rate=fade_rate,
+                          distribution='normal') 
+            #CANVAS.thresholding(1)
+            img = CANVAS.get_image()
+            comment = CANVAS.num_of_distributions()
         # ---------------------------------------------------------------------------
         
         # -------------------------------- generator --------------------------------
-        else:  
-            output = next(image_generator)
-            if isinstance(output, tuple):
-                img, comment = output
-            else:
-                img = output
+        # else:  
+        #     output = next(image_generator)
+        #     if isinstance(output, tuple):
+        #         img, comment = output
+        #     else:
+        #         img = output
         # ---------------------------------------------------------------------------
         
         
