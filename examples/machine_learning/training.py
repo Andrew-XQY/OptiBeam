@@ -15,14 +15,25 @@ import matplotlib.pyplot as plt
 import tensorflow as tf
 import pickle
 import random
+import gc
 
 print(os.getcwd())
 training.check_tensorflow_gpu()
 training.check_tensorflow_version()
+os.environ['TF_GPU_ALLOCATOR'] = 'cuda_malloc_async'
 
-DATASET = "2024-08-22"
-SAVE_TO = f'../results/{DATASET}/' 
-save_path=SAVE_TO + "logs/"
+dev_flag = True
+if dev_flag:
+    DATASET = "dev"
+    DATASET_PATH = f'C:/Users/qiyuanxu/Documents/ResultsCenter/datasets/{DATASET}/'
+    SAVE_TO = f'C:/Users/qiyuanxu/Documents/ResultsCenter/result/{DATASET}/' 
+    save_path=SAVE_TO + "logs/"
+else:
+    DATASET = "2024-08-22"
+    DATASET_PATH = f'../dataset/{DATASET}/'
+    SAVE_TO = f'../results/{DATASET}/' 
+    save_path=SAVE_TO + "logs/"
+    
 utils.check_and_create_folder(SAVE_TO)
 utils.check_and_create_folder(SAVE_TO+'models')
 utils.check_and_create_folder(save_path)
@@ -113,32 +124,44 @@ def Autoencoder(input_shape):
 
 
 
-
 # ------------------------------ dataset preparation -----------------------------------
-
-paths = utils.get_all_file_paths(f'../dataset/{DATASET}/training')
+        
+paths = utils.get_all_file_paths(DATASET_PATH + 'training')
 process_funcs = [np.array, utils.rgb_to_grayscale, utils.image_normalize, utils.split_image, 
-                 lambda x : (np.expand_dims(x[0], axis=-1), np.expand_dims(x[1], axis=-1))]
+                 lambda x : (np.expand_dims(x[1], axis=-1), np.expand_dims(x[0], axis=-1))]
 loader = utils.ImageLoader(process_funcs)
 data = utils.add_progress_bar(iterable_arg_index=0)(loader.load_images)(paths)
 data = np.array(data)
-train_X = data[:, 1, :, :, :]
-train_Y = data[:, 0, :, :, :]
+total_train_images = len(data)
+train_dataset = tf.data.Dataset.from_tensor_slices((data[:, 0, :, :, :], data[:, 1, :, :, :]))
+train_dataset = train_dataset.shuffle(buffer_size=10000).batch(4).prefetch(tf.data.AUTOTUNE)
+del data
+gc.collect()
 
-paths = utils.get_all_file_paths(f'../dataset/{DATASET}/test')
-paths = random.sample(paths, 500) # randomly select 500 images for validation
+# print(f'train_X memory: {train_X.nbytes/ 1024**3}GB, train_Y memory: {train_Y.nbytes/ 1024**3}GB')
+
+paths = utils.get_all_file_paths(DATASET_PATH + 'test')
+paths = random.sample(paths, min(500, len(paths))) # randomly select 500 images for validation
 data = utils.add_progress_bar(iterable_arg_index=0)(loader.load_images)(paths)
 data = np.array(data)
-val_X = data[:, 1, :, :, :]
-val_Y = data[:, 0, :, :, :]
+val_X = data[:, 0, :, :, :]
+val_Y = data[:, 1, :, :, :]
+val_dataset = tf.data.Dataset.from_tensor_slices((val_X, val_Y))
+val_dataset = val_dataset.batch(4)  # No need to shuffle validation data
 
-print(f"training input shape:{train_X.shape}\n" + f"training output shape:{train_Y.shape}")
+sample = train_dataset.take(1)
+for batch in sample:
+    sample_X = batch[0][0]
+    sample_Y = batch[1][0]
+    shape = sample_X.shape
+    print(f"Training input shape:{(total_train_images, *sample_X.shape)}\n" + f"Training output shape:{(total_train_images, *sample_Y.shape)}")
+    break
 print(f"validation input shape:{val_X.shape}\n" + f"validation output shape:{val_Y.shape}")
 
 
 # ------------------------------ model training -----------------------------------
 
-shape = train_X.shape[1:]
+
 autoencoder = Autoencoder(shape)
 autoencoder.summary()
 print(f"model size: {autoencoder.count_params() * 4 / (1024**2)} MB") 
@@ -149,14 +172,15 @@ early_stopping = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=1
 adam_optimizer = tf.keras.optimizers.Adam(learning_rate=0.0001)
 autoencoder.compile(optimizer=adam_optimizer, 
                     loss=tf.keras.losses.MeanSquaredError())
-history = autoencoder.fit(train_X, train_Y,
-                        epochs=80,
-                        batch_size=4,
-                        shuffle=True,
-                        validation_data=(val_X, val_Y),
-                        callbacks=[training.ImageReconstructionCallback(val_X, val_Y, save_path), early_stopping],
-                        verbose=2  # slurm might record too much if 1
-                        )
+
+
+history = autoencoder.fit(
+    train_dataset,  # Dataset already includes batching and shuffling
+    epochs=80,
+    validation_data=val_dataset,
+    callbacks=[training.ImageReconstructionCallback(val_X, val_Y, save_path), early_stopping],
+    verbose=1 if dev_flag else 2  # Less verbose output suitable for large logs
+)
 
 # ------------------------------ save models -----------------------------------
 
