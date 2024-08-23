@@ -10,10 +10,10 @@ import json
     
 # --------------------- Dataset Parameters --------------------
 
-number_of_images = 7000 # for simulation, this is the number of images to generate in this batch
-is_params = 1  # if the image contains beam parameters (simulation and MNIST don't)
+number_of_images = 50000 # for simulation, this is the number of images to generate in this batch
+is_params = 0  # if the image contains beam parameters (simulation and MNIST don't)
 calibration = 1  # if include a calibration image (first one in the batch)
-load_from_disk = True  # load images from local disk instead of running simulation
+load_from_disk = False  # load images from local disk instead of running simulation
 include_simulation = False  # add the original loaded image into data samples
 DMD_DIM = 1024  # DMD final loaded image resolution
 # -------------------------------------------------------------
@@ -47,8 +47,8 @@ MANAGER.synchronization()
 # test_img = MANAGER.schedule_action_command(int(300 * 1e6)) # schedule for milliseconds later
 # crop_areas = processing.select_crop_areas_center(test_img, num=2, scale_factor=0.4) 
 # print("Crop areas selected: ", crop_areas)
-crop_areas = [((870, 432), (1030, 592)), ((2315, 57), (3385, 1127))]  # manually set the crop areas
-
+# crop_areas = [((870, 432), (1030, 592)), ((2315, 57), (3385, 1127))]  # manually set the crop areas
+crop_areas = [((870, 430), (1030, 590)), ((2800, 435), (3000, 635))]
 
 # Database Initialization
 DB = database.SQLiteDB(DATABASE_ROOT)
@@ -103,8 +103,8 @@ experiment_metadata = {
     "image_device": "dmd",  # scintillation-screen, dmd, slm, led, OTR.
     "fiber_config": {
         "fiber_length": "5 m",
-        "fiber_name": "1500 micrometer Core-diameter 0.50 NA Step-Index Multimode Fiber Patch Cable",
-        "fiber_url": "https://www.thorlabs.com/newgrouppage9.cfm?objectgroup_id=362&pn=FP1500ERT",
+        "fiber_name": "600 micrometer Core-diameter Step-Index Multimode Fiber Patch Cable",
+        "fiber_url": "",
     },
     "camera_config": MANAGER.get_metadata(),
     "other_config": {

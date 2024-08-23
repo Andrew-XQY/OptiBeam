@@ -169,7 +169,8 @@ DMD_DIM = 1024
 
 if __name__ == "__main__":
     DMD = dmd.ViALUXDMD(ALP4(version = '4.3'))
-    calibration_img = simulation.generate_radial_gradient()
+    # calibration_img = simulation.generate_radial_gradient()
+    calibration_img = np.ones((256, 256)) * 255
     # calibration_img = simulation.dmd_calibration_pattern_generation()
     calibration_img = simulation.macro_pixel(calibration_img, size=int(DMD_DIM/calibration_img.shape[0])) 
     DMD.display_image(dmd.dmd_img_adjustment(calibration_img, DMD_DIM)) # preload one image for camera calibration

@@ -136,10 +136,13 @@ class ViALUXDMD(DMD):
         """
         Stop the sequence display and deallocate the device.
         """
-        self.dmd.Halt() 
-        self.dmd.FreeSeq()  # Free the sequence from the onboard memory
-        self.dmd.Free()  # De-allocate the device
-        print("DMD Device deallocated, sequence stopped.")
+        try:
+            self.dmd.Halt() 
+            self.dmd.FreeSeq()  # Free the sequence from the onboard memory
+            self.dmd.Free()  # De-allocate the device
+            print("DMD Device deallocated, sequence stopped.")
+        except:
+            pass
 
 
 def dmd_img_adjustment(display, DMD_DIM, angle=47):
