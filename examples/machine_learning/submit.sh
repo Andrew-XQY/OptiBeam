@@ -6,9 +6,9 @@
 #SBATCH --nodes=1                                       # Number of nodes
 #SBATCH --ntasks-per-node=1                             # Number of tasks per node
 #SBATCH --gres=gpu:1                                    # Number of GPUs per task
-#SBATCH --mem=32G                                       # Memory per node
+#SBATCH --mem=64G                                       # Memory per node
 #SBATCH --cpus-per-task=8                               # Number of CPU cores per task
-#SBATCH --time=12:00:00                                 # Time limit hrs:min:sec
+#SBATCH --time=20:00:00                                 # Time limit hrs:min:sec
 
 # Load necessary modules
 module load apps/apptainer

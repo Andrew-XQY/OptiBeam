@@ -253,7 +253,7 @@ try:
             print(f"Image {count+1} captured.")
             count += 1
             calibration = 0
-            DMD.free_memory()
+        DMD.free_memory()
             
 except Exception as e:
     print(f"An error occured, data collection stopped. {e}")
