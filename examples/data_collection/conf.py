@@ -8,8 +8,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 from contextlib import ContextDecorator
 
-DATABASE_ROOT = "../../ResultsCenter/db/liverpool.db"
-DATASET_ROOT = "../../ResultsCenter/dataset/"
+DATABASE_ROOT = "../../ResultsCenter/experiment/db/liverpool.db"
+DATASET_ROOT = "../../ResultsCenter/experiment/dataset/"
 
 class ChangeDirToFileLocation(ContextDecorator):
     def __enter__(self):

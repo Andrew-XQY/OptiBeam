@@ -1,7 +1,8 @@
-from abc import ABC, abstractmethod
-from ALP4 import *
 import time
 import cv2
+from abc import ABC, abstractmethod
+from ALP4 import *
+
 
 # https://github.com/wavefrontshaping/ALP4lib
 

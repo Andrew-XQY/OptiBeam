@@ -1,9 +1,102 @@
 import tensorflow as tf
-import pandas as pd
 import numpy as np
-from PIL import Image
 import ast
 
+from PIL import Image
+from abc import ABC, abstractmethod
+from typing import *
+from .utils import get_all_file_paths
+from .database import Database
+
+class DataLoader(ABC):
+    @abstractmethod
+    def regression(self, *args, **kwargs) -> None:
+        pass
+    
+    @abstractmethod
+    def reconstruction(self, *args, **kwargs) -> None:
+        pass
+    
+class DataLoaderTF(DataLoader):
+    def __init__(self, dirs=None) -> None:
+        self.dirs = dirs
+        self.batch_size = None
+        
+    def __len__(self):
+        return len(self.dirs) // self.batch_size if self.batch_size else len(self.dirs)
+    
+    def get_directory(self):
+        return self.dirs
+        
+    def dirs_from_sql(self, DB: Database, sql_query: str=None) -> None:
+        self.dirs = DB.sql_select(sql_query)
+    
+    def dirs_from_root(self, root_dir, types=None) -> None:
+        self.dirs = get_all_file_paths(root_dir, types=types)
+        
+    def fast_preprocess(self, image, image_size) -> tf.Tensor:
+        """_summary_
+        using only tf native functions to preprocess image
+        
+        Args:
+            image (_type_): _description_
+            image_size (_type_): _description_
+
+        Returns:
+            tf.Tensor
+        """
+        image = tf.image.resize(image, image_size)
+        image = tf.cast(image, tf.float32) / 255.0
+        return image
+    
+    @tf.function
+    def preprocess_image(self, path, preprocessing_funcs):
+        # Load the image file
+        image = tf.io.read_file(path)
+        image = tf.image.decode_jpeg(image, channels=3)  # Adjust 'decode_jpeg' based on your image file format
+
+        # Apply each preprocessing function passed in the list
+        if preprocessing_funcs:
+            for func in preprocessing_funcs:
+                if callable(func):
+                    image = func(image)
+                else:
+                    tf.print("Warning: Non-callable preprocessing function skipped.")
+        return image
+    
+    def regression(self, batch_size, preprocessing_funcs: list[Iterable]=None, buffer_size=1000) -> tf.data.Dataset:
+        pass
+
+    def reconstruction(self, batch_size, preprocessing_funcs: list[Iterable]=None, buffer_size=1000) -> tf.data.Dataset:
+        """
+        Create a TensorFlow tf.data.Dataset for loading and preprocessing images.
+        
+        Args:
+            directories: List of directories containing images
+            batch_size: Batch size
+            image_size: Tuple of image dimensions (height, width)
+            preprocessing_funcs: List of preprocessing closure functions to apply to each image
+            buffer_size: Number of images to prefetch
+        
+        returns:
+            dataset: TensorFlow Dataset object
+
+        """
+        # Create a dataset from file paths
+        path_ds = tf.data.Dataset.from_tensor_slices(self.dirs)
+        
+        # Map the load_and_preprocess_image function to each file path
+        image_ds = path_ds.map(self.load_and_preprocess_image, num_parallel_calls=tf.data.AUTOTUNE)
+
+        # Shuffle, batch, and prefetch the dataset
+        dataset = image_ds.shuffle(buffer_size=buffer_size)
+        dataset = dataset.batch(batch_size)
+        dataset = dataset.prefetch(buffer_size=tf.data.AUTOTUNE)
+
+        return dataset
+
+
+# ----------------- old data pipeline ----------------- #
 class DataPipeline:
     def __init__(self, df, shape):
         self.df = df
@@ -41,19 +134,3 @@ class DataPipeline:
             output_types=(tf.float32, tf.float32),
             output_shapes=(self.shape, self.shape)
         ).prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
-
-
-
-# train_batch = ['train']
-# valid_batch = ['valid']
-# test_batch = ['test']
-# dim = (256, 256)
-# shape = (None, 256, 256, 1)
-# batch_size = 32
-
-# datasets = []
-
-# for batch in [train_batch, valid_batch, test_batch]:
-#     datasets.append(create_tf_dataset(df, batch, dim, shape))
-
-# train, valid, test = datasets

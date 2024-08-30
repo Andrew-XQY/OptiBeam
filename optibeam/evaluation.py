@@ -3,9 +3,50 @@ import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
 from scipy.stats import pearsonr
 from skimage.metrics import structural_similarity 
+from abc import ABC, abstractmethod
 
-'''TODO: This module needs to be refactored and tested'''
 
+# ------------------- Unified evaluation framework -------------------
+class Model:
+    def __init__(self, model_path: str):
+        self.model_path = model_path
+        
+    @abstractmethod
+    def inference(self, image) -> dict:
+        """Reconstruct the beam parameters using the model."""
+        pass
+
+    @abstractmethod
+    def reconstruction(self, image) -> np.array:
+        """Reconstruct the image using the model."""
+        pass
+
+class Evaluation:
+    def __init__(self, model, dataset, save_to: str = None):
+        self.model = model
+        self.dataset = dataset
+        self.save_to = save_to
+        
+        
+    def check_validity(self, prediction, requirement: dict) -> bool:
+        """Check if the prediction is within the valid range."""
+        pass
+        
+    def regression_inference(self, image) -> dict:
+        """Reconstruct the beam parameters using the model."""
+        pass
+    
+    def reconstruction_inference(self, image) -> np.array:
+        """Reconstruct the image using the model."""
+        pass
+
+    def random_sample(self, n_samples=1):
+        """Randomly sample n_samples from the dataset."""
+        pass
+
+    def image_reonstruction(self, image):
+        """Reconstruct the image using the model."""
+        pass
 
 
 # ------------------- Image based similarity evaluation -------------------
@@ -60,16 +101,7 @@ def rmse(image1, image2):
     return np.sqrt(mse)
 
 
-
-
-
-
-
-
-
-
-
-# ------------------- Image to Parameters Metrics -------------------
+# ------------------- Image to Parameters Metrics (past)  -------------------
 
 # Define the Gaussian function
 def gaussian(x, a, mu, sigma):
@@ -190,12 +222,7 @@ def calculate_rmse(y_actual: Iterable, y_predicted: Iterable):
     rmse = np.sqrt(mse)  # Root Mean Square Error
     return rmse
 
-
-
-
 # ------------------- image illustraion/visualization functions -------------------
-
-
 def plot_gaussian_fit(image):
     """
     Plot the horizontal and vertical histograms of the image, and the Gaussian fit.
@@ -278,7 +305,3 @@ def plot_gaussian_fit(image):
     plt.tight_layout()
     # plt.show()
     return fig
-    
-
-
-# ------------------- dataset clean -------------------

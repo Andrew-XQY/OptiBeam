@@ -240,7 +240,7 @@ try:
                     "max_pixel_value":img.max(),
                     "image_descriptions":json.dumps({**({"simulation_img": img_size} if include_simulation else {}), 
                                                      "ground_truth_img": img_size, "fiber_output_img": img_size}),
-                    "image_path":os.path.abspath(image_path),
+                    "image_path":filename + '.png', # os.path.abspath(image_path)
                     "config_id":config_id,
                     "batch":batch,
                     "comments":comment

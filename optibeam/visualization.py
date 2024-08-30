@@ -16,11 +16,6 @@ def image_batch_intensity_distribution(images : np.array):
 
 
 
-
-
-
-
-
 # ------------------- Plot evaluation -------------------
 
 def plot_prediction_comparison(real : np.array, predicted : np.array, param_name=''):
@@ -124,8 +119,9 @@ class visualPCA:
         clip = ImageSequenceClip(clips, fps=fps)
         clip.write_gif(save_to + '/sample.gif')
 
-# ------------------- plot image -------------------
 
+
+# ------------------- plot image -------------------
 def plot_narray(narray_img, channel=1):    
     """
     Plot a 2D NumPy array as an image.
@@ -168,9 +164,6 @@ def check_intensity(img, cmap='gray'):
     plt.show()
 
 
-
-
-
 def save_gif(image_arrays, frame_rate, save_path):
     """
     Saves a list of numpy arrays as a GIF.
@@ -189,41 +182,7 @@ def save_gif(image_arrays, frame_rate, save_path):
                 img = (img * 255).astype(np.float64)  # Normalize and convert to uint8 if not already
             writer.append_data(img)
             
-
-
-# def save_as_matplotlib_style_gif(image_arrays, frame_rate, save_path, cmap='gray'):
-#     """
-#     Saves a list of numpy arrays as a GIF, styled to resemble matplotlib plots.
-
-#     Args:
-#     image_arrays (iterable of np.array): Iterable of numpy arrays where each array represents an image.
-#     frame_rate (float): Number of frames per second.
-#     save_path (str): Path to save the GIF file.
-
-#     Returns:
-#     None
-#     """
-#     images = []
-#     for img in image_arrays:
-#         # Plot the image array with matplotlib to capture the style
-#         fig, ax = plt.subplots()
-#         ax.imshow(img, aspect='equal', cmap=cmap)  # 'viridis' is a common matplotlib colormap
-#         #ax.axis('off')  # Hide axes for a cleaner look
-
-#         # Convert the matplotlib plot to an image array
-#         fig.canvas.draw()
-#         plot_image = np.frombuffer(fig.canvas.tostring_rgb(), dtype='uint8')
-#         plot_image = plot_image.reshape(fig.canvas.get_width_height()[::-1] + (3,))
-
-#         # Append the styled image to the GIF
-#         images.append(plot_image)
-#         plt.close(fig)
-        
-#     clip = ImageSequenceClip(images, fps=frame_rate)
-#     clip.write_gif(save_path)
-
-
-
+            
 def save_as_matplotlib_style_gif(image_arrays, frame_rate, save_path, cmap='gray'):
     """
     Saves a list of numpy arrays as a GIF, styled to resemble matplotlib plots,
@@ -260,8 +219,6 @@ def save_as_matplotlib_style_gif(image_arrays, frame_rate, save_path, cmap='gray
     # Create GIF using moviepy
     clip = ImageSequenceClip(images, fps=frame_rate)
     clip.write_gif(save_path)
-
-
 
 
 def create_gif_from_png_paths(png_paths, save_path, duration):
