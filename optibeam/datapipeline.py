@@ -18,7 +18,7 @@ class DataLoader(ABC):
     def reconstruction(self, *args, **kwargs) -> None:
         """return a tf.data.Dataset for reconstruction task (input: image, output: image)"""
         pass
-    
+
 class DataLoaderTF(DataLoader):
     def __init__(self, dirs=None) -> None:
         self.dirs = dirs
@@ -37,6 +37,7 @@ class DataLoaderTF(DataLoader):
     def dirs_from_root(self, root_dir, types=None) -> None:
         self.dirs = get_all_file_paths(root_dir, types=types)
     
+    @tf.function
     def fast_preprocess_image(self, sample) -> tf.Tensor:
         """_summary_
         using only tf native functions to preprocess image, much faster because compatible with computation graph.
@@ -57,7 +58,6 @@ class DataLoaderTF(DataLoader):
         image2 = image[:, half_width:, :]
         return (image1, image2)
     
-    @tf.function
     def preprocess_image(self, path):
         # Load the image file
         with Image.open(path) as img:
@@ -72,10 +72,7 @@ class DataLoaderTF(DataLoader):
                         tf.print("Warning: Non-callable preprocessing function skipped.")
         return data_sample
     
-    def regression(self, batch_size, buffer_size=1000, native=True) -> tf.data.Dataset:
-        pass
-
-    def reconstruction(self, batch_size, buffer_size=1000, native=True) -> tf.data.Dataset:
+    def reconstruction(self, batch_size, buffer_size=1000, native_tf=True) -> tf.data.Dataset:
         """
         Create a TensorFlow tf.data.Dataset for loading and preprocessing images.
         
@@ -88,24 +85,22 @@ class DataLoaderTF(DataLoader):
         
         returns:
             dataset: TensorFlow Dataset object
-
         """
-        
         # Create a dataset from file paths
         path_ds = tf.data.Dataset.from_tensor_slices(self.dirs)
         # Map the load_and_preprocess_image function to each file path
-        if native:
+        if native_tf:
             image_ds = path_ds.map(self.fast_preprocess_image, num_parallel_calls=tf.data.AUTOTUNE)
         else:
             image_ds = path_ds.map(self.preprocess_image, num_parallel_calls=tf.data.AUTOTUNE)
-
         # Shuffle, batch, and prefetch the dataset
         dataset = image_ds.shuffle(buffer_size=buffer_size)
         dataset = dataset.batch(batch_size)
         dataset = dataset.prefetch(buffer_size=tf.data.AUTOTUNE)
         return dataset
-
-
+    
+    def regression(self, batch_size, buffer_size=1000, native_tf=True) -> tf.data.Dataset:
+        pass
 
 
 # ----------------- old data pipeline ----------------- #

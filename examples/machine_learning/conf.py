@@ -29,6 +29,4 @@ with ChangeDirToFileLocation():
     import optibeam.processing as processing
     import optibeam.evaluation as evaluation
     import optibeam.training as training
-    # import optibeam.metadata as metadata
-    # import optibeam.visualization as visualization
-
+    import optibeam.datapipeline as datapipeline
