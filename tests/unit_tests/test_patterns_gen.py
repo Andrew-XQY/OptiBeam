@@ -7,7 +7,7 @@ import time
 # intensity saturation problem (loosing some spatial information? maybe need to fix on the canvas level? depends on the nature and number of distributions?)
 # mimic simplified quadrapole transform in the canvas? (develop some possible transformations on the canvas level)
 
-d = 256
+d = 512
 dim = (d, d)
 canvas = simulation.DynamicPatterns(*dim)
 # canvas._distributions = [simulation.GaussianDistribution(canvas) for _ in range(20)] 
