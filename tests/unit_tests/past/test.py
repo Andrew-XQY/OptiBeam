@@ -1,3 +1,116 @@
+
+
+class DataLoader(ABC):
+    @abstractmethod
+    def regression(self, *args, **kwargs) -> None:
+        """return a tf.data.Dataset for regression task (input: image, output: vector of scalars)"""
+        pass
+    
+    @abstractmethod
+    def reconstruction(self, *args, **kwargs) -> None:
+        """return a tf.data.Dataset for reconstruction task (input: image, output: image)"""
+        pass
+
+class DataLoaderTF(DataLoader):
+    def __init__(self, dirs=None) -> None:
+        self.dirs = dirs
+        self.batch_size = None
+        self.preprocessing_funcs = None
+        
+    def __len__(self):
+        return len(self.dirs) // self.batch_size if self.batch_size else len(self.dirs)
+    
+    def get_directory(self):
+        return self.dirs
+        
+    def dirs_from_sql(self, DB: Database, sql_query: str=None, column: str='image_path') -> None:
+        self.dirs = DB.sql_select(sql_query)[column].tolist()
+    
+    def dirs_from_root(self, root_dir, types=None) -> None:
+        self.dirs = get_all_file_paths(root_dir, types=types)
+    
+    @tf.function
+    def fast_preprocess_image(self, sample) -> tf.Tensor:
+        """_summary_
+        using only tf native functions to preprocess image, much faster because compatible with computation graph.
+        
+        Args:
+            image (_type_): _description_
+        Returns:
+            tf.Tensor
+        """
+        image = tf.io.read_file(sample)
+        image = tf.image.decode_image(image, channels=3, expand_animations=False)
+        image = tf.image.convert_image_dtype(image, tf.float32)
+        image = tf.image.rgb_to_grayscale(image)
+        # Split the image
+        width = tf.shape(image)[1]
+        half_width = width // 2
+        image1 = image[:, :half_width, :]
+        image2 = image[:, half_width:, :]
+        return (image1, image2)
+    
+    def preprocess_image(self, path):
+        # Load the image file
+        with Image.open(path) as img:
+            # Convert the image to a NumPy array
+            data_sample = np.array(img)
+            # Apply each preprocessing function passed in the list
+            if self.preprocessing_funcs:
+                for func in self.preprocessing_funcs:
+                    if callable(func):
+                        data_sample = func(data_sample)
+                    else:
+                        tf.print("Warning: Non-callable preprocessing function skipped.")
+        return data_sample
+    
+    def reconstruction(self, batch_size, buffer_size=1000, native_tf=True) -> tf.data.Dataset:
+        """
+        Create a TensorFlow tf.data.Dataset for loading and preprocessing images.
+        
+        Args:
+            directories: List of directories containing images
+            batch_size: Batch size
+            image_size: Tuple of image dimensions (height, width)
+            preprocessing_funcs: List of preprocessing closure functions to apply to each image
+            buffer_size: Number of images to prefetch
+        
+        returns:
+            dataset: TensorFlow Dataset object
+        """
+        # Create a dataset from file paths
+        path_ds = tf.data.Dataset.from_tensor_slices(self.dirs)
+        # Map the load_and_preprocess_image function to each file path
+        if native_tf:
+            image_ds = path_ds.map(self.fast_preprocess_image, num_parallel_calls=tf.data.AUTOTUNE)
+        else:
+            image_ds = path_ds.map(self.preprocess_image, num_parallel_calls=tf.data.AUTOTUNE)
+        # Shuffle, batch, and prefetch the dataset
+        dataset = image_ds.shuffle(buffer_size=buffer_size)
+        dataset = dataset.batch(batch_size)
+        dataset = dataset.prefetch(buffer_size=tf.data.AUTOTUNE)
+        return dataset
+    
+    def regression(self, batch_size, buffer_size=1000, native_tf=True) -> tf.data.Dataset:
+        pass
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 from PIL import Image, ImageDraw, ImageFont
 
 def create_counting_gif(filename, frame_duration, start=0, end=999):

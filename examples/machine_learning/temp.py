@@ -6,7 +6,6 @@ script_path = os.path.abspath(__file__)  # Get the absolute path of the current 
 up_two_levels = os.path.join(os.path.dirname(script_path), '../../')
 normalized_path = os.path.normpath(up_two_levels)
 os.chdir(normalized_path) # Change the current working directory to the normalized path
-# os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
 
 from conf import *
 import numpy as np 
@@ -125,22 +124,39 @@ def Autoencoder(input_shape):
 
 
 # ------------------------------ dataset preparation -----------------------------------
-ROOT = 'C:/Users/qiyuanxu/Documents/ResultsCenter/datasets/'
-DATASET = '2024-08-15'
-DATABASE_ROOT = os.path.join(ROOT, DATASET, "db/liverpool.db")
-DB = database.SQLiteDB(DATABASE_ROOT)
+        
+paths = utils.get_all_file_paths(DATASET_PATH + 'training')
+process_funcs = [np.array, utils.rgb_to_grayscale, utils.image_normalize, utils.split_image, 
+                 lambda x : (np.expand_dims(x[1], axis=-1), np.expand_dims(x[0], axis=-1))]
+loader = utils.ImageLoader(process_funcs)
+data = utils.add_progress_bar(iterable_arg_index=0)(loader.load_images)(paths)
+data = np.array(data)
+total_train_images = len(data)
+train_dataset = tf.data.Dataset.from_tensor_slices((data[:, 0, :, :, :], data[:, 1, :, :, :]))
+train_dataset = train_dataset.shuffle(buffer_size=10000).batch(4).prefetch(tf.data.AUTOTUNE)
+del data
+gc.collect()
 
-dataloader = datapipeline.DataLoaderTF()
-sql = "SELECT image_path FROM mmf_dataset_metadata WHERE is_calibration = 0 and comments = 2;"
-dataloader.dirs_from_sql(DB, sql)
-DB.close()
+# print(f'train_X memory: {train_X.nbytes/ 1024**3}GB, train_Y memory: {train_Y.nbytes/ 1024**3}GB')
 
-print(len(dataloader))
+paths = utils.get_all_file_paths(DATASET_PATH + 'test')
+paths = random.sample(paths, min(500, len(paths))) # randomly select 500 images for validation
+data = utils.add_progress_bar(iterable_arg_index=0)(loader.load_images)(paths)
+data = np.array(data)
+val_X = data[:, 0, :, :, :]
+val_Y = data[:, 1, :, :, :]
+val_dataset = tf.data.Dataset.from_tensor_slices((val_X, val_Y))
+val_dataset = val_dataset.batch(4)  # No need to shuffle validation data
 
-generator = dataloader.reconstruction(batch_size=4, buffer_size=1000, native_tf=True)
-# tmp = generator.take(1)
-# print(tmp)
-exit()
+sample = train_dataset.take(1)
+for batch in sample:
+    sample_X = batch[0][0]
+    sample_Y = batch[1][0]
+    shape = sample_X.shape
+    print(f"Training input shape:{(total_train_images, *sample_X.shape)}\n" + f"Training output shape:{(total_train_images, *sample_Y.shape)}")
+    break
+print(f"validation input shape:{val_X.shape}\n" + f"validation output shape:{val_Y.shape}")
+
 
 # ------------------------------ model training -----------------------------------
 
