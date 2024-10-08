@@ -3,7 +3,6 @@ script_path = os.path.abspath(__file__)  # Get the absolute path of the current 
 up_two_levels = os.path.join(os.path.dirname(script_path), '../../')
 normalized_path = os.path.normpath(up_two_levels)
 os.chdir(normalized_path) # Change the current working directory to the normalized path
-# os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
 
 from conf import *
 import numpy as np 
@@ -19,21 +18,21 @@ training.check_tensorflow_gpu()
 training.check_tensorflow_version()
 os.environ['TF_GPU_ALLOCATOR'] = 'cuda_malloc_async'
 
+DATASET = "2024-08-23"
 dev_flag = True
 if dev_flag:
-    DATASET = "dev"
-    DATASET_PATH = f'C:/Users/qiyuanxu/Documents/ResultsCenter/datasets/{DATASET}/'
-    SAVE_TO = f'C:/Users/qiyuanxu/Documents/ResultsCenter/result/{DATASET}/' 
-    save_path=SAVE_TO + "logs/"
+    ABS_DIR = f"C:/Users/qiyuanxu/Documents/ResultsCenter/datasets/{DATASET}/"
+    SAVE_TO = f'C:/Users/qiyuanxu/Documents/ResultsCenter/result/dev/{DATASET}/' 
+    DATABASE_ROOT = ABS_DIR + "db/liverpool.db"
 else:
-    DATASET = "2024-08-22"
-    DATASET_PATH = f'../dataset/{DATASET}/'
+    ABS_DIR = f'../dataset/{DATASET}/'
     SAVE_TO = f'../results/{DATASET}/' 
-    save_path=SAVE_TO + "logs/"
+    DATABASE_ROOT = ABS_DIR + "db/liverpool.db"
     
+log_save_path=SAVE_TO + "logs/"
 utils.check_and_create_folder(SAVE_TO)
 utils.check_and_create_folder(SAVE_TO+'models')
-utils.check_and_create_folder(save_path)
+utils.check_and_create_folder(log_save_path)
 
 
 @tf.keras.utils.register_keras_serializable()
@@ -119,6 +118,63 @@ def Autoencoder(input_shape):
     # return tf.keras.Model(inputs=inputs, outputs=x)
 
 
-
-
 # ------------------------------ dataset preparation -----------------------------------
+
+def load_and_process_image(path):
+    image = tf.io.read_file(path) # Read the image file
+    # Decode the image to its original depth (assuming the image is grayscale)
+    image = tf.image.decode_image(image, channels=1, expand_animations=False)
+    image = tf.image.convert_image_dtype(image, tf.float32) # float32 type and normalization
+    width = tf.shape(image)[1]  # Split the image in half horizontally
+    half_width = width // 2
+    left_half = image[:, :half_width]
+    right_half = image[:, half_width:]
+    return left_half, right_half
+
+def tf_dataset_prep(data_dirs, func, batch_size):
+    # Create a Dataset from the list of paths
+    dataset = tf.data.Dataset.from_tensor_slices(data_dirs)
+    # Map the processing function to each file path
+    dataset = dataset.map(func, num_parallel_calls=tf.data.experimental.AUTOTUNE)
+    # Batch the dataset
+    dataset = dataset.batch(batch_size)
+    # Prefetch to improve pipeline performance
+    dataset = dataset.prefetch(tf.data.experimental.AUTOTUNE)
+    return dataset
+
+def datapipeline_conclusion(dataset, batch_size):
+    print("total number of batches: ", len(dataset), "with batch size: ", batch_size)
+    for left_imgs, right_imgs in dataset.take(1):  
+        print(left_imgs.shape, right_imgs.shape)  
+
+
+
+
+batch_size = 4
+
+DB = database.SQLiteDB(DATABASE_ROOT)
+# creating training set
+sql = """
+    SELECT id, batch, image_path
+    FROM mmf_dataset_metadata
+    WHERE is_calibration = 0 and batch = 2
+"""
+df = DB.sql_select(sql)
+print('Total number of records in the table: ' + str(len(df)))
+train_paths = [ABS_DIR+i for i in df["image_path"].to_list()]
+train_dataset = tf_dataset_prep(train_paths, load_and_process_image, batch_size)
+datapipeline_conclusion(train_dataset, batch_size)
+
+# creating validation set
+sql = """
+    SELECT id, batch, image_path
+    FROM mmf_dataset_metadata
+    WHERE is_calibration = 0 and batch = 1
+"""
+df = DB.sql_select(sql)
+print('Total number of records in the table: ' + str(len(df)))
+val_paths = [ABS_DIR+i for i in df["image_path"].to_list()]
+val_dataset = tf_dataset_prep(val_paths, load_and_process_image, batch_size)
+datapipeline_conclusion(val_dataset, batch_size)
+
+
