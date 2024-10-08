@@ -19,7 +19,7 @@ schema = {
             "beam_parameters":"TEXT",  # beam parameters used in the experiment (JSON or dict)
             "num_of_images":"INTEGER",  # number of individual images in the data sample
             "image_descriptions":"TEXT",  # JSON or dict, description of each image
-            "image_path":"TEXT",  # path to the image file
+            "image_path":"TEXT",  # (relative) path to the image file
             "config_id":"INTEGER",  # foreign key to the config table
             "comments":"TEXT",
             "create_time":"TIMESTAMP DEFAULT CURRENT_TIMESTAMP",
