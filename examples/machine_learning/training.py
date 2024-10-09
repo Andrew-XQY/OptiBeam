@@ -18,7 +18,7 @@ training.check_tensorflow_version()
 os.environ['TF_GPU_ALLOCATOR'] = 'cuda_malloc_async'
 
 DATASET = "2024-08-22"
-dev_flag = True
+dev_flag = False
 if dev_flag:
     ABS_DIR = f"C:/Users/qiyuanxu/Documents/ResultsCenter/datasets/{DATASET}/"
     SAVE_TO = f'C:/Users/qiyuanxu/Documents/ResultsCenter/result/dev/{DATASET}/' 
@@ -172,6 +172,7 @@ sql = """
 df = DB.sql_select(sql)
 print('Total number of records in the table: ' + str(len(df)))
 val_paths = [ABS_DIR+i for i in df["image_path"].to_list()]
+val_paths = [val_paths[i] for i in range(0, len(val_paths), 10)]  # (take 10% of the data for validation, the rest will be used for testing)
 val_dataset = tf_dataset_prep(val_paths, load_and_process_image, batch_size, shuffle=False)
 datapipeline_conclusion(val_dataset, batch_size)
 
