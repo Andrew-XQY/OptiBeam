@@ -29,10 +29,15 @@ def check_tensorflow_version():
 
 # ------------------- callback functions for tensorflow fit -------------------
 class ImageReconstructionCallback(tf.keras.callbacks.Callback):
-    def __init__(self, val_inputs, val_labels, save_path: str=None):
+    def __init__(self, inputs, save_path: str=None):
         super(ImageReconstructionCallback, self).__init__()
-        self.val_inputs = val_inputs
-        self.val_labels = val_labels
+        if len(inputs) == 2:
+            self.val_inputs = inputs[0]
+            self.val_labels = inputs[1]
+        else:
+            for input, label in inputs.take(1):
+                self.val_inputs = input
+                self.val_labels = label
         self.save_path = save_path
 
     def on_epoch_begin(self, epoch, logs=None):
@@ -64,9 +69,15 @@ class ImageReconstructionCallback(tf.keras.callbacks.Callback):
             plt.close()  # Close the plot to free up memory
         else:
             plt.show()
-        print(f"input image max pixel: {input_image.max()}", 
-              f"ground truth image max pixel: {ground_truth.max()}", 
-              f"reconstructed image max pixel: {reconstructed.max()}")
+            
+        if isinstance(input_image, tf.Tensor):
+            print(f"input image max pixel: {tf.reduce_max(input_image)}", 
+                f"ground truth image max pixel: {tf.reduce_max(ground_truth)}", 
+                f"reconstructed image max pixel: {tf.reduce_max(reconstructed)}")
+        else:
+            print(f"input image max pixel: {input_image.max()}", 
+                f"ground truth image max pixel: {ground_truth.max()}", 
+                f"reconstructed image max pixel: {reconstructed.max()}")
 
 class PlotPredictionParamsCallback(tf.keras.callbacks.Callback):
     """

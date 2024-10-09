@@ -127,19 +127,21 @@ def load_and_process_image(path):
     image = tf.image.convert_image_dtype(image, tf.float32) # float32 type and normalization
     width = tf.shape(image)[1]  # Split the image in half horizontally
     half_width = width // 2
-    left_half = image[:, :half_width]
-    right_half = image[:, half_width:]
-    return left_half, right_half
+    label = image[:, :half_width]  # left_half
+    input = image[:, half_width:]  # right_half
+    return input, label
 
-def tf_dataset_prep(data_dirs, func, batch_size):
+def tf_dataset_prep(data_dirs, func, batch_size, shuffle=True, buffer_size=1024):
     # Create a Dataset from the list of paths
     dataset = tf.data.Dataset.from_tensor_slices(data_dirs)
+    if shuffle:
+        dataset = dataset.shuffle(buffer_size=buffer_size)
     # Map the processing function to each file path
-    dataset = dataset.map(func, num_parallel_calls=tf.data.experimental.AUTOTUNE)
+    dataset = dataset.map(func, num_parallel_calls=tf.data.AUTOTUNE)
     # Batch the dataset
     dataset = dataset.batch(batch_size)
     # Prefetch to improve pipeline performance
-    dataset = dataset.prefetch(tf.data.experimental.AUTOTUNE)
+    dataset = dataset.prefetch(tf.data.AUTOTUNE)
     return dataset
 
 def datapipeline_conclusion(dataset, batch_size):
@@ -147,17 +149,14 @@ def datapipeline_conclusion(dataset, batch_size):
     for left_imgs, right_imgs in dataset.take(1):  
         print(left_imgs.shape, right_imgs.shape)  
 
-
-
-
 batch_size = 4
-
 DB = database.SQLiteDB(DATABASE_ROOT)
+
 # creating training set
 sql = """
     SELECT id, batch, image_path
     FROM mmf_dataset_metadata
-    WHERE is_calibration = 0 and batch = 2
+    WHERE is_calibration = 0 and batch = 2 
 """
 df = DB.sql_select(sql)
 print('Total number of records in the table: ' + str(len(df)))
@@ -169,12 +168,46 @@ datapipeline_conclusion(train_dataset, batch_size)
 sql = """
     SELECT id, batch, image_path
     FROM mmf_dataset_metadata
-    WHERE is_calibration = 0 and batch = 1
+    WHERE is_calibration = 0 and batch = 1 
 """
 df = DB.sql_select(sql)
 print('Total number of records in the table: ' + str(len(df)))
 val_paths = [ABS_DIR+i for i in df["image_path"].to_list()]
-val_dataset = tf_dataset_prep(val_paths, load_and_process_image, batch_size)
+val_dataset = tf_dataset_prep(val_paths, load_and_process_image, batch_size, shuffle=False)
 datapipeline_conclusion(val_dataset, batch_size)
 
 
+
+
+# ------------------------------ model training -----------------------------------
+for left_imgs, right_imgs in train_dataset.take(1):
+    shape = left_imgs.shape[1:]
+
+autoencoder = Autoencoder(shape)
+autoencoder.summary()
+print(f"model size: {autoencoder.count_params() * 4 / (1024**2)} MB") 
+
+# Initialize early stopping
+early_stopping = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=10,
+                                                  verbose=1, mode='min', restore_best_weights=True)
+adam_optimizer = tf.keras.optimizers.Adam(learning_rate=0.0001)
+autoencoder.compile(optimizer=adam_optimizer, 
+                    loss=tf.keras.losses.MeanSquaredError())
+
+
+history = autoencoder.fit(
+    train_dataset,  # Dataset already includes batching and shuffling
+    epochs=80,
+    validation_data=val_dataset,
+    callbacks=[training.ImageReconstructionCallback(val_dataset, log_save_path), early_stopping],
+    verbose=1 if dev_flag else 2  # Less verbose output suitable for large logs
+)
+
+# ------------------------------ save models -----------------------------------
+
+autoencoder.save(SAVE_TO+'models/model.keras')
+print('model saved!')
+
+# Save the training history
+with open(log_save_path+'training_history.pkl', 'wb') as file:
+    pickle.dump(history.history, file)
