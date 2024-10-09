@@ -31,13 +31,13 @@ def check_tensorflow_version():
 class ImageReconstructionCallback(tf.keras.callbacks.Callback):
     def __init__(self, inputs, save_path: str=None):
         super(ImageReconstructionCallback, self).__init__()
-        if len(inputs) == 2:
-            self.val_inputs = inputs[0]
-            self.val_labels = inputs[1]
-        else:
+        if isinstance(inputs, tf.data.Dataset):
             for input, label in inputs.take(1):
                 self.val_inputs = input
                 self.val_labels = label
+        else:
+            self.val_inputs = inputs[0]
+            self.val_labels = inputs[1]
         self.save_path = save_path
 
     def on_epoch_begin(self, epoch, logs=None):
