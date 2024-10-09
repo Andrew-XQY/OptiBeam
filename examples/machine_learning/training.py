@@ -11,7 +11,6 @@ import matplotlib.pyplot as plt
 import tensorflow as tf
 import pickle
 import random
-import gc
 
 print(os.getcwd())
 training.check_tensorflow_gpu()
