@@ -18,7 +18,7 @@ training.check_tensorflow_version()
 os.environ['TF_GPU_ALLOCATOR'] = 'cuda_malloc_async'
 
 DATASET = "2024-08-22"
-dev_flag = False
+dev_flag = True
 
 if dev_flag:
     ABS_DIR = f"C:/Users/qiyuanxu/Documents/ResultsCenter/datasets/{DATASET}/"
@@ -120,35 +120,6 @@ def Autoencoder(input_shape):
 
 # ------------------------------ dataset preparation -----------------------------------
 
-def load_and_process_image(path):
-    image = tf.io.read_file(path) # Read the image file
-    # Decode the image to its original depth (assuming the image is grayscale)
-    image = tf.image.decode_image(image, channels=1, expand_animations=False)
-    image = tf.image.convert_image_dtype(image, tf.float32) # float32 type and normalization
-    width = tf.shape(image)[1]  # Split the image in half horizontally
-    half_width = width // 2
-    label = image[:, :half_width]  # left_half
-    input = image[:, half_width:]  # right_half
-    return input, label
-
-def tf_dataset_prep(data_dirs, func, batch_size, shuffle=True, buffer_size=1024):
-    # Create a Dataset from the list of paths
-    dataset = tf.data.Dataset.from_tensor_slices(data_dirs)
-    if shuffle:
-        dataset = dataset.shuffle(buffer_size=buffer_size)
-    # Map the processing function to each file path
-    dataset = dataset.map(func, num_parallel_calls=tf.data.AUTOTUNE)
-    # Batch the dataset
-    dataset = dataset.batch(batch_size)
-    # Prefetch to improve pipeline performance
-    dataset = dataset.prefetch(tf.data.AUTOTUNE)
-    return dataset
-
-def datapipeline_conclusion(dataset, batch_size):
-    print("total number of batches: ", len(dataset), "with batch size: ", batch_size)
-    for left_imgs, right_imgs in dataset.take(1):  
-        print(left_imgs.shape, right_imgs.shape)  
-
 batch_size = 4
 DB = database.SQLiteDB(DATABASE_ROOT)
 
@@ -161,8 +132,8 @@ sql = """
 df = DB.sql_select(sql)
 print('Total number of records in the table: ' + str(len(df)))
 train_paths = [ABS_DIR+i for i in df["image_path"].to_list()]
-train_dataset = tf_dataset_prep(train_paths, load_and_process_image, batch_size)
-datapipeline_conclusion(train_dataset, batch_size)
+train_dataset = datapipeline.tf_dataset_prep(train_paths, datapipeline.load_and_process_image, batch_size)
+datapipeline.datapipeline_conclusion(train_dataset, batch_size)
 
 # creating validation set
 sql = """
@@ -174,8 +145,8 @@ df = DB.sql_select(sql)
 print('Total number of records in the table: ' + str(len(df)))
 val_paths = [ABS_DIR+i for i in df["image_path"].to_list()]
 val_paths = [val_paths[i] for i in range(0, len(val_paths), 10)]  # (take 10% of the data for validation, the rest will be used for testing)
-val_dataset = tf_dataset_prep(val_paths, load_and_process_image, batch_size, shuffle=False)
-datapipeline_conclusion(val_dataset, batch_size)
+val_dataset = datapipeline.tf_dataset_prep(val_paths, datapipeline.load_and_process_image, batch_size, shuffle=False)
+datapipeline.datapipeline_conclusion(val_dataset, batch_size)
 
 
 
