@@ -160,7 +160,7 @@ sql = """
 df = DB.sql_select(sql)
 print('Total number of records in the table: ' + str(len(df)))
 train_paths = [ABS_DIR+i for i in df["image_path"].to_list()]
-train_dataset = tf_dataset_prep(train_paths[:1000], load_and_process_image, batch_size)
+train_dataset = tf_dataset_prep(train_paths, load_and_process_image, batch_size)
 datapipeline_conclusion(train_dataset, batch_size)
 
 # creating validation set
@@ -199,7 +199,7 @@ history = autoencoder.fit(
     train_dataset,  # Dataset already includes batching and shuffling
     epochs=80,
     validation_data=val_dataset,
-    callbacks=[training.ImageReconstructionCallback(val_dataset, log_save_path), early_stopping],
+    callbacks=[training.ImageReconstructionCallback(val_dataset, log_save_path, cmap="viridis"), early_stopping],  # gray, viridis
     verbose=1 if dev_flag else 2  # Less verbose output suitable for large logs
 )
 

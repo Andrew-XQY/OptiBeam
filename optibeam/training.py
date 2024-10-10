@@ -29,16 +29,17 @@ def check_tensorflow_version():
 
 # ------------------- callback functions for tensorflow fit -------------------
 class ImageReconstructionCallback(tf.keras.callbacks.Callback):
-    def __init__(self, inputs, save_path: str=None):
+    def __init__(self, inputs, save_path: str=None, cmap="gray"):
         super(ImageReconstructionCallback, self).__init__()
         if isinstance(inputs, tf.data.Dataset):
             for input, label in inputs.take(1):
-                self.val_inputs = input[0]
-                self.val_labels = label[0]
+                self.val_inputs = input
+                self.val_labels = label
         else:
             self.val_inputs = inputs[0]
             self.val_labels = inputs[1]
         self.save_path = save_path
+        self.cmap = cmap
 
     def on_epoch_begin(self, epoch, logs=None):
         plt.clf()
@@ -48,20 +49,22 @@ class ImageReconstructionCallback(tf.keras.callbacks.Callback):
         input_image = self.val_inputs[idx:idx+1]  # Keep batch dimension
         ground_truth = self.val_labels[idx]
         reconstructed = self.model.predict(input_image)
-        # Plotting
-        plt.figure(figsize=(9, 3))
-        plt.subplot(1, 3, 1)
-        plt.imshow(input_image[0, ..., 0], cmap='gray', vmin=0, vmax=1)
-        plt.title("Input")
-        plt.axis('off')
-        plt.subplot(1, 3, 2)
-        plt.imshow(reconstructed[0, ..., 0], cmap='gray', vmin=0, vmax=1)
-        plt.title("Reconstructed")
-        plt.axis('off')
-        plt.subplot(1, 3, 3)
-        plt.imshow(ground_truth[..., 0], cmap='gray', vmin=0, vmax=1)
-        plt.title("Ground Truth")
-        plt.axis('off')
+        
+        # Create a figure and a set of subplots
+        fig, axs = plt.subplots(2, 3, figsize=(10, 6))
+        images = [input_image[0, ..., 0], reconstructed[0, ..., 0], ground_truth[..., 0]]*2
+        titles = ["Input", "Reconstructed", "Ground Truth", 
+                  "Input (rescale)", "Reconstructed (rescale)", "Ground Truth (rescale)"]
+
+        for i, ax in enumerate(axs.flat):
+            if i < 3:
+                ax.imshow(images[i], cmap=self.cmap, vmin=0, vmax=1) # assume pixel value normalized in [0, 1]
+            else:
+                ax.imshow(images[i], cmap=self.cmap)
+            ax.set_title(titles[i])
+            ax.axis('off')  # Turn off axis labels
+        plt.tight_layout()
+            
         if self.save_path:
             timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
             file_path = f"{self.save_path}/{timestamp}.png"
