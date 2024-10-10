@@ -33,8 +33,8 @@ class ImageReconstructionCallback(tf.keras.callbacks.Callback):
         super(ImageReconstructionCallback, self).__init__()
         if isinstance(inputs, tf.data.Dataset):
             for input, label in inputs.take(1):
-                self.val_inputs = input
-                self.val_labels = label
+                self.val_inputs = input[0]
+                self.val_labels = label[0]
         else:
             self.val_inputs = inputs[0]
             self.val_labels = inputs[1]

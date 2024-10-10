@@ -6,10 +6,13 @@ import sys
 import os
 import matplotlib.pyplot as plt
 import numpy as np
+import datetime, time
 from contextlib import ContextDecorator
 
-DATABASE_ROOT = "../../ResultsCenter/experiment/db/liverpool.db"
-DATASET_ROOT = "../../ResultsCenter/experiment/dataset/"
+
+date = datetime.datetime.now().strftime('%Y-%m-%d')
+DATABASE_ROOT = f"../../ResultsCenter/datasets/{date}/db/liverpool.db"
+DATASET_ROOT = f"../../ResultsCenter/datasets/{date}/dataset/"
 
 class ChangeDirToFileLocation(ContextDecorator):
     def __enter__(self):

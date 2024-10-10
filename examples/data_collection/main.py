@@ -229,7 +229,8 @@ try:
                 image = np.hstack((original_image, image))
             filename = str(time.time_ns())
             image_path = save_dir + '/' + filename + '.png'
-             
+            relative_path = '/'.join(['datasets', str(batch), filename + '.png']) # changed to relative path instead of absolute path
+            
             # save the corresponding metadata of the image
             meta = {
                     "image_id":str(time.time_ns()), 
@@ -240,7 +241,7 @@ try:
                     "max_pixel_value":img.max(),
                     "image_descriptions":json.dumps({**({"simulation_img": img_size} if include_simulation else {}), 
                                                      "ground_truth_img": img_size, "fiber_output_img": img_size}),
-                    "image_path":filename + '.png', # os.path.abspath(image_path)
+                    "image_path":relative_path,  # os.path.abspath(image_path),
                     "config_id":config_id,
                     "batch":batch,
                     "comments":comment

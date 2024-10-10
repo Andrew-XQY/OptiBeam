@@ -4,6 +4,7 @@ And other initialization steps.
 """
 from conf import *
 
+
 db = database.SQLiteDB(DATABASE_ROOT)
 
 schema = {
