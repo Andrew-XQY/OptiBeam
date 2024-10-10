@@ -1,4 +1,4 @@
-import os
+import os, sys
 import gc
 import cv2
 import numpy as np
@@ -459,6 +459,7 @@ def get_system_info():
     }
     return system_info
 
+    
 def check_and_create_folder(path):
     # Check if the specified path exists
     if not os.path.exists(path):
@@ -467,5 +468,20 @@ def check_and_create_folder(path):
         print(f"Folder created at: {path}")
     else:
         print(f"Folder already exists at: {path}")
+        
+
+def check_existence(path, if_stop=True, if_create=False):
+    if os.path.exists(path):
+        print(f"The file or folder '{path}' already exists.")
+        print("Exiting the program.")
+        if if_stop: sys.exit()  # This will stop the program
+    else:
+        if if_create:
+            check_and_create_folder(path)
+        else:
+            print(f"The file or folder '{path}' does not exist. Continuing the program.")
+            # Continue with the rest of code
+
+
 
 

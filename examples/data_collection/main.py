@@ -9,7 +9,6 @@ import json
     
     
 # --------------------- Dataset Parameters --------------------
-
 number_of_images = 50000 # for simulation, this is the number of images to generate in this batch
 is_params = 0  # if the image contains beam parameters (simulation and MNIST don't)
 calibration = 1  # if include a calibration image (first one in the batch)

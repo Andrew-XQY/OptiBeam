@@ -17,8 +17,9 @@ training.check_tensorflow_gpu()
 training.check_tensorflow_version()
 os.environ['TF_GPU_ALLOCATOR'] = 'cuda_malloc_async'
 
-DATASET = "2024-08-15"
-dev_flag = True
+DATASET = "2024-08-22"
+dev_flag = False
+
 if dev_flag:
     ABS_DIR = f"C:/Users/qiyuanxu/Documents/ResultsCenter/datasets/{DATASET}/"
     SAVE_TO = f'C:/Users/qiyuanxu/Documents/ResultsCenter/result/dev/{DATASET}/' 
@@ -155,7 +156,7 @@ DB = database.SQLiteDB(DATABASE_ROOT)
 sql = """
     SELECT id, batch, image_path
     FROM mmf_dataset_metadata
-    WHERE is_calibration = 0 and batch = 1 
+    WHERE is_calibration = 0 and batch = 2 
 """
 df = DB.sql_select(sql)
 print('Total number of records in the table: ' + str(len(df)))
@@ -167,7 +168,7 @@ datapipeline_conclusion(train_dataset, batch_size)
 sql = """
     SELECT id, batch, image_path
     FROM mmf_dataset_metadata
-    WHERE is_calibration = 0 and batch = 2 
+    WHERE is_calibration = 0 and batch = 1 
 """
 df = DB.sql_select(sql)
 print('Total number of records in the table: ' + str(len(df)))

@@ -4,7 +4,10 @@ And other initialization steps.
 """
 from conf import *
 
-
+upper_dir = os.path.dirname(DATABASE_ROOT)
+utils.check_existence(upper_dir, if_create=True)
+upper_dir = os.path.dirname(DATASET_ROOT)
+utils.check_existence(upper_dir, if_create=True)
 db = database.SQLiteDB(DATABASE_ROOT)
 
 schema = {
