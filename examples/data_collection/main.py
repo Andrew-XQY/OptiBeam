@@ -39,7 +39,8 @@ MANAGER = camera.MultiBaslerCameraManager()
 MANAGER.initialize()
 MANAGER.synchronization()
 
-# take a sample image to select crop areas for later resizing
+
+# take a sample image to (later manually) select crop areas for later resizing
 # calibration_img = simulation.dmd_calibration_pattern_generation()
 # calibration_img = simulation.macro_pixel(calibration_img, size=int(DMD_DIM/calibration_img.shape[0]))
 # DMD.display_image(dmd.dmd_img_adjustment(calibration_img, DMD_DIM, angle=DMD_ROTATION))
@@ -226,9 +227,9 @@ try:
             if include_simulation:
                 original_image = cv2.resize(img, (image.shape[0],image.shape[0])) # add the very original image load on the dmd
                 image = np.hstack((original_image, image))
-            filename = str(time.time_ns())
-            image_path = save_dir + '/' + filename + '.png'
-            relative_path = '/'.join(['datasets', str(batch), filename + '.png']) # changed to relative path instead of absolute path
+            filename = str(time.time_ns()) + '.png'
+            image_path = save_dir + '/' + filename # absolute path save on the local machine
+            relative_path = '/'.join(['datasets', str(batch), filename]) # changed to relative path to dataset root instead of absolute path on machine
             
             # save the corresponding metadata of the image
             meta = {
@@ -240,7 +241,7 @@ try:
                     "max_pixel_value":img.max(),
                     "image_descriptions":json.dumps({**({"simulation_img": img_size} if include_simulation else {}), 
                                                      "ground_truth_img": img_size, "fiber_output_img": img_size}),
-                    "image_path":relative_path,  # os.path.abspath(image_path),
+                    "image_path":relative_path,  
                     "config_id":config_id,
                     "batch":batch,
                     "comments":comment
