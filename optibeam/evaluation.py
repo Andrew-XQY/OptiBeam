@@ -5,20 +5,42 @@ from scipy.optimize import curve_fit
 from scipy.stats import pearsonr
 from skimage.metrics import structural_similarity 
 from abc import ABC, abstractmethod
+from training import Model
 
 
 # ------------------- Transverse beam distribution reconstructino evaluations -------------------
 
-
-def transverse_beam_parameters():
+def transverse_beam_parameters(image: np.array) -> dict:
     """
-    This function is used to calculate the beam parameters from the beam image.
+    this function is used to calculate the beam parameters from the beam image.
     """
     pass
 
+def analyze_image_pixel_values(image: np.array) -> dict:
+    """
+    Analyze pixel values in a given image represented as a numpy array.
 
-def get_beam_image_properties(image):
+    Args:
+        image_array (np.array): A numpy array representing the image.
+
+    Returns:
+        dict: A dictionary containing the 'max', 'average', and 'min' pixel values.
+    """
+    max_pixel = np.max(image)
+    average_pixel = np.mean(image)
+    min_pixel = np.min(image)
+    
+    return {'max': max_pixel, 'average': average_pixel, 'min': min_pixel}
+
+def get_beam_image_properties(image: np.array) -> dict:
     """return a dictionary of beam image properties depending on pixel values, beam parameters"""
+    pass
+
+
+def beam_image_reconstruction(trained_model: Model, test_set_sample: np.array):
+    """
+    focuses on applying trained model to reconstruct a testset image
+    """
     pass
 
 
@@ -31,7 +53,7 @@ def get_beam_image_properties(image):
 
 def read_pkl_to_dataframe(filepath):
     """
-    Reads a pickle file and converts it into a pandas DataFrame.
+    reads a pickle file and converts it into a pandas DataFrame.
     """
     try:
         data = pd.read_pickle(filepath)
