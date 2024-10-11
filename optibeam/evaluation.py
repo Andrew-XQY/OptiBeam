@@ -1,9 +1,87 @@
 from .utils import *
 import matplotlib.pyplot as plt
+import pandas as pd
 from scipy.optimize import curve_fit
 from scipy.stats import pearsonr
 from skimage.metrics import structural_similarity 
 from abc import ABC, abstractmethod
+
+
+# ------------------- Transverse beam distribution reconstructino evaluations -------------------
+
+
+def transverse_beam_parameters():
+    """
+    This function is used to calculate the beam parameters from the beam image.
+    """
+    pass
+
+
+def get_beam_image_properties(image):
+    """return a dictionary of beam image properties depending on pixel values, beam parameters"""
+    pass
+
+
+
+
+
+
+
+# ------------------- model training result evaluations -------------------
+
+def read_pkl_to_dataframe(filepath):
+    """
+    Reads a pickle file and converts it into a pandas DataFrame.
+    """
+    try:
+        data = pd.read_pickle(filepath)
+        if isinstance(data, dict):
+            data = pd.DataFrame(data)
+        return data
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        return None
+    
+def training_report_tf(filepath):
+    """
+    Reads a pickle file containing training history data and plots the metrics.
+    Return the read file as a dataframe table
+    """
+    try:
+        # Load the data from the pickle file
+        data = pd.read_pickle(filepath)
+        
+        # Check if data is a dictionary and suitable for conversion to DataFrame
+        if not isinstance(data, dict):
+            raise ValueError("Data is not a dictionary with expected format.")
+
+        # Convert the dictionary to a DataFrame
+        df = pd.DataFrame(data)
+        
+        # Plotting each column
+        for column in df.columns:
+            plt.plot(df[column], label=column)
+        
+        # Adding title and labels
+        plt.title('Training History')
+        plt.xlabel('Epochs')
+        plt.ylabel('Metrics')
+        plt.legend()
+        plt.grid(True)
+        
+        # Show the plot
+        plt.show()
+        return read_pkl_to_dataframe(filepath)
+        
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        raise
+
+
+
+
+
+
 
 
 # ------------------- Unified evaluation framework -------------------
