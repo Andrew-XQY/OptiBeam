@@ -1,11 +1,12 @@
 from .utils import *
+from .training import Model
 import matplotlib.pyplot as plt
 import pandas as pd
 from scipy.optimize import curve_fit
 from scipy.stats import pearsonr
 from skimage.metrics import structural_similarity 
 from abc import ABC, abstractmethod
-from training import Model
+
 
 
 # ------------------- Transverse beam distribution reconstructino evaluations -------------------

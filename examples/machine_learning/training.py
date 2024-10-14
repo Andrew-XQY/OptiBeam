@@ -17,8 +17,8 @@ training.check_tensorflow_gpu()
 training.check_tensorflow_version()
 os.environ['TF_GPU_ALLOCATOR'] = 'cuda_malloc_async'
 
-DATASET = "2024-08-22"
-dev_flag = True
+DATASET = "2024-08-15"
+dev_flag = False
 
 if dev_flag:
     ABS_DIR = f"C:/Users/qiyuanxu/Documents/ResultsCenter/datasets/{DATASET}/"
@@ -127,7 +127,7 @@ DB = database.SQLiteDB(DATABASE_ROOT)
 sql = """
     SELECT id, batch, image_path
     FROM mmf_dataset_metadata
-    WHERE is_calibration = 0 and batch = 2 
+    WHERE is_calibration = 0 and batch = 1 
 """
 df = DB.sql_select(sql)
 print('Total number of records in the table: ' + str(len(df)))
@@ -139,7 +139,7 @@ datapipeline.datapipeline_conclusion(train_dataset, batch_size)
 sql = """
     SELECT id, batch, image_path
     FROM mmf_dataset_metadata
-    WHERE is_calibration = 0 and batch = 1 
+    WHERE is_calibration = 0 and batch = 2 
 """
 df = DB.sql_select(sql)
 print('Total number of records in the table: ' + str(len(df)))
@@ -160,9 +160,9 @@ autoencoder.summary()
 print(f"model size: {autoencoder.count_params() * 4 / (1024**2)} MB") 
 
 # Initialize early stopping
-early_stopping = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=10,
+early_stopping = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=8,
                                                   verbose=1, mode='min', restore_best_weights=True)
-adam_optimizer = tf.keras.optimizers.Adam(learning_rate=0.00001)
+adam_optimizer = tf.keras.optimizers.Adam(learning_rate=0.0001)
 autoencoder.compile(optimizer=adam_optimizer, 
                     loss=tf.keras.losses.MeanSquaredError())
 
