@@ -6,6 +6,7 @@ from scipy.optimize import curve_fit
 from scipy.stats import pearsonr
 from scipy.stats import norm
 from skimage.metrics import structural_similarity 
+from skimage import measure
 from abc import ABC, abstractmethod
 
 
@@ -49,7 +50,27 @@ def normalize_value_base_image_dim(value: float, dim: float) -> float:
     e.g. value / len(image) * 2 - 1
     """
     return (value / dim) * 2 - 1
-    
+
+
+def compute_percentage_contour(image, percentage=95):
+    """calculate the percentile intensity"""
+    # Normalize and sort the pixel intensities 
+    sorted_intensities = np.sort(image.ravel())[::-1]
+    cumulative_sum = np.cumsum(sorted_intensities)
+    total_intensity = cumulative_sum[-1]
+    # Find the threshold for the desired percentage contour
+    cutoff_index = np.where(cumulative_sum >= percentage / 100.0 * total_intensity)[0][0]
+    threshold_intensity = sorted_intensities[cutoff_index]
+    # Create a binary mask for the contour
+    mask = image >= threshold_intensity
+    return mask, threshold_intensity
+
+
+def find_contours_from_mask(mask):
+    # Find contours at a constant value of 0.5
+    contours = measure.find_contours(mask, level=0.5)
+    return contours
+
 
 def plot_beam_gaussian_fit(image: np.array) -> plt.Figure:
     pass
