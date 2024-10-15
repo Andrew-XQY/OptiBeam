@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from scipy.optimize import curve_fit
 from scipy.stats import pearsonr
+from scipy.stats import norm
 from skimage.metrics import structural_similarity 
 from abc import ABC, abstractmethod
 
@@ -11,11 +12,57 @@ from abc import ABC, abstractmethod
 
 # ------------------- Transverse beam distribution reconstructino evaluations -------------------
 
+def horizontal_histogram(image_array: np.array) -> np.array:
+    """
+    Calculate the horizontal histogram of a single-channel image.
+    """
+    if len(image_array.shape) != 2:
+        raise ValueError("Input image array must be a 2D array for a single-channel image.")
+    histogram = np.sum(image_array, axis=1)
+    return histogram
+
+
+def vertical_histogram(image_array: np.array) -> np.array:
+    """
+    Calculate the vertical histogram of a single-channel image.
+    """
+    if len(image_array.shape) != 2:
+        raise ValueError("Input image array must be a 2D array for a single-channel image.")
+    histogram = np.sum(image_array, axis=0)
+    return histogram
+
+
+def fit_1d_gaussian(data: np.array) -> tuple:
+    def gaussian(x, mu, sigma, amplitude):
+        return amplitude * np.exp(-((x - mu) ** 2) / (2 * sigma ** 2))
+    x = np.arange(len(data))
+    initial_guess = [np.mean(x), np.std(x), np.max(data)]
+    params, _ = curve_fit(gaussian, x, data, p0=initial_guess)
+    mu, sigma, amplitude = params
+    fitted_gaussian = gaussian(x, mu, sigma, amplitude)
+    return mu, sigma, fitted_gaussian
+
+
+def normalize_value_base_image_dim(value: float, dim: float) -> float:
+    """
+    Normalize a value based on the dimensions of an image. for example, remap a value from [0,255] to [-1,1]
+    e.g. value / len(image) * 2 - 1
+    """
+    return (value / dim) * 2 - 1
+    
+
+def plot_beam_gaussian_fit(image: np.array) -> plt.Figure:
+    pass
+
+
+
 def transverse_beam_parameters(image: np.array) -> dict:
     """
     this function is used to calculate the beam parameters from the beam image.
+    have to check the range validity of the beam parameters. and make sure the fit iteration times are limited.
     """
     pass
+
 
 def analyze_image_pixel_values(image: np.array) -> dict:
     """
@@ -30,8 +77,8 @@ def analyze_image_pixel_values(image: np.array) -> dict:
     max_pixel = np.max(image)
     average_pixel = np.mean(image)
     min_pixel = np.min(image)
-    
     return {'max': max_pixel, 'average': average_pixel, 'min': min_pixel}
+
 
 def get_beam_image_properties(image: np.array) -> dict:
     """return a dictionary of beam image properties depending on pixel values, beam parameters"""
@@ -40,12 +87,9 @@ def get_beam_image_properties(image: np.array) -> dict:
 
 def beam_image_reconstruction(trained_model: Model, test_set_sample: np.array):
     """
-    focuses on applying trained model to reconstruct a testset image
+    focuses on applying trained model to reconstruct a testset image. 
     """
     pass
-
-
-
 
 
 
@@ -102,11 +146,6 @@ def training_report_tf(filepath):
 
 
 
-
-
-
-
-
 # ------------------- Unified evaluation framework -------------------
 class Model:
     def __init__(self, model_path: str):
@@ -119,33 +158,6 @@ class Model:
 
     @abstractmethod
     def reconstruction(self, image) -> np.array:
-        """Reconstruct the image using the model."""
-        pass
-
-class Evaluation:
-    def __init__(self, model, dataset, save_to: str = None):
-        self.model = model
-        self.dataset = dataset
-        self.save_to = save_to
-        
-        
-    def check_validity(self, prediction, requirement: dict) -> bool:
-        """Check if the prediction is within the valid range."""
-        pass
-        
-    def regression_inference(self, image) -> dict:
-        """Reconstruct the beam parameters using the model."""
-        pass
-    
-    def reconstruction_inference(self, image) -> np.array:
-        """Reconstruct the image using the model."""
-        pass
-
-    def random_sample(self, n_samples=1):
-        """Randomly sample n_samples from the dataset."""
-        pass
-
-    def image_reonstruction(self, image):
         """Reconstruct the image using the model."""
         pass
 
@@ -202,12 +214,10 @@ def rmse(image1, image2):
     return np.sqrt(mse)
 
 
-# ------------------- Image to Parameters Metrics (past)  -------------------
-
+# ------------------- Image to Parameters Metrics (old)  -------------------
 # Define the Gaussian function
 def gaussian(x, a, mu, sigma):
     return a * np.exp(-((x - mu) ** 2) / (2 * sigma ** 2))
-
 
 def fit_gaussian(x, y):
     """

@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name=image_reconstruction_model_training  # Job name
-#SBATCH --output=results/slurm/nn_training-%j.out                     # Output file
-#SBATCH --error=results/slurm/nn_training-%j.err                      # Error file
+#SBATCH --output=results/slurm/nn_training-%j_$(date +%Y%m%d).out   # Output file with job ID and date
+#SBATCH --error=results/slurm/nn_training-%j_$(date +%Y%m%d).err    # Error file with job ID and date
 #SBATCH --partition=gpu                                 # Partition name, adjust to your system
 #SBATCH --nodes=1                                       # Number of nodes
 #SBATCH --ntasks-per-node=1                             # Number of tasks per node

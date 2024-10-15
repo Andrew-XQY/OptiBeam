@@ -187,6 +187,29 @@ def apply_multiprocess(function):
     return wrapper
 
 
+# ----------------- numerical operations ----------------
+def remap_array(array: np.array, new_min: float, new_max: float,
+                old_min: float=None, old_max: float=None) -> np.array:
+    """
+    Remap the elements of a NumPy array from its current range to a new specified range.
+    
+    Args:
+        values (np.array): Original array of values.
+        new_min (float): Minimum value of the new range.
+        new_max (float): Maximum value of the new range.
+    
+    Returns:
+        np.array: Array with values remapped to the new range.
+    """
+    if old_min or old_max is None:
+        old_min = np.min(array)
+        old_max = np.max(array)
+    # Avoid division by zero if the array is constant
+    if old_min == old_max:
+        return np.full_like(array, new_min)
+    # Scale the array from the old range to [0, 1], then to [new_min, new_max]
+    return new_min + ((array - old_min) * (new_max - new_min) / (old_max - old_min))
+
 
 # ------------------- file operations -------------------
 
@@ -207,6 +230,40 @@ def get_all_file_paths(dirs, types=['']) -> list:
     print(f"Found {len(file_paths)} files.")
     return file_paths
 
+
+def load_image_as_narray(image_path):
+    """
+    (Newest method to load image as numpy array)
+    Load an image from the specified path and convert it to a NumPy array.
+    Includes checks for successful loading, correct data types, and expected pixel range.
+    
+    Args:
+        image_path (str): The file path to the image.
+    
+    Returns:
+        numpy.ndarray: The image as a NumPy array.
+    """
+    try:
+        # Attempt to open the image file
+        img = Image.open(image_path)
+        # Convert the image to a NumPy array
+        img_array = np.array(img)
+        # Check if the image array is empty
+        if img_array.size == 0:
+            raise ValueError("Image is empty")
+        # Check data type and range
+        if img_array.dtype != 'uint8':
+            raise TypeError("Unexpected data type; expected uint8")
+        if img_array.min() < 0 or img_array.max() > 255:
+            raise ValueError("Pixel values out of expected range (0-255)")
+        return img_array
+
+    except FileNotFoundError:
+        raise FileNotFoundError("File not found. Please check the file path.")
+    except IOError:
+        raise IOError("Error in loading the image. The file may be corrupted or unsupported.")
+    except Exception as e:
+        raise Exception(f"An error occurred: {e}")
 
 
 class ImageLoader:
