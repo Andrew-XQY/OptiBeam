@@ -32,16 +32,19 @@ def vertical_histogram(image_array: np.array) -> np.array:
     histogram = np.sum(image_array, axis=0)
     return histogram
 
-
 def fit_1d_gaussian(data: np.array) -> tuple:
     def gaussian(x, mu, sigma, amplitude):
         return amplitude * np.exp(-((x - mu) ** 2) / (2 * sigma ** 2))
     x = np.arange(len(data))
     initial_guess = [np.mean(x), np.std(x), np.max(data)]
-    params, _ = curve_fit(gaussian, x, data, p0=initial_guess)
-    mu, sigma, amplitude = params
-    fitted_gaussian = gaussian(x, mu, sigma, amplitude)
-    return mu, sigma, fitted_gaussian
+    max_evaluations = 500 + 2 * len(data)
+    try:
+        params, _ = curve_fit(gaussian, x, data, p0=initial_guess, maxfev=max_evaluations)
+        mu, sigma, amplitude = params
+        fitted_gaussian = gaussian(x, mu, sigma, amplitude)
+        return mu, sigma, fitted_gaussian
+    except Exception as e:
+        return None, None, None # If an error occurs, return None for all components
 
 
 def normalize_value_base_image_dim(value: float, dim: float) -> float:
@@ -72,9 +75,18 @@ def find_contours_from_mask(mask):
     return contours
 
 
-def plot_beam_gaussian_fit(image: np.array) -> plt.Figure:
-    pass
+def get_transverse_beam_parameters(image: np.array) -> dict:
+    mu1, std1, _ = fit_1d_gaussian(horizontal_histogram(image))
+    mu2, std2, _ = fit_1d_gaussian(vertical_histogram(image))
+    if all(x is not None for x in (mu1, std1, mu2, std2)):
+        if all(0 <= x < image.shape[0] for x in (mu1, std1)) and all(0 <= x < image.shape[1] for x in (mu2, std2)):
+            return {'horizontal_centroid': mu1, 'vertical_centroid': mu2,
+                    'horizontal_width': std1, 'vertical_width': std2}
+    return None
 
+
+def normalize_transverse_beam_parameters(params: dict, image: np.array) -> dict:
+    pass      
 
 
 def transverse_beam_parameters(image: np.array) -> dict:
