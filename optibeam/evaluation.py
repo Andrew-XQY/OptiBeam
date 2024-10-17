@@ -35,16 +35,20 @@ def vertical_histogram(image_array: np.array) -> np.array:
 def fit_1d_gaussian(data: np.array) -> tuple:
     def gaussian(x, mu, sigma, amplitude):
         return amplitude * np.exp(-((x - mu) ** 2) / (2 * sigma ** 2))
+
     x = np.arange(len(data))
-    initial_guess = [np.mean(x), np.std(x), np.max(data)]
+    peak = np.argmax(data)
+    initial_guess = [x[peak], np.std(data), data[peak]]
     max_evaluations = 500 + 2 * len(data)
+
     try:
         params, _ = curve_fit(gaussian, x, data, p0=initial_guess, maxfev=max_evaluations)
         mu, sigma, amplitude = params
         fitted_gaussian = gaussian(x, mu, sigma, amplitude)
         return mu, sigma, fitted_gaussian
     except Exception as e:
-        return None, None, None # If an error occurs, return None for all components
+        print(f"Failed to fit Gaussian: {e}")
+        return None, None, None  # Provide more information on the failure
 
 
 def normalize_value_base_image_dim(value: float, dim: float) -> float:
