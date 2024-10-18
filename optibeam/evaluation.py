@@ -83,7 +83,7 @@ def get_transverse_beam_parameters(image: np.array) -> dict:
     mu1, std1, _ = fit_1d_gaussian(horizontal_histogram(image))
     mu2, std2, _ = fit_1d_gaussian(vertical_histogram(image))
     if all(x is not None for x in (mu1, std1, mu2, std2)):
-        if all(0 <= x < image.shape[0] for x in (mu1, std1)) and all(0 <= x < image.shape[1] for x in (mu2, std2)):
+        if all(0 <= y < image.shape[0] for y in (mu1, std1)) and all(0 <= z < image.shape[1] for z in (mu2, std2)):
             return {'horizontal_centroid': mu1, 'vertical_centroid': mu2,
                     'horizontal_width': std1, 'vertical_width': std2}
     return None
