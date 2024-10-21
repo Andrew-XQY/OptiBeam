@@ -32,6 +32,7 @@ def vertical_histogram(image_array: np.array) -> np.array:
     histogram = np.sum(image_array, axis=0)
     return histogram
 
+
 def fit_1d_gaussian(data: np.array) -> tuple:
     def gaussian(x, mu, sigma, amplitude):
         return amplitude * np.exp(-((x - mu) ** 2) / (2 * sigma ** 2))
@@ -59,7 +60,7 @@ def normalize_value_base_image_dim(value: float, dim: float) -> float:
     return (value / dim) * 2 - 1
 
 
-def compute_percentage_contour(image, percentage=95):
+def compute_percentage_mask(image: np.array, percentage: int=95) -> tuple:
     """calculate the percentile intensity"""
     # Normalize and sort the pixel intensities 
     sorted_intensities = np.sort(image.ravel())[::-1]
@@ -73,10 +74,21 @@ def compute_percentage_contour(image, percentage=95):
     return mask, threshold_intensity
 
 
-def find_contours_from_mask(mask):
+def find_contours_from_binary_mask(mask: np.array) -> list:
     # Find contours at a constant value of 0.5
     contours = measure.find_contours(mask, level=0.5)
     return contours
+
+
+def filtering_contours_based_on_area(contours: list, min_area: int=10) -> list: 
+    """Filter out contours based on their area"""
+    return [c for c in contours if cv2.contourArea(np.array(c, dtype=np.float32)) > min_area]
+
+
+def calculate_total_contours_area(contours: list) -> float:
+    # Calculate the area for each contour and sum them
+    total_area = sum(cv2.contourArea(contour) for contour in contours)
+    return total_area
 
 
 def get_transverse_beam_parameters(image: np.array) -> dict:
@@ -145,6 +157,7 @@ def read_pkl_to_dataframe(filepath):
     except Exception as e:
         print(f"An error occurred: {e}")
         return None
+    
     
 def training_report_tf(filepath):
     """
