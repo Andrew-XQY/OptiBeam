@@ -4,11 +4,10 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from scipy.optimize import curve_fit
 from scipy.stats import pearsonr
-from scipy.stats import norm
 from skimage.metrics import structural_similarity 
+from skimage.morphology import remove_small_objects
 from skimage import measure
 from abc import ABC, abstractmethod
-
 
 
 # ------------------- Transverse beam distribution reconstructino evaluations -------------------
@@ -85,10 +84,18 @@ def filtering_contours_based_on_area(contours: list, min_area: int=10) -> list:
     return [c for c in contours if cv2.contourArea(np.array(c, dtype=np.float32)) > min_area]
 
 
-def calculate_total_contours_area(contours: list) -> float:
-    # Calculate the area for each contour and sum them
-    total_area = sum(cv2.contourArea(contour) for contour in contours)
-    return total_area
+def filter_small_areas_in_mask(mask: np.array, area_threshold: int=100):
+    # Label connected regions
+    labeled_mask = measure.label(mask, connectivity=2)
+    # Remove small objects
+    filtered_mask = remove_small_objects(labeled_mask, min_size=area_threshold)
+    # Convert back to binary
+    filtered_mask = filtered_mask > 0
+    return filtered_mask
+
+
+def calculate_total_mask_area(mask: np.array) -> float:
+    return np.sum(mask)
 
 
 def get_transverse_beam_parameters(image: np.array) -> dict:
@@ -99,18 +106,6 @@ def get_transverse_beam_parameters(image: np.array) -> dict:
             return {'horizontal_centroid': mu1, 'vertical_centroid': mu2,
                     'horizontal_width': std1, 'vertical_width': std2}
     return None
-
-
-def normalize_transverse_beam_parameters(params: dict, image: np.array) -> dict:
-    pass      
-
-
-def transverse_beam_parameters(image: np.array) -> dict:
-    """
-    this function is used to calculate the beam parameters from the beam image.
-    have to check the range validity of the beam parameters. and make sure the fit iteration times are limited.
-    """
-    pass
 
 
 def analyze_image_pixel_values(image: np.array) -> dict:
@@ -127,18 +122,6 @@ def analyze_image_pixel_values(image: np.array) -> dict:
     average_pixel = np.mean(image)
     min_pixel = np.min(image)
     return {'max': max_pixel, 'average': average_pixel, 'min': min_pixel}
-
-
-def get_beam_image_properties(image: np.array) -> dict:
-    """return a dictionary of beam image properties depending on pixel values, beam parameters"""
-    pass
-
-
-def beam_image_reconstruction(trained_model: Model, test_set_sample: np.array):
-    """
-    focuses on applying trained model to reconstruct a testset image. 
-    """
-    pass
 
 
 
