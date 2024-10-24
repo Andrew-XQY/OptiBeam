@@ -12,9 +12,10 @@ from abc import ABC, abstractmethod
 
 # ------------------- Transverse beam distribution reconstructino evaluations -------------------
 
-def horizontal_histogram(image_array: np.array) -> np.array:
+def vertical_histogram(image_array: np.array) -> np.array:
     """
-    Calculate the horizontal histogram of a single-channel image.
+    Calculate the vertical histogram of a single-channel image.
+    Histogram of pixel sums along Y-axis (rows)
     """
     if len(image_array.shape) != 2:
         raise ValueError("Input image array must be a 2D array for a single-channel image.")
@@ -22,9 +23,10 @@ def horizontal_histogram(image_array: np.array) -> np.array:
     return histogram
 
 
-def vertical_histogram(image_array: np.array) -> np.array:
+def horizontal_histogram(image_array: np.array) -> np.array:
     """
-    Calculate the vertical histogram of a single-channel image.
+    Calculate the horizontal histogram of a single-channel image.
+    Histogram of pixel sums along X-axis (columns)
     """
     if len(image_array.shape) != 2:
         raise ValueError("Input image array must be a 2D array for a single-channel image.")
