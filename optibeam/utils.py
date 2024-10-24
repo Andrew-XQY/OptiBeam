@@ -421,12 +421,10 @@ def subtract_minimum(arr: np.array) -> np.array:
     """
     Subtract the minimum value from each element in a 1D NumPy array.
     Parameters:
-    arr (np.ndarray): A 1D numpy array.
+    arr (np.ndarray)
     Returns:
     np.ndarray: The processed array with the minimum value subtracted from each element.
     """
-    if arr.ndim != 1:
-        raise ValueError("Input must be a 1D numpy array.")
     min_value = np.min(arr)
     processed_arr = arr - min_value
     return processed_arr

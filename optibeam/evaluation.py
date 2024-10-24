@@ -53,12 +53,15 @@ def fit_1d_gaussian(data: np.array) -> tuple:
         return None, None, None  # Provide more information on the failure
 
 
-def normalize_value_base_image_dim(value: float, dim: float) -> float:
+def normalize_value_base_image_dim(value: float, dim: float, range: str='01') -> float:
     """
     Normalize a value based on the dimensions of an image. for example, remap a value from [0,255] to [-1,1]
     e.g. value / len(image) * 2 - 1
     """
-    return (value / dim) * 2 - 1
+    if range == '01':
+        return value / dim
+    elif range == '-11':
+        return (value / dim) * 2 - 1
 
 
 def compute_percentage_mask(image: np.array, percentage: int=95) -> tuple:
@@ -101,8 +104,10 @@ def calculate_total_mask_area(mask: np.array) -> float:
 
 
 def get_transverse_beam_parameters(image: np.array) -> dict:
-    mu1, std1, _ = fit_1d_gaussian(horizontal_histogram(image))
-    mu2, std2, _ = fit_1d_gaussian(vertical_histogram(image))
+    hor = subtract_minimum(horizontal_histogram(image))
+    ver = subtract_minimum(vertical_histogram(image))
+    mu1, std1, _ = fit_1d_gaussian(hor)
+    mu2, std2, _ = fit_1d_gaussian(ver)
     if all(x is not None for x in (mu1, std1, mu2, std2)):
         if all(0 <= y < image.shape[0] for y in (mu1, std1)) and all(0 <= z < image.shape[1] for z in (mu2, std2)):
             return {'horizontal_centroid': mu1, 'vertical_centroid': mu2,
