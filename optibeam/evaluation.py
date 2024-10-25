@@ -123,12 +123,12 @@ def analyze_image_pixel_values(image: np.array) -> dict:
         image_array (np.array): A numpy array representing the image.
 
     Returns:
-        dict: A dictionary containing the 'max', 'average', and 'min' pixel values.
+        dict: A dictionary containing the 'max_pixel', 'average_pixel', and 'min_pixel' pixel values.
     """
     max_pixel = np.max(image)
     average_pixel = np.mean(image)
     min_pixel = np.min(image)
-    return {'max': max_pixel, 'average': average_pixel, 'min': min_pixel}
+    return {'max_pixel': max_pixel, 'average_pixel': average_pixel, 'min_pixel': min_pixel}
 
 
 
