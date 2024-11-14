@@ -133,6 +133,15 @@ def analyze_image_pixel_values(image: np.array) -> dict:
 
 
 
+
+def get_result_df():
+    pass
+
+
+
+
+
+
 # ------------------- model training result evaluations -------------------
 
 def read_pkl_to_dataframe(filepath):
