@@ -22,10 +22,10 @@ current_date = datetime.now().strftime("%Y%m%d")
 dev_flag = False
 
 if dev_flag:
-    ABS_DIR = f"C:/Users/qiyuanxu/Documents/ResultsCenter/datasets/{DATASET}_{current_date}/"
+    ABS_DIR = f"C:/Users/qiyuanxu/Documents/ResultsCenter/datasets/{DATASET}/"
     SAVE_TO = f'C:/Users/qiyuanxu/Documents/ResultsCenter/result/dev/{DATASET}_{current_date}/' 
 else:
-    ABS_DIR = f'../dataset/{DATASET}_{current_date}/'
+    ABS_DIR = f'../dataset/{DATASET}/'
     SAVE_TO = f'../results/{DATASET}_{current_date}/' 
 
 DATABASE_ROOT = ABS_DIR + "db/liverpool.db"    
