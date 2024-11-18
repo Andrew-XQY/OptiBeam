@@ -17,7 +17,7 @@ training.check_tensorflow_gpu()
 training.check_tensorflow_version()
 os.environ['TF_GPU_ALLOCATOR'] = 'cuda_malloc_async'
 
-DATASET = "2024-08-15"
+DATASET = "2024-08-22"
 current_date = datetime.now().strftime("%Y%m%d")
 dev_flag = False
 
@@ -128,7 +128,8 @@ DB = database.SQLiteDB(DATABASE_ROOT)
 sql = """
     SELECT id, batch, image_path, comments
     FROM mmf_dataset_metadata
-    WHERE is_calibration = 0 AND batch = 1 AND comments > 2
+    WHERE is_calibration = 0 AND batch = 2 
+    LIMIT 25000;
 """
 df = DB.sql_select(sql)
 print('Total number of records in the table: ' + str(len(df)))
@@ -140,7 +141,7 @@ datapipeline.datapipeline_conclusion(train_dataset, batch_size)
 sql = """
     SELECT id, batch, image_path
     FROM mmf_dataset_metadata
-    WHERE is_calibration = 0 AND batch = 2
+    WHERE is_calibration = 0 AND batch = 1
 """
 df = DB.sql_select(sql)
 print('Total number of records in the table: ' + str(len(df)))
@@ -148,6 +149,7 @@ val_paths = [ABS_DIR+i for i in df["image_path"].to_list()]
 val_paths = [val_paths[i] for i in range(0, len(val_paths), 10)]  # (take 10% of the data for validation, the rest will be used for testing)
 val_dataset = datapipeline.tf_dataset_prep(val_paths, datapipeline.load_and_process_image, batch_size, shuffle=False)
 datapipeline.datapipeline_conclusion(val_dataset, batch_size)
+
 
 
 
