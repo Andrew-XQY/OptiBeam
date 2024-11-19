@@ -131,9 +131,6 @@ def analyze_image_pixel_values(image: np.array) -> dict:
     return {'max_pixel': max_pixel, 'average_pixel': average_pixel, 'min_pixel': min_pixel}
 
 
-
-
-
 def get_result_df():
     pass
 
@@ -192,23 +189,6 @@ def training_report_tf(filepath):
     except Exception as e:
         print(f"An error occurred: {e}")
         raise
-
-
-
-# ------------------- Unified evaluation framework -------------------
-class Model:
-    def __init__(self, model_path: str):
-        self.model_path = model_path
-        
-    @abstractmethod
-    def inference(self, image) -> dict:
-        """Reconstruct the beam parameters using the model."""
-        pass
-
-    @abstractmethod
-    def reconstruction(self, image) -> np.array:
-        """Reconstruct the image using the model."""
-        pass
 
 
 # ------------------- Image based similarity evaluation -------------------
@@ -365,103 +345,27 @@ def fit_2d_gaussian(image):
 
 
 # ------------------- evaluation functions -------------------
-def calculate_rmse(y_actual: Iterable, y_predicted: Iterable):
+def calculate_rmse(actual: Iterable, predicted: Iterable) -> float:
     """
     Calculate the Root Mean Square Error (RMSE) between actual and predicted values.
-
+    
     Args:
-    y_actual (iterable): Iterable (like a list or numpy array) of actual values.
-    y_predicted (iterable): Iterable (like a list or numpy array) of predicted values.
+        actual (Iterable): An iterable of actual values.
+        predicted (Iterable): An iterable of predicted values.
 
     Returns:
-    float: The RMSE of the predictions.
+        float: RMSE
     """
-    y_actual = np.array(y_actual)
-    y_predicted = np.array(y_predicted)
-    mse = np.mean((y_actual - y_predicted) ** 2)  # Mean squared error
-    rmse = np.sqrt(mse)  # Root Mean Square Error
-    return rmse
-
-# ------------------- image illustraion/visualization functions -------------------
-def plot_gaussian_fit(image):
-    """
-    Plot the horizontal and vertical histograms of the image, and the Gaussian fit.
-    input: 2d numpy array representing the image
-    output: None
-    """
-    # Calculate vertical/horizontal histogram
-    horizontal_histogram = subtract_minimum(np.sum(image, axis=1)[::-1])
-    vertical_histogram = subtract_minimum(np.sum(image, axis=0))
-
-    horizontal_x = np.arange(len(horizontal_histogram))
-    vertical_x = np.arange(len(vertical_histogram))
-
-    params = beam_params(image, normalize=False)
-    h_mu = params["vertical_centroid"]  # history mistake
-    v_mu = params["horizontal_centroid"]
-    h_sigma = params["vertical_width"]
-    v_sigma = params["horizontal_width"]
-    
-    try:
-        horizontal_fit, _ = fit_gaussian(horizontal_x, horizontal_histogram)
-        vertical_fit, _ = fit_gaussian(vertical_x, vertical_histogram)
-    except:
-        horizontal_fit = [0] * len(horizontal_x)
-        vertical_fit = [0] * len(vertical_x)
-        
-    fit_2d = fit_2d_gaussian(image)
-
-    fig = plt.figure(figsize=(8, 8))
-    thickness = 1
-    thickness_1 = 0.8
-    # Vertical fit
-    ax1 = plt.subplot(2, 2, 1)
-    plt.plot(vertical_histogram, label='Data', color='blue', linewidth=thickness)
-    plt.plot(vertical_x, vertical_fit, label='Gaussian fit (LSE)', color='red', linewidth=thickness)
-    # Highlight the mean
-    plt.axvline(v_mu, color='r', linestyle='--', label='Mean ($\mu$)', linewidth=thickness_1)
-    # Illustrate sigma intervals
-    if v_mu - v_sigma > 0:
-        plt.axvline(v_mu - v_sigma, color='g', linestyle='--', label='$\mu - \sigma$', linewidth=thickness_1)
-        plt.axvline(v_mu + v_sigma, color='g', linestyle='--', label='$\mu + \sigma$', linewidth=thickness_1)
-    plt.title('Horizontal Histogram')
-    plt.xlabel('Horizontal-coordinate')
-    plt.ylabel('Pixel Count')
-    plt.legend(loc='upper right', fontsize='small')
-    # Normalize axis
-    ax1.set_xticks(np.linspace(0, len(vertical_histogram)-1, 5))
-    ax1.set_xticklabels(np.round(np.linspace(0, 1, 5), 2))
-    ax1.set_xlim(0, len(vertical_histogram) - 1)
-    # original image
-    ax2 = plt.subplot(2, 2, 3)
-    plt.imshow(image, interpolation='none', cmap='gray')
-    plt.scatter(v_mu, h_mu, color='red', label='1D_Gaussion_fit', s=3)
-    plt.scatter(fit_2d['horizontal_centroid'], fit_2d['vertical_centroid'], color='Yellow', label='2D_Gaussion_fit', s=3)
-    plt.legend(loc='upper right', fontsize='small')
-    # Normalize axis for image
-    ax2.set_xticks(np.linspace(0, image.shape[1]-1, 5))
-    ax2.set_xticklabels(np.round(np.linspace(0, 1, 5), 2))
-    ax2.set_yticks(np.linspace(0, image.shape[0]-1, 5))
-    ax2.set_yticklabels(np.round(np.linspace(1, 0, 5), 2))  # Reversed order for y-ticks
-    ax2.set_xlim(0, image.shape[1] - 1)
-    ax2.set_ylim(image.shape[0] - 1, 0)  # Set to invert y-axis
-    # Horizontal fit
-    ax3 = plt.subplot(2, 2, 4)
-    plt.plot(horizontal_histogram, range(len(horizontal_histogram)), label='Data', color='blue', linewidth=thickness)
-    plt.plot(horizontal_fit, horizontal_x, label='Gaussian fit (LSE)', color='red', linewidth=thickness)
-    plt.axhline(len(horizontal_x) - h_mu, color='r', linestyle='--', label='Mean ($\mu$)', linewidth=thickness_1)
-    if len(horizontal_x) - h_mu - h_sigma > 0:
-        plt.axhline(len(horizontal_x) - h_mu - h_sigma, color='g', linestyle='--', label='$\mu - \sigma$', linewidth=thickness_1)
-        plt.axhline(len(horizontal_x) - h_mu + h_sigma, color='g', linestyle='--', label='$\mu + \sigma$', linewidth=thickness_1)
-    plt.title('Vertical Histogram')
-    plt.xlabel('Pixel Count')
-    plt.ylabel('Vertical-coordinate')
-    plt.legend(loc='upper right', fontsize='small')
-    # Normalize axis
-    ax3.set_yticks(np.linspace(0, len(horizontal_histogram)-1, 5))
-    ax3.set_yticklabels(np.round(np.linspace(0, 1, 5), 2))
-    ax3.set_ylim(0, len(horizontal_histogram) - 1)
-    plt.gca().set_yticklabels(reversed(plt.gca().get_yticklabels()))   # Reverse y-axis
-    plt.tight_layout()
-    # plt.show()
-    return fig
+    # Filter out pairs where either actual or predicted is NaN
+    clean_data = [(act, pred) for act, pred in zip(actual, predicted) if not np.isnan(act) and not np.isnan(pred)]
+    if not clean_data:  # Check if all data were NaN
+        print("Error: All data pairs were removed due to NaN values.")
+        return np.nan
+    # Unzip the cleaned list of tuples into two lists
+    actual_clean, predicted_clean = zip(*clean_data)
+    # Convert lists to numpy arrays
+    actual_array = np.array(actual_clean)
+    predicted_array = np.array(predicted_clean)
+    # Calculate RMSE
+    mse = np.mean((actual_array - predicted_array) ** 2)
+    return np.sqrt(mse) 

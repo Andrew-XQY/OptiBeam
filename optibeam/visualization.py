@@ -2,10 +2,12 @@ from .utils import *
 from io import BytesIO
 from sklearn.decomposition import PCA
 from moviepy.editor import ImageSequenceClip
+from scipy.stats import norm
 import plotly.graph_objects as go
 import matplotlib.pyplot as plt
 import seaborn as sns
 import imageio
+
 
 
 
@@ -236,3 +238,65 @@ def create_gif_from_png_paths(png_paths, save_path, duration):
     images = [imageio.imread(path) for path in png_paths]
     imageio.mimsave(save_path, images, duration=duration)
 
+
+# ------------------- Fundamental evaluation plots -------------------
+
+def plot_prediction_comparison(real : np.array, predicted : np.array, param_name='', directory=''):
+    # Assuming 'real' and 'predicted' are the lists containing the actual and predicted ages
+    # Scatter Plot of Predicted vs. Actual Ages
+    legend_font = 10
+    x1 = predicted[0]
+    x2 = predicted[1]
+    y1 = real[0]
+    y2 = real[1]
+    # Scatter Plot
+    plt.figure(figsize=(15, 5))
+    plt.subplot(1, 3, 1)
+    scatter_1 = plt.scatter(y1, x1, color='blue', label=f'Horizontal {param_name}', alpha=0.5, s=1)
+    scatter_2 = plt.scatter(y2, x2, color='red', label=f'Vertical {param_name}', alpha=0.5, s=1)
+    plt.plot([real.min(), real.max()], [real.min(), real.max()], 'k--', lw=2, alpha=0.8)  # Diagonal line
+    plt.title(f'Estimation vs. Actual {param_name}')
+    plt.xlabel(f'Actual {param_name}')
+    plt.ylabel(f'Predicted {param_name}')
+    plt.legend(fontsize=legend_font, markerscale=3, loc='upper left')  # You can adjust the font size as needed
+    plt.grid(True)
+    # Residual Plot
+    plt.subplot(1, 3, 2)
+    residuals_1 = x1 - y1
+    residuals_2 = x2 - y2
+    plt.scatter(x1, residuals_1, color='blue', label=f'Horizontal {param_name}', alpha=0.5, s=1)
+    plt.scatter(x2, residuals_2, color='red', label=f'Vertical {param_name}', alpha=0.5, s=1)
+    plt.title(f'{param_name} Residual')
+    plt.xlabel(f'Predicted {param_name}')
+    plt.ylabel('Residuals')
+    plt.axhline(y=0, color='k', linestyle='--', alpha=0.8)
+    plt.legend(fontsize=legend_font, markerscale=3, loc='upper left') 
+    plt.grid(True)
+    # Fit a Gaussian (normal) distribution to the data
+    plt.subplot(1, 3, 3)    
+    data = [i * 100 for i in residuals_1]
+    sns.histplot(data, color='blue', label=f'Horizontal {param_name}', kde=False, stat='density',
+                 bins=200, alpha=0.3)
+    x = np.linspace(min(data), max(data), 100)
+    gaussian_curve = norm.pdf(x, *norm.fit(data))  # Gaussian PDF
+    plt.plot(x, gaussian_curve, color='blue')
+    data = [i * 100 for i in residuals_2]
+    sns.histplot(data, color='red', label=f'Vertical {param_name}', kde=False, stat='density',
+                 bins=200, alpha=0.3)
+    x = np.linspace(min(data), max(data), 100)
+    gaussian_curve = norm.pdf(x, *norm.fit(data))  # Gaussian PDF
+    plt.plot(x, gaussian_curve, color='red')
+    plt.title('Percentage Prediction Errors')
+    plt.xlabel('Prediction Error (%)')
+    plt.ylabel('Frequency')
+    plt.legend(fontsize=legend_font, loc='upper left') 
+    plt.grid(True)
+    plt.tight_layout()
+    # Save the file
+    if directory:
+        # plt.xlim(-100, 100)  # Limiting x-axis to -100% to 100% for clearer visualization
+        timestamp = datetime.now().strftime("%M%S%f")[-5:]
+        filename = f'beam_parameter_estimation_results_{timestamp}.png'
+        full_path = os.path.join(directory, filename)
+        plt.savefig(full_path, transparent=True, format='png', dpi=300)
+    plt.show()
