@@ -1,3 +1,53 @@
+
+
+
+
+
+
+
+# unified API for image reconstruction models
+class Model(ABC):
+    """
+    Abstract class to define a unified API for image reconstruction models.
+    
+    This class serves as a base for different reconstruction models, potentially
+    using various frameworks like TensorFlow or PyTorch.
+    """
+    
+    @abstractmethod
+    def speckle_reconstruction(self, image):
+        """
+        Reconstruct an image from speckle patterns.
+
+        Args:
+            image (np.array or similar): The input image which might be in various formats
+            and needs conversion to numpy array if not already one.
+
+        Returns:
+            np.array: The reconstructed image as a numpy array.
+        """
+        if not isinstance(image, np.ndarray):
+            image = np.array(image)  # Convert to numpy array if not already
+        return self._reconstruct(image)
+
+    @abstractmethod
+    def _reconstruct(self, image_array):
+        """
+        Implement the reconstruction logic specific to the model and framework.
+
+        Args:
+            image_array (np.array): The image as a numpy array to be reconstructed.
+
+        Returns:
+            np.array: The reconstructed image.
+        """
+        pass
+
+
+
+
+
+
 # ------------------- image illustraion/visualization functions -------------------
 def plot_gaussian_fit(image):
     """

@@ -115,7 +115,7 @@ def get_transverse_beam_parameters(image: np.array) -> dict:
     return None
 
 
-def analyze_image_pixel_values(image: np.array) -> dict:
+def analyze_image_pixel_values(image: np.array, comment='') -> dict:
     """
     Analyze pixel values in a given image represented as a numpy array.
 
@@ -128,7 +128,7 @@ def analyze_image_pixel_values(image: np.array) -> dict:
     max_pixel = np.max(image)
     average_pixel = np.mean(image)
     min_pixel = np.min(image)
-    return {'max_pixel': max_pixel, 'average_pixel': average_pixel, 'min_pixel': min_pixel}
+    return {f'max_pixel_{comment}': max_pixel, f'average_pixel_{comment}': average_pixel, f'min_pixel_{comment}': min_pixel}
 
 
 def get_result_df():
