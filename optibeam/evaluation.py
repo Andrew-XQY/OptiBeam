@@ -1,13 +1,14 @@
 from .utils import *
-from .training import Model
 import matplotlib.pyplot as plt
 import pandas as pd
+import tensorflow as tf
 from scipy.optimize import curve_fit
 from scipy.stats import pearsonr
 from skimage.metrics import structural_similarity 
 from skimage.morphology import remove_small_objects
 from skimage import measure
 from abc import ABC, abstractmethod
+
 
 
 # ------------------- Transverse beam distribution reconstructino evaluations -------------------
@@ -131,10 +132,115 @@ def analyze_image_pixel_values(image: np.array, comment='') -> dict:
     return {f'max_pixel_{comment}': max_pixel, f'average_pixel_{comment}': average_pixel, f'min_pixel_{comment}': min_pixel}
 
 
-def get_result_df():
-    pass
 
 
+# ------------------- generate final result (wide table) -------------------
+
+def compare_dict_values(dict1, dict2):
+    """
+    Compares values of two dictionaries based on corresponding keys and calculates
+    the absolute difference between the values, ensuring that both values are comparable.
+
+    Args:
+        dict1 (dict): The first dictionary.
+        dict2 (dict): The second dictionary.
+
+    Returns:
+        dict: A new dictionary with keys from the original dictionaries appended with '_diff',
+              and values that are the absolute differences of comparable values from the original dictionaries.
+    """
+    result = {}
+    # Iterate over the keys in the first dictionary
+    for key in dict1:
+        if key in dict2:
+            # Ensure both values are not None before comparing
+            if dict1[key] and dict2[key]:
+                # Calculate the absolute difference and store it with the new key name
+                result[key + '_diff'] = abs(dict1[key] - dict2[key])
+            else:
+                # Handle cases where one or both values are None
+                result[key + '_diff'] = None  # or use 'None' if you prefer to record missing comparisons
+    return result
+
+
+def ave_dict_values(d):
+    if None in d.values():
+        return None
+    return sum(abs(value) for value in d.values()) / len(d.values()) 
+
+
+def sum_dict_values(d):
+    if None in d.values():
+        return None  # Return None if any value is None
+    return sum(abs(value) for value in d.values())
+
+
+def batch_evaluation(test_dataset: Iterable, model: tf.keras.Model):
+    """inference on the test dataset and return the results in a pandas DataFrame.
+
+    Args:
+        test_dataset (Iterable): testset image data paths
+        model (tf.keras.Model): trained model (tensorflow model)
+
+    Returns:
+        pd.DataFrame: a pandas DataFrame (wide table) containing the evaluation
+    """
+    temp = []
+    
+    for path in tqdm(test_dataset):
+        # preprocess the image
+        img = load_image_as_narray(path)
+        img = image_normalize(img)
+        tar, inp = split_image(img)
+        # apply the trained model to the testset and get results
+        reconstruction = model.predict(np.expand_dims(np.expand_dims(inp, axis=0), axis=-1), verbose=0)        
+        params_predict = get_transverse_beam_parameters(np.squeeze(reconstruction))  
+        params_real = get_transverse_beam_parameters(np.squeeze(tar))  
+        # calculate beam parameters on real and reconstructed images
+        param_names = ["horizontal_centroid", "vertical_centroid", "horizontal_width", "vertical_width"]
+        diff = {}
+        flag = False # if any beam parameter is not able to calculate, set problem to be true
+        if not params_predict: 
+            params_predict = {key: None for key in param_names}
+        else:
+            params_predict = {k: normalize_value_base_image_dim(v, img.shape[0]) 
+                              for k, v in params_predict.items()}
+        if not params_real:
+            params_real = {f"{key}_real": None for key in param_names}
+            flag = True
+            diff = {k:None for k in params_predict.keys()}
+        else:
+            params_real = {k: normalize_value_base_image_dim(v, img.shape[0]) 
+                           for k, v in params_real.items()}
+            diff = compare_dict_values(params_predict, params_real)
+            # diff = {key: value * 100 for key, value in diff.items() if value is not None}
+            params_real = {f"{key}_real": value for key, value in params_real.items()}
+
+        percentile = 90
+        mask, _ = compute_percentage_mask(tar, percentile)
+        mask = filter_small_areas_in_mask(mask)
+        # get all image meta data with respect to the specific image.
+        comment='speckle'
+        meta = {
+                    **params_predict, 
+                    **params_real,
+                    f'{percentile}_percentile_area_real': calculate_total_mask_area(mask),
+                    **analyze_image_pixel_values(inp, comment=comment),  # use fiber output for stability and consistency
+                    **diff,
+                    'pcc': pcc(np.squeeze(tar), np.squeeze(reconstruction)),
+                    'ave_params_pred_error': ave_dict_values(diff),
+                    'total_params_pred_error': sum_dict_values(diff),
+                    'image_path': "/".join(path.split("/")[-4:]),  # relative path
+                    'image_width': tar.shape[1],
+                    'image_hight': tar.shape[0],
+                    'problem': flag,
+                    'check': False
+               }
+        temp.append(meta)
+    
+    # construct final table 
+    df_result = pd.DataFrame(temp)
+    return df_result
 
 
 
