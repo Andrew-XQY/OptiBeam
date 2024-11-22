@@ -21,7 +21,24 @@ for _ in range(10000):
     # canvas.canvas_pixel_values()
     # break
     canvas.plot_canvas(cmap='grey')
+    
+
+    
+    meta = canvas.get_distributions_metadata()
+    std_x, std_y, x, y = [], [], [], []
+    for m in meta:
+        if m['is_empty'] == False:
+            std_x.append(m['std_x'])
+            std_y.append(m['std_y'])
+            x.append(m['x'])
+            y.append(m['y'])
+            
+    print(canvas.get_metadata())
+    print('x:', x, 'y:', y, 'std_x:', std_x, 'std_y:', std_x)
+    
+    
     time.sleep(1)
+    
     
 
 

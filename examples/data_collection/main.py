@@ -55,15 +55,20 @@ DB = database.SQLiteDB(DATABASE_ROOT)
 ImageMeta = metadata.ImageMetadata()
 ConfMeta = metadata.ConfigMetaData()
 
+
+
 # Simulation Initialization (Optional, could just load disk images or any image list instead)
+# Core parameters for the simulation
 sim_num = 100    # number of distributions in the simulation
-fade_rate = 0.94  # with 100 sim_num. around 0.96 looks good
+fade_rate = 0.96  # with 100 sim_num. around 0.96 looks good
 std_1=0.01 
 std_2=0.2
 # std_1 = 0.15
 # std_2 = 0.12
-max_intensity=85
+max_intensity=100
 dim = 512   # simulation image resolution 
+
+
 
 stride = 5  # number of simulation updates per image, only for dynamic simulation
 CANVAS = simulation.DynamicPatterns(dim, dim)
@@ -152,7 +157,8 @@ try:
                           distribution='normal') 
             #CANVAS.thresholding(1)
             img = CANVAS.get_image()
-            comment = CANVAS.num_of_distributions()
+            comment = {'num_of_distributions': CANVAS.num_of_distributions(), 
+                       'distributions_metadata': CANVAS.get_distributions_metadata()}
         # ---------------------------------------------------------------------------
         
         # -------------------------------- generator --------------------------------

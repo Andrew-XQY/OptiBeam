@@ -73,23 +73,36 @@ def upsample(filters, size, apply_dropout=False):
 
 def Autoencoder(input_shape): 
     inputs = tf.keras.layers.Input(shape=input_shape) 
-    encoder = [ 
-    downsample(64, 4, apply_batchnorm=False),  # output (batch_size, 128, -) 
-    downsample(128, 4),  # output (batch_size, 64, -) 
-    downsample(256, 4),  # output (batch_size, 32, -) 
-    downsample(512, 4),  # output (batch_size, 16, -) 
-    downsample(1024, 4),  # output (batch_size, 8, -) 
-    ] 
-    decoder = [ 
-    upsample(1024, 4, apply_dropout=True),  # output (batch_size, 16, -) 
-    upsample(512, 4, apply_dropout=True),  # output (batch_size, 32, -) 
-    upsample(256, 4, apply_dropout=True),  # output (batch_size, 64, -) 
-    upsample(128, 4),  # output (batch_size, 128, -) 
-    upsample(64, 4),  # output (batch_size, 256, -) 
-    ] 
+
+    encoder = [
+    downsample(64, 4, apply_batchnorm=False),  # (batch_size, 128, 128, 64)
+    downsample(128, 4),  # (batch_size, 64, 64, 128)
+    downsample(256, 4),  # (batch_size, 32, 32, 256)
+    downsample(512, 4),  # (batch_size, 16, 16, 512)
+    downsample(512, 4),  # (batch_size, 8, 8, 512)
+    downsample(512, 4),  # (batch_size, 4, 4, 512)
+    downsample(512, 4),  # (batch_size, 2, 2, 512)
+    downsample(512, 4),  # (batch_size, 1, 1, 512)
+    ]
+
+    decoder = [
+    upsample(512, 4, apply_dropout=True),  # (batch_size, 2, 2, 1024)
+    upsample(512, 4, apply_dropout=True),  # (batch_size, 4, 4, 1024)
+    upsample(512, 4, apply_dropout=True),  # (batch_size, 8, 8, 1024)
+    upsample(512, 4),  # (batch_size, 16, 16, 1024)
+    upsample(256, 4),  # (batch_size, 32, 32, 512)
+    upsample(128, 4),  # (batch_size, 64, 64, 256)
+    upsample(64, 4),  # (batch_size, 128, 128, 128)
+    ]
     
-    last = tf.keras.layers.Conv2D(input_shape[-1], kernel_size=4, activation='tanh', padding='same') 
-    
+    # last = tf.keras.layers.Conv2D(input_shape[-1], kernel_size=4, activation='tanh', padding='same') 
+    initializer = tf.random_normal_initializer(0., 0.02)
+    last = tf.keras.layers.Conv2DTranspose(input_shape[-1], 
+                                           kernel_size =4,
+                                           strides=2,
+                                           padding='same',
+                                           kernel_initializer=initializer,
+                                           activation='tanh')  # (batch_size, 256, 256, 1)
     # without skip connections
     # x = inputs 
     # for down in encoder: 

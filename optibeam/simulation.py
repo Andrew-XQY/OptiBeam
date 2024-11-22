@@ -238,6 +238,16 @@ class DynamicPatterns:
         config["num_of_distributions"] = self.num_of_distributions()
         config["types"] = list(set([dst._type for dst in self._distributions]))
         return config
+    
+    def get_distributions_metadata(self) -> List[dict]:
+        """
+        Return the metadata of the distributions in the canvas.
+        
+        args: None
+        
+        return: List[dict]
+        """
+        return [dst.get_metadata() for dst in self._distributions]
 
 
 class Distribution(ABC):
@@ -450,22 +460,31 @@ class StaticGaussianDistribution(Distribution):
             return np.zeros((self._height, self._width))  # Set Gaussian to zero (blank canvas)
         else:
             # Create a coordinate grid
-            x = np.linspace(0, self._width-1, self._width)
+            x = np.linspace(0, self._width-1, self._width) # lower bound, upper bound, number of points
             y = np.linspace(0, self._height-1, self._height)
             x, y = np.meshgrid(x, y)
             # Shift the center for rotation
-            x -= self._width/2
+            x -= self._width/2  # shift from saying 0-100 to -50 to 50
             y -= self._height/2
             # Apply rotation
             x_new = x * np.cos(self.rotation) - y * np.sin(self.rotation)
             y_new = x * np.sin(self.rotation) + y * np.cos(self.rotation)
+            
             # Apply translation
-            x_new += self._width/2 + self.dx
-            y_new += self._height/2 + self.dy
+            x_new += self.dx  # when dx = 0, x_new = -50, when dx = 50, x_new = 0
+            y_new += self.dy
             # Calculate the 2D Gaussian with different sigma for x and y
-            dist = np.exp(-((x_new - self._width/2)**2 / (2 * self.std_x**2) + (y_new - self._height/2)**2 / (2 * self.std_y**2)))
+            dist = np.exp(-((x_new)**2 / (2 * self.std_x**2) + (y_new)**2 / (2 * self.std_y**2)))
             dist *= self.intensity  # Scale Gaussian by the intensity factor
             return dist
+            
+            # # Apply translation
+            # x_new += self._width/2 + self.dx
+            # y_new += self._height/2 + self.dy
+            # # Calculate the 2D Gaussian with different sigma for x and y
+            # dist = np.exp(-((x_new - self._width/2)**2 / (2 * self.std_x**2) + (y_new - self._height/2)**2 / (2 * self.std_y**2)))
+            # dist *= self.intensity  # Scale Gaussian by the intensity factor
+            # return dist
         
     def update(self, *args, **kwargs) -> None:
         """Update the distribution's state."""
@@ -489,8 +508,8 @@ class StaticGaussianDistribution(Distribution):
         return True if self.intensity <= 0 else False
     
     def get_metadata(self) -> dict:
-        return {'is_empty': self.is_empty(), 'intensity': self.intensity, 'std_x': self.std_x, 'std_y': self.std_y,
-                'rotation': self.rotation, 'x': self.dx, 'y': self.dy}
+        return {'is_empty': self.is_empty(), 'intensity': self.intensity, 'std_x': self.std_x/self._width,
+                'std_y': self.std_y/self._height, 'rotation': self.rotation, 'x': self.dx, 'y': self.dy, 'type': self._type}
     
 
 
