@@ -187,7 +187,6 @@ class Logger:
     After training, save the log content in the log file under the log directory.
     """
     def __init__(self, log_dir, model=None, dataset=None, history=None, info=''):
-        self.log_dir = os.path.join(log_dir, datetime.now().strftime("%Y-%m-%d_" + info))
         self.model = model
         self.dataset = dataset
         self.history = history
@@ -211,6 +210,8 @@ class Logger:
         self.log_content['extra_info'] = extra_info
             
     def register_dataset(self):
+        if isinstance(self.dataset, str):
+            self.log_content['dataset_info'] = {'dataset_ref': self.dataset}
         if isinstance(self.dataset, np.ndarray):
             self.log_content['dataset_info'] = {'dataset_shape': str(self.dataset.shape), 
                                                 'dataset_dtype': str(self.dataset.dtype),
@@ -227,7 +228,7 @@ class Logger:
         os_info = get_system_info()
         if isinstance(self.model, tf.keras.models.Model):
             compiled_info = {
-            'loss': self.model.loss,
+            'loss': str(self.model.loss),
             'optimizer': type(self.model.optimizer).__name__,
             'optimizer_config': {k:str(v) for k,v in self.model.optimizer.get_config().items()},
             'metrics': [m.name for m in self.model.metrics]
@@ -301,8 +302,6 @@ def img_2_params_evaluation(image, true_label, pred_label):
 
     plt.legend()
     plt.show()
-
-
 # ------------------- other functions -------------------
 
 

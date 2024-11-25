@@ -7,7 +7,6 @@ os.chdir(normalized_path) # Change the current working directory to the normaliz
 from conf import *
 import numpy as np 
 from datetime import datetime
-import matplotlib.pyplot as plt
 import tensorflow as tf
 import pickle
 import random
@@ -17,8 +16,8 @@ training.check_tensorflow_gpu()
 training.check_tensorflow_version()
 os.environ['TF_GPU_ALLOCATOR'] = 'cuda_malloc_async'
 
-DATASET = "2024-08-22"
-current_date = datetime.now().strftime("%Y%m%d%H")
+DATASET = "2024-08-23"
+current_date = datetime.now().strftime("%Y%m%d_%H%M")
 dev_flag = False
 
 if dev_flag:
@@ -73,65 +72,57 @@ def upsample(filters, size, apply_dropout=False):
 
 def Autoencoder(input_shape): 
     inputs = tf.keras.layers.Input(shape=input_shape) 
+    encoder = [ 
+    downsample(64, 4, apply_batchnorm=False),  # output (batch_size, 128, -) 
+    downsample(128, 4),  # output (batch_size, 64, -) 
+    downsample(256, 4),  # output (batch_size, 32, -) 
+    downsample(512, 4),  # output (batch_size, 16, -)
+    downsample(1024, 4),  # output (batch_size, 8, -) 
+    downsample(1024, 4),  # output (batch_size, 4, -) 
+    ] 
 
-    encoder = [
-    downsample(64, 4, apply_batchnorm=False),  # (batch_size, 128, 128, 64)
-    downsample(128, 4),  # (batch_size, 64, 64, 128)
-    downsample(256, 4),  # (batch_size, 32, 32, 256)
-    downsample(512, 4),  # (batch_size, 16, 16, 512)
-    downsample(512, 4),  # (batch_size, 8, 8, 512)
-    downsample(512, 4),  # (batch_size, 4, 4, 512)
-    downsample(512, 4),  # (batch_size, 2, 2, 512)
-    downsample(512, 4),  # (batch_size, 1, 1, 512)
-    ]
-
-    decoder = [
-    upsample(512, 4, apply_dropout=True),  # (batch_size, 2, 2, 1024)
-    upsample(512, 4, apply_dropout=True),  # (batch_size, 4, 4, 1024)
-    upsample(512, 4, apply_dropout=True),  # (batch_size, 8, 8, 1024)
-    upsample(512, 4),  # (batch_size, 16, 16, 1024)
-    upsample(256, 4),  # (batch_size, 32, 32, 512)
-    upsample(128, 4),  # (batch_size, 64, 64, 256)
-    upsample(64, 4),  # (batch_size, 128, 128, 128)
-    ]
+    decoder = [ 
+    upsample(1024, 4, apply_dropout=True),  # output (batch_size, 8, -) 
+    upsample(1024, 4, apply_dropout=True),  # output (batch_size, 16, -) 
+    upsample(512, 4, apply_dropout=True),  # output (batch_size, 32, -) 
+    upsample(256, 4),  # output (batch_size, 64, -) 
+    upsample(128, 4),  # output (batch_size, 128, -) 
+    upsample(64, 4),  # output (batch_size, 256, -) 
+    ] 
     
-    # last = tf.keras.layers.Conv2D(input_shape[-1], kernel_size=4, activation='tanh', padding='same') 
-    initializer = tf.random_normal_initializer(0., 0.02)
-    last = tf.keras.layers.Conv2DTranspose(input_shape[-1], 
-                                           kernel_size =4,
-                                           strides=2,
-                                           padding='same',
-                                           kernel_initializer=initializer,
-                                           activation='tanh')  # (batch_size, 256, 256, 1)
-    # without skip connections
-    # x = inputs 
-    # for down in encoder: 
-    #     x = down(x) 
-    # for up in decoder: 
-    #     x = up(x) 
-    # x = last(x) 
-    # return tf.keras.Model(inputs=inputs, outputs=x) 
-
-    # with skip connections
-    skips = []
-    x = inputs 
-    for down in encoder:
-        x = down(x)
-        skips.append(x)
-    skips = reversed(skips[:-1])
-    for up, skip in zip(decoder, skips):
-        x = up(x)
-        x = tf.keras.layers.Concatenate()([x, skip])
-    x = last(x)
-    return tf.keras.Model(inputs=inputs, outputs=x)
-    
+    last = tf.keras.layers.Conv2D(input_shape[-1], kernel_size=4, activation='tanh', padding='same') 
     
     # initializer = tf.random_normal_initializer(0., 0.02)
-    # # last = tf.keras.layers.Conv2DTranspose(input_shape[-1], 4,
-    # #                                         strides=2,
-    # #                                         padding='same',
-    # #                                         kernel_initializer=initializer,
-    # #                                         activation='tanh')  # (batch_size, 256, 256, 1)
+    # last = tf.keras.layers.Conv2DTranspose(input_shape[-1], 
+    #                                        kernel_size =4,
+    #                                        strides=2,
+    #                                        padding='same',
+    #                                        kernel_initializer=initializer,
+    #                                        activation='tanh')  # (batch_size, 256, 256, 1)
+    
+    # without skip connections
+    x = inputs 
+    for down in encoder: 
+        x = down(x) 
+    for up in decoder: 
+        x = up(x) 
+    x = last(x) 
+    return tf.keras.Model(inputs=inputs, outputs=x) 
+
+    # with skip connections
+    # skips = []
+    # x = inputs 
+    # for down in encoder:
+    #     x = down(x)
+    #     skips.append(x)
+    # skips = reversed(skips[:-1])
+    # for up, skip in zip(decoder, skips):
+    #     x = up(x)
+    #     x = tf.keras.layers.Concatenate()([x, skip])
+    # x = last(x)
+    # return tf.keras.Model(inputs=inputs, outputs=x)
+    
+
 
 
 
@@ -182,14 +173,14 @@ print(f"model size: {autoencoder.count_params() * 4 / (1024**2)} MB")
 # Initialize early stopping
 early_stopping = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=8,
                                                   verbose=1, mode='min', restore_best_weights=True)
-adam_optimizer = tf.keras.optimizers.Adam(learning_rate=0.0001)
+adam_optimizer = tf.keras.optimizers.Adam(learning_rate=0.0001) # 0.0001
 autoencoder.compile(optimizer=adam_optimizer, 
                     loss=tf.keras.losses.MeanSquaredError())
 
 
 history = autoencoder.fit(
     train_dataset,  # Dataset already includes batching and shuffling
-    epochs=80,
+    epochs=4,
     validation_data=val_dataset,
     callbacks=[training.ImageReconstructionCallback(val_dataset, log_save_path, cmap="viridis"), early_stopping],  # gray, viridis
     verbose=1 if dev_flag else 2  # Less verbose output suitable for large logs
@@ -203,3 +194,7 @@ print('model saved!')
 # Save the training history
 with open(log_save_path+'training_history.pkl', 'wb') as file:
     pickle.dump(history.history, file)
+    
+# Save all the other information
+Logger = training.Logger(log_dir=log_save_path, model=autoencoder, dataset=None, history=history)
+Logger.save()

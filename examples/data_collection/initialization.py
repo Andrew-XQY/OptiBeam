@@ -25,7 +25,8 @@ schema = {
             "image_descriptions":"TEXT",  # JSON or dict, description of each image
             "image_path":"TEXT",  # (relative) path to the image file
             "config_id":"INTEGER",  # foreign key to the config table
-            "comments":"TEXT",
+            "special_functions":"TEXT",  # defalut to Null, indicate if the image is for special purpose like temperal shift study
+            "comments":"TEXT",  # rest of information will be dumped here in form of a JSON or dict
             "create_time":"TIMESTAMP DEFAULT CURRENT_TIMESTAMP",
             "update_time":"TIMESTAMP DEFAULT CURRENT_TIMESTAMP",
             "is_deleted":"BOOLEAN DEFAULT FALSE" # soft delete flag, could used to flag abnormal data
