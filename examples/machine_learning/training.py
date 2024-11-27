@@ -173,14 +173,14 @@ print(f"model size: {autoencoder.count_params() * 4 / (1024**2)} MB")
 # Initialize early stopping
 early_stopping = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=8,
                                                   verbose=1, mode='min', restore_best_weights=True)
-adam_optimizer = tf.keras.optimizers.Adam(learning_rate=0.0001) # 0.0001
+adam_optimizer = tf.keras.optimizers.Adam(learning_rate=0.00005) # 0.0001
 autoencoder.compile(optimizer=adam_optimizer, 
                     loss=tf.keras.losses.MeanSquaredError())
 
 
 history = autoencoder.fit(
     train_dataset,  # Dataset already includes batching and shuffling
-    epochs=4,
+    epochs=80,
     validation_data=val_dataset,
     callbacks=[training.ImageReconstructionCallback(val_dataset, log_save_path, cmap="viridis"), early_stopping],  # gray, viridis
     verbose=1 if dev_flag else 2  # Less verbose output suitable for large logs
@@ -196,5 +196,5 @@ with open(log_save_path+'training_history.pkl', 'wb') as file:
     pickle.dump(history.history, file)
     
 # Save all the other information
-Logger = training.Logger(log_dir=log_save_path, model=autoencoder, dataset=None, history=history)
+Logger = training.Logger(log_dir=log_save_path, model=autoencoder, dataset=DATASET, history=history)
 Logger.save()

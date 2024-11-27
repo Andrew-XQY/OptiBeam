@@ -15,17 +15,17 @@ schema = {
             "image_id":"TEXT",  # full timestamp when the image was captured, also the image file name
             "capture_time":"TEXT",  # date and time when the image was captured, to second level
             "batch":"INTEGER",  # batch number for the data sample collected in a single run
+            "purpose":"TEXT",  # defalut to Null, indicate if the image is for training/testing or temperal shift study
             "original_crop_pos":"TEXT",  # two points for cropping the image
             "speckle_crop_pos":"TEXT",  # two points for cropping the image
             "is_params":"BOOLEAN",  # whether the beam parameters are calculable
             "is_calibration":"BOOLEAN",  # whether the image is used for calibration
             "max_pixel_value":"TEXT",  # maximum pixel value in the image
-            "beam_parameters":"TEXT",  # beam parameters used in the experiment (JSON or dict)
+            "beam_parameters":"TEXT",  # beam parameters used in the experiment (JSON or dict) if calculable
             "num_of_images":"INTEGER",  # number of individual images in the data sample
             "image_descriptions":"TEXT",  # JSON or dict, description of each image
             "image_path":"TEXT",  # (relative) path to the image file
             "config_id":"INTEGER",  # foreign key to the config table
-            "special_functions":"TEXT",  # defalut to Null, indicate if the image is for special purpose like temperal shift study
             "comments":"TEXT",  # rest of information will be dumped here in form of a JSON or dict
             "create_time":"TIMESTAMP DEFAULT CURRENT_TIMESTAMP",
             "update_time":"TIMESTAMP DEFAULT CURRENT_TIMESTAMP",
@@ -51,7 +51,7 @@ schema = {
             "experiment_description":"TEXT",
             "experiment_location":"TEXT",
             "experiment_date":"TEXT",
-            "total_images":"INTEGER",
+            "total_images":"INTEGER", # total number of images in the batch
             "batch":"INTEGER",  # batch number for the data sample collected in a single run
             "image_source":"TEXT",  # simulation or real beam, e-beam or proton beam, MNIST or other dataset
             "image_device":"TEXT",  # dmd, slm, led, scintillation-screen

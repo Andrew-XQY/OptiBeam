@@ -190,6 +190,7 @@ class Logger:
         self.model = model
         self.dataset = dataset
         self.history = history
+        self.log_dir = log_dir
         self.log_file = os.path.join(self.log_dir, 'log.json')
         self.log_content = {'info' : info,
                             'experiment_date' : datetime.now().strftime("%Y-%m-%d %H:%M:%S"), 
@@ -251,7 +252,7 @@ class Logger:
     def save(self):
         if not os.path.exists(self.log_dir):
             os.makedirs(self.log_dir)
-        with open(self.log_file, 'w') as f:
+        with open(self.log_file, 'w', encoding='utf-8') as f:
             json.dump(self.log_content, f, indent=4)
         return self.log_file
 
