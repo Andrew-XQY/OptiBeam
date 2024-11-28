@@ -223,7 +223,7 @@ class Logger:
 
     def register_model(self):
         if isinstance(self.model, tf.keras.models.Model):
-            self.log_content['model_info'] = self.tf_model_summary()
+            self.log_content['model_info'] = str(self.tf_model_summary())
         
     def register_training(self):
         os_info = get_system_info()

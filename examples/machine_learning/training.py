@@ -173,7 +173,7 @@ print(f"model size: {autoencoder.count_params() * 4 / (1024**2)} MB")
 # Initialize early stopping
 early_stopping = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=8,
                                                   verbose=1, mode='min', restore_best_weights=True)
-adam_optimizer = tf.keras.optimizers.Adam(learning_rate=0.00005) # 0.0001
+adam_optimizer = tf.keras.optimizers.Adam(learning_rate=0.005) # 0.0001
 autoencoder.compile(optimizer=adam_optimizer, 
                     loss=tf.keras.losses.MeanSquaredError())
 
