@@ -20,9 +20,9 @@ schema = {
             "speckle_crop_pos":"TEXT",  # two points for cropping the image
             "is_params":"BOOLEAN",  # whether the beam parameters are calculable
             "is_calibration":"BOOLEAN",  # whether the image is used for calibration
-            "max_pixel_value":"TEXT",  # maximum pixel value in the image
+            "img_stats":"TEXT",  # including like pixel min, max, mean, std and noise level etc.
             "beam_parameters":"TEXT",  # beam parameters used in the experiment (JSON or dict) if calculable
-            "num_of_images":"INTEGER",  # number of individual images in the data sample
+            "images_per_sample":"INTEGER",  # number of individual images in the data sample
             "image_descriptions":"TEXT",  # JSON or dict, description of each image
             "image_path":"TEXT",  # (relative) path to the image file
             "config_id":"INTEGER",  # foreign key to the config table

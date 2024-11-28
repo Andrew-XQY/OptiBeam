@@ -27,7 +27,7 @@ else:
     ABS_DIR = f'../dataset/{DATASET}/'
     SAVE_TO = f'../results/{DATASET}_{current_date}/' 
 
-DATABASE_ROOT = ABS_DIR + "db/liverpool.db"    
+DATABASE_ROOT = ABS_DIR + "db/dataset_meta.db"    
 log_save_path=SAVE_TO + "logs/"
 
 utils.check_and_create_folder(SAVE_TO)

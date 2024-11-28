@@ -6,6 +6,7 @@ from ALP4 import *
 import datetime, time
 import cv2, json
 from tqdm import tqdm
+import traceback
 
 
 # ============================
@@ -81,18 +82,18 @@ queue.append({'experiment_description':'calibration image',
               'data':[simulation.dmd_calibration_pattern_generation()],
               'len':1}) 
 queue.append({'experiment_description': 'full screen image',
-              'purpose':'intensity',
+              'purpose':'intensity_full',
               'image_source':'simulation',
               'images_per_sample':2,
               'data': [np.ones((256, 256)) * 255],
               'len':1}) 
 queue.append({'experiment_description':'position based coupling intensity',
-              'purpose':'intensity',
+              'purpose':'intensity_position',
               'image_source':'simulation',
               'images_per_sample':2,
               'data':simulation.moving_blocks_generator(size=256, block_size=128, intensity=255),
               'len':4}) 
-queue.append({'experiment_description':'speckle pattern image',
+queue.append({'experiment_description':'2d multi-gaussian distributions simulation',
               'purpose':'training',
               'image_source':'simulation',
               'images_per_sample':2,
@@ -112,7 +113,6 @@ queue.append({'experiment_description':'local real beam image for evaluation',
 # ============================
 # data collection pipeline
 # ============================
-# Start the data collection experiment main loop.
 try:
     for experiment in queue:
         # Setting up experiment metadata
@@ -152,7 +152,7 @@ try:
         config_id = DB.get_max("mmf_experiment_config", "id")
 
         # print to indicate the current experiment name
-        print(f"Starting experiment: {experiment['experiment_description']}...")
+        print(f"-> Starting experiment: {experiment['experiment_description']}...")
         for img in tqdm(experiment['data'], total=experiment['len']):
             comment = None
             # Preprocess the image before displaying on the DMD
@@ -173,16 +173,23 @@ try:
                 image_path = save_dir + '/' + filename # absolute path save on the local machine
                 relative_path = '/'.join(['datasets', str(batch), filename]) # relative path 
                 
+                # image statistics info
+                ground_truth, speckle = utils.split_image(image)
+                stats = {'ground_truth_img':analysis.analyze_image(ground_truth),
+                         'fiber_output_img':analysis.analyze_image(speckle)}
+                print(stats)
+                
                 # update and save the corresponding metadata of the image
                 meta = {
                         "image_id":str(time.time_ns()), 
                         "capture_time":datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
                         "purpose":experiment.get("purpose", None), 
-                        "num_of_images":experiment.get("num_of_images", None),  
+                        "images_per_sample":experiment.get("images_per_sample", None),  
                         "is_params":experiment.get("is_params", False), 
                         "is_calibration":experiment.get("is_calibration", False), 
-                        "max_pixel_value":img.max(),
-                        "image_descriptions":json.dumps({**({"simulation_img": img_size} if experiment.get("include_simulation", False) else {}), "ground_truth_img": img_size, "fiber_output_img": img_size}),
+                        "img_stats":stats,
+                        "image_descriptions":json.dumps({**({"simulation_img": img_size} if experiment.get("include_simulation", False) else {}),
+                                                         "ground_truth_img": img_size, "fiber_output_img": img_size}),
                         "image_path":relative_path,  
                         "config_id":config_id,
                         "batch":batch,
@@ -196,9 +203,20 @@ try:
             
 except Exception as e:
     print(f"An error occured, data collection stopped. {e}")
+    traceback.print_exc()
     
 # # update actual number of images captured
-# DB.update_record("mmf_experiment_config", "id", config_id, "total_images", count+1)      
+sql = """
+    SELECT meta.batch AS batch, count(meta.id) AS total_images
+    FROM mmf_dataset_metadata AS meta
+    LEFT JOIN mmf_experiment_config AS conf
+    ON meta.config_id = conf.id
+    GROUP BY meta.batch
+"""
+df = DB.sql_select(sql)
+sql = DB.batch_update("mmf_experiment_config", "batch", df)
+DB.sql_execute(sql, multiple=True)
+
 
 # ============================
 # Close everything properly

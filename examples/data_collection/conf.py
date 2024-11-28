@@ -11,7 +11,7 @@ from contextlib import ContextDecorator
 
 
 date = datetime.datetime.now().strftime('%Y-%m-%d')
-DATABASE_ROOT = f"../../ResultsCenter/datasets/{date}/db/liverpool.db"
+DATABASE_ROOT = f"../../ResultsCenter/datasets/{date}/db/dataset_meta.db"
 DATASET_ROOT = f"../../ResultsCenter/datasets/{date}/dataset/"
 
 class ChangeDirToFileLocation(ContextDecorator):
@@ -39,6 +39,7 @@ with ChangeDirToFileLocation():
     import optibeam.metadata as metadata
     import optibeam.evaluation as evaluation
     import optibeam.visualization as visualization
+    import optibeam.analysis as analysis
     
 
 def read_MNIST_images(filepath):

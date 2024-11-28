@@ -1,5 +1,6 @@
 import numpy as np
 import scipy.stats as stats
+import cv2
 
 def calculate_mean(data: np.array) -> float:
     """
@@ -118,4 +119,26 @@ def get_statistics(data):
         "interquartile_range": calculate_iqr(data),
         "kurtosis": calculate_kurtosis(data),
         "skewness": calculate_skewness(data)
+    }
+    
+    
+# -------------------- Image Analysis --------------------
+def analyze_image(image: np.array) -> dict:
+    if image is None:
+        return "Image data is not valid."
+    # Calculate max, min, and average intensity
+    max_intensity = np.max(image)
+    min_intensity = np.min(image)
+    average_intensity = np.mean(image)
+    # Calculate standard deviation
+    std_deviation = np.std(image)
+    # Estimating noise level using the Laplacian operator
+    laplacian_var = cv2.Laplacian(image, cv2.CV_64F).var()
+    noise_estimate = np.sqrt(laplacian_var)
+    return {
+        f"max_intensity": max_intensity,
+        f"min_intensity": min_intensity,
+        f"avg_intensity": average_intensity,
+        f"std": std_deviation,
+        f"noise_level_estimated": noise_estimate
     }
