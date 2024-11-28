@@ -823,13 +823,38 @@ def read_local_generator(
                 print(f"Failed to process {file_path}: {e}")
     return generator()
 
-def canvas_generator(CANVAS, conf):
+def temporal_shift(frequency):
+    def decorator(func):
+        def wrapper(*args, **kwargs):
+            counter = 0
+            for item in func(*args, **kwargs):
+                yield item
+                counter += 1
+                if counter % frequency == 0:
+                    yield f"Special action at step {counter}"
+        return wrapper
+    return decorator
+
+@temporal_shift(10)
+def canvas_generator(canvas: DynamicPatterns, conf: dict, 
+                     temporal_shift: bool=True) -> Generator[Tuple[np.ndarray, dict], None, None]:
     for index in range(conf['number_of_images']):
-        CANVAS.update(std_1=conf['sim_std_1'], std_2=conf['sim_std_2'],
+        canvas.update(std_1=conf['sim_std_1'], std_2=conf['sim_std_2'],
                     max_intensity=conf['sim_max_intensity'], fade_rate=conf['sim_fade_rate'],
                     distribution='normal') 
         #CANVAS.thresholding(1)
-        img = CANVAS.get_image()
-        comment = {'num_of_distributions': CANVAS.num_of_distributions(), 
-                    'distributions_metadata': CANVAS.get_distributions_metadata()}
-        yield img
+        img = canvas.get_image()
+        meta = canvas.get_distributions_metadata()
+        std_x, std_y, x, y = [], [], [], []
+        for m in meta:
+            if m['is_empty'] == False:
+                std_x.append(m['std_x'])
+                std_y.append(m['std_y'])
+                x.append(m['x'])
+                y.append(m['y'])
+        comment = {'num_of_distributions': canvas.num_of_distributions(), 
+                   'distributions_metadata':meta}
+        yield img, comment
+        
+        if temporal_shift and index % 10 == 0: # if enabled temporal shift experiment, then every 10 steps take a extra image
+            yield np.ones((256, 256)) * 255, 'temporal_shift'

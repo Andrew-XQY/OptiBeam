@@ -155,6 +155,8 @@ try:
         print(f"-> Starting experiment: {experiment['experiment_description']}...")
         for img in tqdm(experiment['data'], total=experiment['len']):
             comment = None
+            if isinstance(img, tuple): # check if the generator returns a tuple (image, comment)
+                img, comment = img
             # Preprocess the image before displaying on the DMD
             display = img.copy()
             display = simulation.macro_pixel(display, size=int(conf['dmd_dim']/display.shape[0])) 
@@ -163,7 +165,7 @@ try:
             DMD.display_image(display)  # if loading too fast, the DMD might report memory error
             
             # capture the image from the cameras (Scheduled action command)
-            image = MANAGER.schedule_action_command(int(200 * 1e6)) # schedule for milliseconds later
+            image = MANAGER.schedule_action_command(int(300 * 1e6)) # schedule for milliseconds later
             if image is not None:
                 img_size = (image.shape[0], int(image.shape[1]//2))  
                 if experiment.get("include_simulation", False):
@@ -172,12 +174,13 @@ try:
                 filename = str(time.time_ns()) + '.png'
                 image_path = save_dir + '/' + filename # absolute path save on the local machine
                 relative_path = '/'.join(['datasets', str(batch), filename]) # relative path 
+                # crop the image to regions of interest
+                image = processing.crop_image_from_coordinates(image, conf['crop_areas'])
                 
                 # image statistics info
                 ground_truth, speckle = utils.split_image(image)
                 stats = {'ground_truth_img':analysis.analyze_image(ground_truth),
                          'fiber_output_img':analysis.analyze_image(speckle)}
-                print(stats)
                 
                 # update and save the corresponding metadata of the image
                 meta = {
@@ -196,7 +199,6 @@ try:
                         "comments":comment
                         }
                 ImageMeta.set_metadata(meta)
-                image = processing.crop_image_from_coordinates(image, conf['crop_areas'])
                 cv2.imwrite(image_path, image)
                 DB.sql_execute(ImageMeta.to_sql_insert("mmf_dataset_metadata")) 
             DMD.free_memory()

@@ -135,10 +135,11 @@ def analyze_image(image: np.array) -> dict:
     # Estimating noise level using the Laplacian operator
     laplacian_var = cv2.Laplacian(image, cv2.CV_64F).var()
     noise_estimate = np.sqrt(laplacian_var)
-    return {
-        f"max_intensity": max_intensity,
-        f"min_intensity": min_intensity,
-        f"avg_intensity": average_intensity,
-        f"std": std_deviation,
-        f"noise_level_estimated": noise_estimate
+    res = {
+        "max_intensity": max_intensity,
+        "min_intensity": min_intensity,
+        "avg_intensity": average_intensity,
+        "std": std_deviation,
+        "noise_level_estimated": noise_estimate
     }
+    return {k:float(v) for k,v in res.items()}
