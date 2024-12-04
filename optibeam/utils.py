@@ -482,6 +482,13 @@ def resize_image_high_quality(narray_img: np.array, new_dimensions: Tuple=(256, 
     # Convert PIL Image back to NumPy array
     return np.array(resized_image)
 
+
+# ------------------- arithmatic operations -------------------
+def ceil_int_div(a: int, b: int) -> int:
+    return -(-a // b)
+
+
+
 # ------------------- system/enviornment -------------------
 
 def is_jupyter():

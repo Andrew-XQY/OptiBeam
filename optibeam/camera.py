@@ -5,21 +5,22 @@ import time
 from .utils import timeout, print_underscore
 
 
-def create_camera_control_functions(camera):
+def create_camera_control_functions(camera, scale:dict) -> dict:
     """
     Callback functions to set exposure and gain using closures
     
     Args:
         camera: pylon.InstantCamera
+        scale: int, control granularity of the trackbar
         
     Returns:
         dict
     """
     def set_exposure(val):
         min_exposure_time = 50  # Minimum safe exposure time (µs) for acA1920-40gm
-        camera.ExposureTimeAbs.Value = max(min_exposure_time, val)
+        camera.ExposureTimeAbs.Value = max(min_exposure_time, val * scale['Exposure']) 
     def set_gain(val):
-        camera.GainRaw.Value = val
+        camera.GainRaw.Value = val * scale['Gain']
     return {'Exposure' : set_exposure, 'Gain' : set_gain}
     
 class MultiBaslerCameraManager:
@@ -91,9 +92,11 @@ class MultiBaslerCameraManager:
         Returns:
             None
         """
-        type = {'Exposure':100000, 'Gain':360} # exposure time in microseconds
+        # Current maximum for exposure time is 2000000 microseconds, gain is 360
+        type = {'Exposure':200, 'Gain':36} # 'Exposure':200 exposure time in milliseconds
+        scale = {'Exposure':1000, 'Gain':10}
         for i in range(len(self.cameras)):
-            params = create_camera_control_functions(self.cameras[i])
+            params = create_camera_control_functions(self.cameras[i], scale)
             for key, val in type.items():
                 cv2.createTrackbar(f'{key}_{i}', cv2_window_name, 0, val, params[key])
                 

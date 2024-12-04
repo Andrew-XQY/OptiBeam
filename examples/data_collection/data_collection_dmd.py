@@ -48,7 +48,7 @@ MANAGER.synchronization()
 # Select crop areas (optional)
 # ============================
 # take a sample image to (later manually) select crop areas for automatic resizing
-# test_img = MANAGER.schedule_action_command(int(300 * 1e6)) # schedule for milliseconds later
+# test_img = MANAGER.schedule_action_command(int(500 * 1e6)) # schedule for milliseconds later
 # crop_areas = processing.select_crop_areas_center(test_img, num=2, scale_factor=0.4) 
 # print("Crop areas selected: ", crop_areas)
 # exit()
@@ -64,8 +64,7 @@ CANVAS._distributions = [simulation.StaticGaussianDistribution(CANVAS) for _ in 
 path_to_images = ["../../ResultsCenter/local_images/MMF/procIMGs/processed",
                   "../../ResultsCenter/local_images/MMF/procIMGs_2/processed"]
 paths = utils.get_all_file_paths(path_to_images)[:20]
-process_funcs = [utils.rgb_to_grayscale, utils.image_normalize, 
-                 utils.split_image, lambda x : (x[0] * 255).astype(np.uint8)]
+process_funcs = [utils.rgb_to_grayscale, utils.split_image, lambda x : x[0].astype(np.uint8)]
 
 # minst_path = "../../ResultsCenter/local_images/MNIST_ORG/t10k-images.idx3-ubyte"
 # imgs_array = read_MNIST_images(minst_path)
@@ -73,7 +72,7 @@ process_funcs = [utils.rgb_to_grayscale, utils.image_normalize,
 
 # create a queue of image sources
 # simulation_config, other_notes, experiment_description, image_source, purpose, images_per_sample, is_params, is_calibration
-temporal_shift_freq = 5
+temporal_shift_freq = 10
 queue = []
 queue.append({'experiment_description':'calibration image', 
               'purpose':'calibration',
@@ -92,8 +91,8 @@ queue.append({'experiment_description':'position based coupling intensity',
               'purpose':'intensity_position',
               'image_source':'simulation',
               'images_per_sample':2,
-              'data':simulation.moving_blocks_generator(size=256, block_size=128, intensity=255),
-              'len':4}) 
+              'data':simulation.moving_blocks_generator(size=256, block_size=64, intensity=255),
+              'len':16}) 
 queue.append({'experiment_description':'2d multi-gaussian distributions simulation',
               'purpose':'training',
               'image_source':'simulation',
@@ -101,14 +100,14 @@ queue.append({'experiment_description':'2d multi-gaussian distributions simulati
               'simulation_config':CANVAS.get_metadata(),
               'other_notes':{key: value for key, value in conf.items() if 'sim' in key},
               'data':simulation.temporal_shift(temporal_shift_freq)(simulation.canvas_generator)(CANVAS, conf),
-              'len':conf['number_of_images']}) 
+              'len':conf['number_of_images'] + utils.ceil_int_div(conf['number_of_images'], temporal_shift_freq)}) 
 queue.append({'experiment_description':'local real beam image for evaluation',
               'purpose':'testing',
               'images_per_sample':2,
               'image_source':'e-beam',
               'is_params':True,
               'data':simulation.temporal_shift(temporal_shift_freq)(simulation.read_local_generator)(paths, process_funcs),
-              'len':len(paths)}) 
+              'len':len(paths) + utils.ceil_int_div(len(paths), temporal_shift_freq)}) 
 
 
 # ============================
@@ -153,7 +152,7 @@ try:
         config_id = DB.get_max("mmf_experiment_config", "id")
 
         # print to indicate the current experiment name
-        print(f"---> Starting experiment: {experiment['experiment_description']}...")
+        print(f"---> Starting experiment: {experiment['experiment_description']}")
         for img in tqdm(experiment['data'], total=experiment['len']):
             comment = None
             if isinstance(img, tuple): # check if the generator returns a tuple (image, comment)
@@ -166,7 +165,7 @@ try:
             DMD.display_image(display)  # if loading too fast, the DMD might report memory error
             
             # capture the image from the cameras (Scheduled action command)
-            image = MANAGER.schedule_action_command(int(300 * 1e6)) # schedule for milliseconds later
+            image = MANAGER.schedule_action_command(int(500 * 1e6)) # schedule for milliseconds later
             if image is not None:
                 img_size = (image.shape[0], int(image.shape[1]//2))  
                 if experiment.get("include_simulation", False):
@@ -208,13 +207,19 @@ except Exception as e:
     print(f"An error occured, data collection stopped. {e}")
     traceback.print_exc()
     
-# # update actual number of images captured
+# update actual number of images captured
 sql = """
-    SELECT meta.batch AS batch, count(meta.id) AS total_images
-    FROM mmf_dataset_metadata AS meta
-    LEFT JOIN mmf_experiment_config AS conf
-    ON meta.config_id = conf.id
-    GROUP BY meta.batch
+    SELECT 
+        meta.batch AS batch, 
+        COUNT(meta.id) - SUM(CASE WHEN meta.comments = 'temporal_shift_check' THEN 1 ELSE 0 END) AS total_images
+    FROM 
+        mmf_dataset_metadata AS meta
+    LEFT JOIN 
+        mmf_experiment_config AS conf
+    ON 
+        meta.config_id = conf.id
+    GROUP BY 
+        meta.batch
 """
 df = DB.sql_select(sql)
 sql = DB.batch_update("mmf_experiment_config", "batch", df)

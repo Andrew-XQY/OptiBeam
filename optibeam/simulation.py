@@ -825,6 +825,18 @@ def read_local_generator(
 
 
 def temporal_shift(frequency):
+    """
+    A decorator to add a temporal shift check every 'frequency' steps.
+    
+    Args:
+        frequency (int): Interval for adding temporal shifts. If <= 0, the decorator is bypassed.
+    
+    Returns:
+        function: The original or decorated function.
+    """
+    if frequency <= 0:
+        # Bypass the decorator and return the original function
+        return lambda func: func
     def decorator(func):
         def wrapper(*args, **kwargs):
             counter = 0
