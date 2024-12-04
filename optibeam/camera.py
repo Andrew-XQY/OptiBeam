@@ -16,7 +16,8 @@ def create_camera_control_functions(camera):
         dict
     """
     def set_exposure(val):
-        camera.ExposureTimeAbs.Value = val
+        min_exposure_time = 50  # Minimum safe exposure time (µs) for acA1920-40gm
+        camera.ExposureTimeAbs.Value = max(min_exposure_time, val)
     def set_gain(val):
         camera.GainRaw.Value = val
     return {'Exposure' : set_exposure, 'Gain' : set_gain}

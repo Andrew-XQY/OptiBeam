@@ -823,21 +823,21 @@ def read_local_generator(
                 print(f"Failed to process {file_path}: {e}")
     return generator()
 
+
 def temporal_shift(frequency):
     def decorator(func):
         def wrapper(*args, **kwargs):
             counter = 0
-            for item in func(*args, **kwargs):
-                yield item
+            for item in func(*args, **kwargs):  # Iterate over the main generator
+                yield item  # Yield original item
                 counter += 1
-                if counter % frequency == 0:
-                    yield f"Special action at step {counter}"
+                if counter % frequency == 1:  # Add extra image conditionally
+                    yield (np.ones((256, 256)) * 255, 'temporal_shift_check')
         return wrapper
     return decorator
 
-@temporal_shift(10)
-def canvas_generator(canvas: DynamicPatterns, conf: dict, 
-                     temporal_shift: bool=True) -> Generator[Tuple[np.ndarray, dict], None, None]:
+# @temporal_shift(5) # every 50 steps add a temporal shift test image
+def canvas_generator(canvas: DynamicPatterns, conf: dict) -> Generator[Tuple[np.ndarray, dict], None, None]:
     for index in range(conf['number_of_images']):
         canvas.update(std_1=conf['sim_std_1'], std_2=conf['sim_std_2'],
                     max_intensity=conf['sim_max_intensity'], fade_rate=conf['sim_fade_rate'],
@@ -845,16 +845,6 @@ def canvas_generator(canvas: DynamicPatterns, conf: dict,
         #CANVAS.thresholding(1)
         img = canvas.get_image()
         meta = canvas.get_distributions_metadata()
-        std_x, std_y, x, y = [], [], [], []
-        for m in meta:
-            if m['is_empty'] == False:
-                std_x.append(m['std_x'])
-                std_y.append(m['std_y'])
-                x.append(m['x'])
-                y.append(m['y'])
         comment = {'num_of_distributions': canvas.num_of_distributions(), 
-                   'distributions_metadata':meta}
+                   'distributions_metadata':[item for item in meta if not item.get("is_empty")]}
         yield img, comment
-        
-        if temporal_shift and index % 10 == 0: # if enabled temporal shift experiment, then every 10 steps take a extra image
-            yield np.ones((256, 256)) * 255, 'temporal_shift'

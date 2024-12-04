@@ -13,7 +13,7 @@ import traceback
 # Dataset Parameters
 # ============================
 conf = {
-    'number_of_images': 3,  # simulation: number of images to generate in this batch
+    'number_of_images': 30,  # simulation: number of images to generate in this batch
     'dmd_dim': 1024,  # DMD working square area resolution
     'dmd_rotation': 47+90,  # DMD rotation angle for image orientation correction
     'crop_areas': [((872, 432), (1032, 592)), ((2817, 437), (3023, 643))],  # crop areas for the camera images
@@ -63,7 +63,7 @@ CANVAS._distributions = [simulation.StaticGaussianDistribution(CANVAS) for _ in 
 # Local image
 path_to_images = ["../../ResultsCenter/local_images/MMF/procIMGs/processed",
                   "../../ResultsCenter/local_images/MMF/procIMGs_2/processed"]
-paths = utils.get_all_file_paths(path_to_images)[:3]
+paths = utils.get_all_file_paths(path_to_images)[:20]
 process_funcs = [utils.rgb_to_grayscale, utils.image_normalize, 
                  utils.split_image, lambda x : (x[0] * 255).astype(np.uint8)]
 
@@ -73,6 +73,7 @@ process_funcs = [utils.rgb_to_grayscale, utils.image_normalize,
 
 # create a queue of image sources
 # simulation_config, other_notes, experiment_description, image_source, purpose, images_per_sample, is_params, is_calibration
+temporal_shift_freq = 5
 queue = []
 queue.append({'experiment_description':'calibration image', 
               'purpose':'calibration',
@@ -99,14 +100,14 @@ queue.append({'experiment_description':'2d multi-gaussian distributions simulati
               'images_per_sample':2,
               'simulation_config':CANVAS.get_metadata(),
               'other_notes':{key: value for key, value in conf.items() if 'sim' in key},
-              'data':simulation.canvas_generator(CANVAS, conf),
+              'data':simulation.temporal_shift(temporal_shift_freq)(simulation.canvas_generator)(CANVAS, conf),
               'len':conf['number_of_images']}) 
 queue.append({'experiment_description':'local real beam image for evaluation',
               'purpose':'testing',
               'images_per_sample':2,
               'image_source':'e-beam',
               'is_params':True,
-              'data':simulation.read_local_generator(paths, process_funcs),
+              'data':simulation.temporal_shift(temporal_shift_freq)(simulation.read_local_generator)(paths, process_funcs),
               'len':len(paths)}) 
 
 
@@ -152,7 +153,7 @@ try:
         config_id = DB.get_max("mmf_experiment_config", "id")
 
         # print to indicate the current experiment name
-        print(f"-> Starting experiment: {experiment['experiment_description']}...")
+        print(f"---> Starting experiment: {experiment['experiment_description']}...")
         for img in tqdm(experiment['data'], total=experiment['len']):
             comment = None
             if isinstance(img, tuple): # check if the generator returns a tuple (image, comment)
