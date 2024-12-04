@@ -55,7 +55,7 @@ MANAGER.synchronization()
 
 
 # ============================
-# Image sources initialization
+# Image sources queue initialization
 # ============================
 # Simulation Initialization
 CANVAS = simulation.DynamicPatterns(conf['sim_dim'], conf['sim_dim'])
@@ -68,7 +68,6 @@ process_funcs = [utils.rgb_to_grayscale, utils.split_image, lambda x : x[0].asty
 
 # minst_path = "../../ResultsCenter/local_images/MNIST_ORG/t10k-images.idx3-ubyte"
 # imgs_array = read_MNIST_images(minst_path)
-
 
 # create a queue of image sources
 # simulation_config, other_notes, experiment_description, image_source, purpose, images_per_sample, is_params, is_calibration
