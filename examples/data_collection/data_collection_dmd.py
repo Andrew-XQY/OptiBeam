@@ -65,12 +65,12 @@ ConfMeta = metadata.ConfigMetaData()
 CANVAS = simulation.DynamicPatterns(conf['sim_dim'], conf['sim_dim'])
 CANVAS._distributions = [simulation.StaticGaussianDistribution(CANVAS) for _ in range(conf['sim_pattern_max_num'])] 
 # Local image
-path_to_images = ["../../ResultsCenter/local_images/MMF/procIMGs/processed",
-                  "../../ResultsCenter/local_images/MMF/procIMGs_2/processed"]
+path_to_images = ["../../DataHub/local_images/MMF/procIMGs/processed",
+                  "../../DataHub/local_images/MMF/procIMGs_2/processed"]
 paths = utils.get_all_file_paths(path_to_images)[:20]
 process_funcs = [utils.rgb_to_grayscale, utils.split_image, lambda x : x[0].astype(np.uint8)]
 
-# minst_path = "../../ResultsCenter/local_images/MNIST_ORG/t10k-images.idx3-ubyte"
+# minst_path = "../../DataHub/local_images/MNIST_ORG/t10k-images.idx3-ubyte"
 # imgs_array = read_MNIST_images(minst_path)
 
 # create a queue of image sources

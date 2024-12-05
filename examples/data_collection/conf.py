@@ -11,8 +11,8 @@ from contextlib import ContextDecorator
 
 
 name = datetime.datetime.now().strftime('%Y-%m-%d')
-DATABASE_ROOT = f"../../ResultsCenter/datasets/{name}/db/dataset_meta.db"
-DATASET_ROOT = f"../../ResultsCenter/datasets/{name}/dataset/"
+DATABASE_ROOT = f"../../DataHub/datasets/{name}/db/dataset_meta.db"
+DATASET_ROOT = f"../../DataHub/datasets/{name}/dataset/"
 
 class ChangeDirToFileLocation(ContextDecorator):
     def __enter__(self):

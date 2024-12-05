@@ -267,7 +267,7 @@ def load_image_as_narray(image_path):
 
 
 class ImageLoader:
-    def __init__(self, funcs):
+    def __init__(self, funcs: list=[]):
         if not isinstance(funcs, list):
             funcs = [funcs]
         self.funcs = funcs

@@ -182,7 +182,7 @@ def detect_round_and_draw_bounds(image: np.ndarray) -> np.ndarray:
     """
     image = ensure_grayscale(image)
     # Threshold the image to isolate the dots
-    _, thresh = cv2.threshold(image, 100, 255, cv2.THRESH_BINARY)
+    _, thresh = cv2.threshold(image, 80, 255, cv2.THRESH_BINARY)
     # Apply morphological dilation to merge the dots
     kernel = np.ones((5,5), np.uint8)
     dilated = cv2.dilate(thresh, kernel, iterations=3)
@@ -190,7 +190,7 @@ def detect_round_and_draw_bounds(image: np.ndarray) -> np.ndarray:
 
     # Use Hough Circle Transform to detect the circle
     circles = cv2.HoughCircles(dilated, cv2.HOUGH_GRADIENT, 1, minDist=250,
-                               param1=220, param2=10, minRadius=400, maxRadius=600)
+                               param1=220, param2=10, minRadius=400, maxRadius=1000)
     # Draw circles that are detected. 
     if circles is not None:
         circles = np.uint16(np.around(circles))
