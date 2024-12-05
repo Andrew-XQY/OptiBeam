@@ -16,6 +16,8 @@ conf = {
     'number_of_images': 30,  # simulation: number of images to generate in this batch
     'dmd_dim': 1024,  # DMD working square area resolution
     'dmd_rotation': 47+90,  # DMD rotation angle for image orientation correction
+    'dmd_bitDepth': 8,  # DMD bit depth
+    'dmd_picture_time': 100000,  # DMD picture time in microseconds, corresponds to 50 Hz
     'crop_areas': [((867, 425), (1037, 595)), ((2825, 445), (3019, 639))],  # crop areas for the camera images
     'sim_pattern_max_num': 100,  # simulation: maximum number of distributions in the simulation
     'sim_fade_rate': 0.96,  # simulation: the probability of a distribution to disappear
@@ -24,7 +26,6 @@ conf = {
     'sim_max_intensity': 100, # simulation: peak pixel intensity in a single distribution
     'sim_dim': 512,   # simulation: simulated image resolution
 }
-# [((872, 432), (1032, 592)), ((2817, 437), (3023, 643))]
 
 # ============================
 # Hardware/Software Initialization
