@@ -844,7 +844,7 @@ def temporal_shift(frequency):
                 yield item  # Yield original item
                 counter += 1
                 if counter % frequency == 1:  # Add extra image conditionally
-                    yield (np.ones((256, 256)) * 255, 'temporal_shift_check')
+                    yield (np.ones((256, 256)) * 100, 'temporal_shift_check')
         return wrapper
     return decorator
 

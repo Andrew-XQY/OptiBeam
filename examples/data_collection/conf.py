@@ -10,9 +10,9 @@ import datetime, time
 from contextlib import ContextDecorator
 
 
-date = datetime.datetime.now().strftime('%Y-%m-%d')
-DATABASE_ROOT = f"../../ResultsCenter/datasets/{date}/db/dataset_meta.db"
-DATASET_ROOT = f"../../ResultsCenter/datasets/{date}/dataset/"
+name = datetime.datetime.now().strftime('%Y-%m-%d')
+DATABASE_ROOT = f"../../ResultsCenter/datasets/{name}/db/dataset_meta.db"
+DATASET_ROOT = f"../../ResultsCenter/datasets/{name}/dataset/"
 
 class ChangeDirToFileLocation(ContextDecorator):
     def __enter__(self):

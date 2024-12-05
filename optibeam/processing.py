@@ -3,6 +3,7 @@ import numpy as np
 from .utils import crop_images, resize_image, join_images, resize_image_high_quality
 
 
+
 # ----------------------------- dataset preparation -----------------------------
 
 # class HDF5DatasetWriter:
@@ -245,6 +246,7 @@ def select_crop_areas_center(original_image: np.ndarray, num: int, scale_factor:
             cv2.imshow('Image', image)
 
     # Scale and display the image
+    
     scaled_image = cv2.resize(original_image, None, fx=scale_factor, fy=scale_factor, interpolation=cv2.INTER_AREA)
     cv2.namedWindow('Image')
     cv2.setMouseCallback('Image', mouse_click)
