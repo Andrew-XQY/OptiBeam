@@ -823,7 +823,6 @@ def read_local_generator(
                 print(f"Failed to process {file_path}: {e}")
     return generator()
 
-
 def temporal_shift(frequency):
     """
     A decorator to add a temporal shift check every 'frequency' steps.
@@ -841,14 +840,13 @@ def temporal_shift(frequency):
         def wrapper(*args, **kwargs):
             counter = 0
             for item in func(*args, **kwargs):  # Iterate over the main generator
-                yield item  # Yield original item
-                counter += 1
                 if counter % frequency == 1:  # Add extra image conditionally
                     yield (np.ones((256, 256)) * 100, 'temporal_shift_check')
+                yield item  # Yield original item
+                counter += 1
         return wrapper
     return decorator
 
-# @temporal_shift(5) # every 50 steps add a temporal shift test image
 def canvas_generator(canvas: DynamicPatterns, conf: dict) -> Generator[Tuple[np.ndarray, dict], None, None]:
     for index in range(conf['number_of_images']):
         canvas.update(std_1=conf['sim_std_1'], std_2=conf['sim_std_2'],
