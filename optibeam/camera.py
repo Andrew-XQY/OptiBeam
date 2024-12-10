@@ -158,7 +158,7 @@ class MultiBaslerCameraManager:
         max_pixel = 'Max pixel value: ' + str(np.max(img))
         cv2.putText(img, max_pixel, (10, 100), font, 2, (255, 255, 255), 2)
     
-    def _flip_order(self) -> None:
+    def _set_config(self) -> None:
         """
         Press 'f' key to flip the image logic (the order when combining images). 'speckle' and 'ground truth' or 'ground truth' and 'speckle'
         It set the flag variable self.flip to True or False and influence the function _combine_images
@@ -238,7 +238,7 @@ class MultiBaslerCameraManager:
     def initialize(self) -> None:
         """
         This function will first detect all cameras and initialize them (set a basic aquisition parameters). 
-        Then Call _flip_order function to check if the user wants to flip the order of the images. 
+        Then Call _set_config function to check if the user wants to flip the order of the images. 
         Finally, it will set up the PTP configuration for each camera and print the status of all cameras.
         
         Args:
@@ -248,7 +248,7 @@ class MultiBaslerCameraManager:
             None
         """
         self._initialize_cams()
-        self._flip_order()
+        self._set_config()
         for i in self.cameras:  # prepare for PTP and scheduled action command
             self._ptp_setup(i)
         self.print_all_camera_status()

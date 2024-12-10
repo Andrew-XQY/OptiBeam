@@ -764,7 +764,7 @@ def generate_solid_circle(size=256):
 
 
 # ----------------- Image generator functions -----------------
-def corner_blocks_generator(size: int = 256, block_size: int = 32, intensity: int = 255):
+def corner_blocks_generator(size: int = 256, block_size: int = 64, intensity: int = 255):
     """
     Generator function to create square images with a single block in one of the four corners.
     

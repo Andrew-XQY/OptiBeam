@@ -174,7 +174,10 @@ def crop_images_from_clicks(click_list, image):
 
 
 def select_crop_areas_corner(original_image, num, scale_factor=1):
-    import cv2
+    
+    # Check if the image is single-channel and convert to BGR
+    if len(original_image.shape) == 2:  # Grayscale image
+        original_image = cv2.cvtColor(original_image, cv2.COLOR_GRAY2BGR)
 
     # Helper variables
     points = []
@@ -231,13 +234,11 @@ def select_crop_areas_corner(original_image, num, scale_factor=1):
     cv2.namedWindow('Image')
     cv2.setMouseCallback('Image', mouse_click)
     cv2.imshow('Image', scaled_image)
-
     # Handle the window until ESC is pressed
     while True:
         k = cv2.waitKey(1) & 0xFF
         if k == 27:  # ESC key
             break
-
     cv2.destroyAllWindows()
     return squares
 

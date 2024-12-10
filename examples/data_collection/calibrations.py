@@ -4,8 +4,6 @@ import datetime, time
 import cv2
 from multiprocessing import Process, Event
 
-
-
 # ============================
 # Dataset Parameters
 # ============================
@@ -14,17 +12,17 @@ conf = {
     'dmd_rotation': 47+90,  # DMD rotation angle for image orientation correction
     'dmd_bitDepth': 8,  # DMD bit depth
     'dmd_picture_time': 100000,  # DMD picture time in microseconds, corresponds to 50 Hz
-    'crop_areas': [((868, 430), (1030, 592)), ((2820, 440), (3020, 640))],  # crop areas for the camera images
+    'crop_areas': [((870, 432), (1028, 590)), ((2854, 439), (3050, 635))]  # crop areas for the camera images
 }
 
 # ============================
 # Multiprocessing DMD image display and camera capture
 # ============================
-
 # Camera generator
 def camera_generator(stop_event):
     MANAGER = camera.MultiBaslerCameraManager()
     MANAGER._initialize_cams()
+    MANAGER.flip = True
     free_run_gen = MANAGER.free_run()  # Create the generator from MANAGER's free_run method
     try:
         while not stop_event.is_set():
@@ -35,7 +33,6 @@ def camera_generator(stop_event):
     finally:
         stop_event.set()
     MANAGER.end()
-
 
 # DMD generator
 def dmd_generator(stop_event):
@@ -52,11 +49,10 @@ def camera_process(stop_event, conf=None):
         # Display the camera frame
         frame = processing.crop_image_from_coordinates(frame, conf['crop_areas'])
         cv2.imshow("Camera Feed", frame)
-        if cv2.waitKey(1) & 0xFF == 27:  # Press 'q' to stop
+        if cv2.waitKey(1) & 0xFF == 27:  # Press 'esc' to stop
             stop_event.set()
             break
     cv2.destroyAllWindows()
-    
 
 # DMD process
 def dmd_process(stop_event, conf=None):
@@ -65,8 +61,11 @@ def dmd_process(stop_event, conf=None):
     for img in gen:
         if stop_event.is_set():
             break
+        img = simulation.macro_pixel(img, size=int(conf['dmd_dim']/img.shape[0])) 
         DMD.display_image(dmd.dmd_img_adjustment(img, conf['dmd_dim'], angle=conf['dmd_rotation']))
+        time.sleep(1)
     DMD.end()
+
 
 # Main function
 if __name__ == "__main__":
@@ -92,5 +91,4 @@ if __name__ == "__main__":
     camera_proc.join()
     dmd_proc.join()
 
-    
     

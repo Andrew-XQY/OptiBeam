@@ -18,7 +18,7 @@ conf = {
     'dmd_rotation': 47+90,  # DMD rotation angle for image orientation correction
     'dmd_bitDepth': 8,  # DMD bit depth
     'dmd_picture_time': 100000,  # DMD picture time in microseconds, corresponds to 50 Hz
-    'crop_areas': [((868, 430), (1030, 592)), ((2820, 440), (3020, 640))],  # crop areas for the camera images
+    'crop_areas': [((870, 432), (1028, 590)), ((2854, 439), (3050, 635))],  # crop areas for the camera images
     'sim_pattern_max_num': 100,  # simulation: maximum number of distributions in the simulation
     'sim_fade_rate': 0.96,  # simulation: the probability of a distribution to disappear
     'sim_std_1': 0.03, # simulation: lower indication of std
