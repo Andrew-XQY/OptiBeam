@@ -163,7 +163,7 @@ class MultiBaslerCameraManager:
         Press 'f' key to flip the image logic (the order when combining images). 'speckle' and 'ground truth' or 'ground truth' and 'speckle'
         It set the flag variable self.flip to True or False and influence the function _combine_images
         this function will also create a window to display the images and allow the user to adjust the exposure and gain of the cameras.
-        The callibration process will be done in this step.
+        The callibration process will be done in this step. -- This can also be treated as freerun mode. though name is a bit confuse --
     
         Args:
             None
@@ -220,6 +220,19 @@ class MultiBaslerCameraManager:
         cam.ActionGroupKey.SetValue(self.group_key)
         cam.ActionGroupMask.SetValue(self.group_mask)
         
+    def _initialize_cams(self):
+        while True:
+            devices = self.tlFactory.EnumerateDevices()
+            if len(devices) >= 2:
+                break
+            time.sleep(0.5)
+        
+        for i in range(len(devices)):  
+            camera = pylon.InstantCamera(self.tlFactory.CreateDevice(devices[i]))
+            camera.Open()
+            camera.AcquisitionFrameRateEnable.Value = True
+            camera.AcquisitionFrameRateAbs.Value = 20.0  # set an initial frame rate
+            self.cameras.append(camera)        
         
     @timeout(500)
     def initialize(self) -> None:
@@ -234,21 +247,8 @@ class MultiBaslerCameraManager:
         Returns:
             None
         """
-        while True:
-            devices = self.tlFactory.EnumerateDevices()
-            if len(devices) >= 2:
-                break
-            time.sleep(0.5)
-        
-        for i in range(len(devices)):  
-            camera = pylon.InstantCamera(self.tlFactory.CreateDevice(devices[i]))
-            camera.Open()
-            camera.AcquisitionFrameRateEnable.Value = True
-            camera.AcquisitionFrameRateAbs.Value = 20.0
-            self.cameras.append(camera)
-            
+        self._initialize_cams()
         self._flip_order()
-        
         for i in self.cameras:  # prepare for PTP and scheduled action command
             self._ptp_setup(i)
         self.print_all_camera_status()
@@ -383,6 +383,28 @@ class MultiBaslerCameraManager:
         self._grab_release(grabResults)
         self._stop_grabbing() 
         return combined_image
+    
+    def free_run(self):
+        """
+        Free run mode, return the combined image of the two cameras in real time.
+        
+        Args:
+            None
+        
+        Returns:
+            np.ndarray: combined image
+        """
+        self._start_grabbing()
+        while all(cam.IsGrabbing() for cam in self.cameras):
+            grabResults = self._grab_results()
+            imgs = [grabResult.GetArray() for grabResult in grabResults]
+            if len(grabResults) > 1:
+                combined_image = imgs[0]
+                for img in imgs[1:]:
+                    combined_image = self._combine_images(combined_image, img) 
+                    yield combined_image
+        self._grab_release(grabResults)
+        self._stop_grabbing()
     
     def get_metadata(self) -> dict:
         """

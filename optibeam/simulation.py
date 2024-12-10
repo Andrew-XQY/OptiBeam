@@ -764,6 +764,42 @@ def generate_solid_circle(size=256):
 
 
 # ----------------- Image generator functions -----------------
+def corner_blocks_generator(size: int = 256, block_size: int = 32, intensity: int = 255):
+    """
+    Generator function to create square images with a single block in one of the four corners.
+    
+    Args:
+        size (int): The size of the square image (width and height).
+        block_size (int): The size of the square block.
+        intensity (int): The intensity value of the block (0-255 for grayscale).
+    
+    Yields:
+        np.ndarray: Generated image with a block in one of the corners.
+    """
+    # Ensure the block size fits within the image size
+    if block_size > size:
+        raise ValueError("block_size must be less than or equal to size.")
+    
+    # Define the coordinates for the four corners
+    corners = [
+        (0, 0),  # Top-left
+        (0, size - block_size),  # Top-right
+        (size - block_size, 0),  # Bottom-left
+        (size - block_size, size - block_size)  # Bottom-right
+    ]
+    
+    # Start cycling through the corners
+    while True:
+        for corner in corners:
+            # Create a black background image
+            image = np.zeros((size, size), dtype=np.uint8)
+            # Define the block's position
+            x, y = corner
+            # Set the block's intensity
+            image[x:x+block_size, y:y+block_size] = intensity
+            yield image
+
+
 def moving_blocks_generator(size: int=256, block_size: int=32, intensity: int=255):
     num_blocks = size // block_size
     base_image = np.zeros((size, size), dtype=np.uint8)

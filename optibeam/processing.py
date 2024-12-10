@@ -45,6 +45,64 @@ from .utils import crop_images, resize_image, join_images, resize_image_high_qua
 #         # Create a dataset to store the actual class label names
 
 
+# ----------------------------- Functionality visualization -----------------------------
+
+def add_grid(image: np.ndarray, partitions: int, grid_color: int = 255) -> np.ndarray:
+    """
+    Adds a dashed square grid to an image, with grid color, spacing, and thickness determined dynamically.
+
+    Args:
+        image (np.ndarray): The input image in narray format (2D or 3D).
+        partitions (int): The number of partitions for the grid.
+        grid_color (int): The color of the grid lines (default is 255 for white).
+
+    Returns:
+        np.ndarray: The modified image with a dashed square grid.
+    """
+    if len(image.shape) == 3:  # For colored images
+        height, width, channels = image.shape
+    elif len(image.shape) == 2:  # For grayscale images
+        height, width = image.shape
+        channels = 1  # Treat grayscale images as single-channel for grid overlay
+    else:
+        raise ValueError("Image should be either a 2D grayscale or 3D color image.")
+    
+    # Dash line properties
+    dash_length = 2  # Length of each dash
+    gap_length = 2   # Length of the gap between dashes
+    dash_pattern = dash_length + gap_length
+
+    # Grid thickness
+    grid_thickness = 1  # Change this value to control the grid thickness
+
+    # Determine the step size based on the shorter dimension
+    shorter_dim = min(height, width)
+    step = shorter_dim // partitions  # Equal grid step size for both dimensions
+
+    # Create a copy of the image to modify
+    grid_image = image.copy()
+    
+    # Add dashed horizontal lines
+    for y in range(0, height, step):
+        for x in range(0, width, dash_pattern):  # Apply the dash pattern
+            if channels > 1:  # For colored images
+                grid_image[max(0, y-grid_thickness//2):y+grid_thickness//2+1, x:x+dash_length, :] = grid_color
+            else:  # For grayscale images
+                grid_image[max(0, y-grid_thickness//2):y+grid_thickness//2+1, x:x+dash_length] = grid_color
+
+    # Add dashed vertical lines
+    for x in range(0, width, step):
+        for y in range(0, height, dash_pattern):  # Apply the dash pattern
+            if channels > 1:  # For colored images
+                grid_image[y:y+dash_length, max(0, x-grid_thickness//2):x+grid_thickness//2+1, :] = grid_color
+            else:  # For grayscale images
+                grid_image[y:y+dash_length, max(0, x-grid_thickness//2):x+grid_thickness//2+1] = grid_color
+
+    return grid_image
+
+
+
+
 # ----------------------------- image processing -----------------------------
 
 def apply_threshold(image: np.ndarray, threshold=5) -> np.ndarray:
@@ -116,39 +174,54 @@ def crop_images_from_clicks(click_list, image):
 
 
 def select_crop_areas_corner(original_image, num, scale_factor=1):
+    import cv2
+
     # Helper variables
     points = []
-    rectangles = []
+    squares = []
     max_x, max_y = original_image.shape[1], original_image.shape[0]
 
     def mouse_click(event, x, y, flags, param):
-        # Access the points list
-        nonlocal points, rectangles
+        nonlocal points, squares
 
         # Adjust click position to original image scale
         orig_x, orig_y = int(x / scale_factor), int(y / scale_factor)
 
         # Record the click positions
         if event == cv2.EVENT_LBUTTONDOWN:
-            if len(points) >= 2 * num:  # Reset if previous set is complete
+            if len(points) >= 2 * num:  # Reset if the previous set is complete
                 points = []
-                rectangles = []
+                squares = []
                 image = cv2.resize(original_image, None, fx=scale_factor, fy=scale_factor, interpolation=cv2.INTER_AREA)
                 cv2.imshow('Image', image)
 
             points.append((orig_x, orig_y))
 
-            # Check if we can form a rectangle
+            # Check if we can form a square
             if len(points) % 2 == 0:
-                points[-2] = (max(0, min(points[-2][0], max_x)), max(0, min(points[-2][1], max_y)))
-                points[-1] = (max(0, min(points[-1][0], max_x)), max(0, min(points[-1][1], max_y)))
-                rectangles.append((points[-2], points[-1]))
+                point1 = points[-2]
+                point2 = points[-1]
 
-            # Redraw the image with rectangles/points
+                # Calculate the center and the side length of the square
+                center_x = (point1[0] + point2[0]) // 2
+                center_y = (point1[1] + point2[1]) // 2
+                side = max(abs(point2[0] - point1[0]), abs(point2[1] - point1[1]))
+
+                # Calculate the top-left and bottom-right corners of the square
+                top_left = (center_x - side // 2, center_y - side // 2)
+                bottom_right = (center_x + side // 2, center_y + side // 2)
+
+                # Constrain points to valid image bounds
+                top_left = (max(0, min(top_left[0], max_x)), max(0, min(top_left[1], max_y)))
+                bottom_right = (max(0, min(bottom_right[0], max_x)), max(0, min(bottom_right[1], max_y)))
+
+                squares.append((top_left, bottom_right))
+
+            # Redraw the image with squares/points
             image = cv2.resize(original_image, None, fx=scale_factor, fy=scale_factor, interpolation=cv2.INTER_AREA)
-            for rect in rectangles:
-                scaled_rect = [(int(pt[0] * scale_factor), int(pt[1] * scale_factor)) for pt in rect]
-                cv2.rectangle(image, scaled_rect[0], scaled_rect[1], (0, 255, 0), 1)
+            for square in squares:
+                scaled_square = [(int(pt[0] * scale_factor), int(pt[1] * scale_factor)) for pt in square]
+                cv2.rectangle(image, scaled_square[0], scaled_square[1], (0, 255, 0), 1)
             if len(points) % 2 == 1:
                 cv2.circle(image, (int(points[-1][0] * scale_factor), int(points[-1][1] * scale_factor)), 1, (0, 0, 255), -1)
             cv2.imshow('Image', image)
@@ -166,7 +239,8 @@ def select_crop_areas_corner(original_image, num, scale_factor=1):
             break
 
     cv2.destroyAllWindows()
-    return rectangles
+    return squares
+
 
 
 def detect_round_and_draw_bounds(image: np.ndarray) -> np.ndarray:
@@ -202,12 +276,13 @@ def detect_round_and_draw_bounds(image: np.ndarray) -> np.ndarray:
     return cimg
 
 
-def select_crop_areas_center(original_image: np.ndarray, num: int, scale_factor: float=1) -> list:
+def select_crop_areas_center(original_image: np.ndarray, num: int, scale_factor: float=1, autodetect: bool=False) -> list:
     # Helper variables
     points = []
     squares = []
     
-    original_image = detect_round_and_draw_bounds(original_image)
+    if autodetect:
+        original_image = detect_round_and_draw_bounds(original_image)
 
     def mouse_click(event, x, y, flags, param):
         nonlocal points, squares
