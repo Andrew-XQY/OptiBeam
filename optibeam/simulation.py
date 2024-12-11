@@ -876,7 +876,7 @@ def temporal_shift(frequency):
         def wrapper(*args, **kwargs):
             counter = 0
             for item in func(*args, **kwargs):  # Iterate over the main generator
-                if counter % frequency == 1:  # Add extra image conditionally
+                if counter % frequency == 0:  # Add extra image conditionally
                     yield (np.ones((256, 256)) * 100, 'temporal_shift_check')
                 yield item  # Yield original item
                 counter += 1

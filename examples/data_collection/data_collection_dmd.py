@@ -77,7 +77,7 @@ process_funcs = [utils.rgb_to_grayscale, utils.split_image, lambda x : x[0].asty
 
 # create a queue of image sources
 # simulation_config, other_notes, experiment_description, image_source, purpose, images_per_sample, is_params, is_calibration
-temporal_shift_freq = 10
+temporal_shift_freq = 5
 queue = []
 queue.append({'experiment_description':'calibration image', 
               'purpose':'calibration',

@@ -115,7 +115,7 @@ def display_image(save_to='', scale_factor=0.65):
     cv2.namedWindow('Camera Output')
     cv2.setMouseCallback('Camera Output', mouse_callback)
     
-    cv2.createTrackbar('Exposure time (ms)', 'Camera Output', 50, 1000, 
+    cv2.createTrackbar('Exposure time (ms)', 'Camera Output', 50, 500, 
                        lambda x: camera_capture.camera.ExposureTimeRaw.SetValue(x*1000))  # miniseconds
     
     try:

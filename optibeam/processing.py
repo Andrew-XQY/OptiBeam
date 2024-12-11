@@ -278,6 +278,10 @@ def detect_round_and_draw_bounds(image: np.ndarray) -> np.ndarray:
 
 
 def select_crop_areas_center(original_image: np.ndarray, num: int, scale_factor: float=1, autodetect: bool=False) -> list:
+    # Check if the image is single-channel and convert to BGR
+    if len(original_image.shape) == 2:  # Grayscale image
+        original_image = cv2.cvtColor(original_image, cv2.COLOR_GRAY2BGR)
+        
     # Helper variables
     points = []
     squares = []
