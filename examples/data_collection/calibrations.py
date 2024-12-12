@@ -12,13 +12,12 @@ conf = {
     'dmd_rotation': 47+90,  # DMD rotation angle for image orientation correction
     'dmd_bitDepth': 8,  # DMD bit depth
     'dmd_picture_time': 100000,  # DMD picture time in microseconds, corresponds to 50 Hz
-    'crop_areas': [((870, 432), (1028, 590)), ((2854, 439), (3050, 635))]  # crop areas for the camera images
+    'crop_areas': [((871, 434), (1027, 590)), ((2848, 440), (3042, 634))]  # crop areas for the camera images
 }
 
 # ============================
 # Multiprocessing DMD image display and camera capture
 # ============================
-# Camera generator
 def camera_generator(stop_event):
     MANAGER = camera.MultiBaslerCameraManager()
     MANAGER._initialize_cams()
@@ -34,7 +33,6 @@ def camera_generator(stop_event):
         stop_event.set()
     MANAGER.end()
 
-# DMD generator
 def dmd_generator(stop_event):
     corner_gen = simulation.corner_blocks_generator()
     while not stop_event.is_set():
@@ -67,7 +65,6 @@ def dmd_process(stop_event, conf=None):
     DMD.end()
 
 
-# Main function
 if __name__ == "__main__":
     # Create a stop event for graceful termination
     stop_event = Event()
