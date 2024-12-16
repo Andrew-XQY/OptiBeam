@@ -705,6 +705,120 @@ def dmd_calibration_center_dot(size=256, dot_size=10):
     canvas[start:end, start:end] = 255
     return canvas
 
+def generate_square_fiber_coupling_pattern(size: int = 256, line_width: int = 10) -> np.ndarray:
+    """
+    Generates a calibration pattern resembling a sniper aim lens.
+
+    Args:
+        size (int): The size of the square image (size x size).
+        line_width (int): The width of the lines forming the pattern.
+
+    Returns:
+        np.ndarray: A 2D NumPy array representing the pattern image.
+    """
+    if size <= 2 * line_width:
+        raise ValueError("Size must be greater than twice the line width.")
+
+    # Initialize an empty array
+    pattern = np.zeros((size, size), dtype=np.uint8)
+
+    # Create the outer square frame
+    pattern[:line_width, :] = 255  # Top border
+    pattern[-line_width:, :] = 255  # Bottom border
+    pattern[:, :line_width] = 255  # Left border
+    pattern[:, -line_width:] = 255  # Right border
+
+    # Create the cross in the center
+    center = size // 2
+    half_line = line_width // 2
+    pattern[center - half_line : center + half_line + 1, :] = 255  # Horizontal line
+    pattern[:, center - half_line : center + half_line + 1] = 255  # Vertical line
+
+    return pattern
+
+def generate_circle_fiber_coupling_pattern(size: int = 256, line_width: int = 5) -> np.ndarray:
+    """
+    Generates a sniper aim lens pattern with a circular boundary and a cross in the center.
+
+    Args:
+        size (int): The size of the square image (size x size).
+        line_width (int): The width of the lines forming the pattern.
+
+    Returns:
+        np.ndarray: A 2D NumPy array representing the pattern image.
+    """
+    if size <= 2 * line_width:
+        raise ValueError("Size must be greater than twice the line width.")
+
+    # Initialize an empty array
+    pattern = np.zeros((size, size), dtype=np.uint8)
+
+    center = size // 2
+    radius = size // 2
+
+    # Create the circular boundary
+    y, x = np.ogrid[:size, :size]
+    distance = np.sqrt((x - center) ** 2 + (y - center) ** 2)
+    circular_mask = (radius - line_width < distance) & (distance <= radius)
+    pattern[circular_mask] = 255
+
+    # Create the cross in the center
+    half_line = line_width // 2
+    pattern[center - half_line : center + half_line + 1, :] = 255  # Horizontal line
+    pattern[:, center - half_line : center + half_line + 1] = 255  # Vertical line
+
+    return pattern
+
+def generate_fullscreen_pattern(size: int = 256, intensity: int = 255) -> np.ndarray:
+    """
+    Generates a full-screen pattern with specified size and pixel intensity.
+
+    Args:
+        size (int): The size of the square image (size x size).
+        intensity (int): The intensity of the pixels (0 to 255).
+
+    Returns:
+        np.ndarray: A 2D NumPy array representing the pattern image.
+    """
+    if not (0 <= intensity <= 255):
+        raise ValueError("Intensity must be between 0 and 255.")
+
+    # Initialize the array with the specified intensity
+    pattern = np.full((size, size), intensity, dtype=np.uint8)
+
+    return pattern
+
+def generate_concentric_circles_pattern(size: int = 256, num_circles: int = 5, thickness: int = 5) -> np.ndarray:
+    """
+    Generates a pattern with concentric circles.
+
+    Args:
+        size (int): The size of the square image (size x size).
+        num_circles (int): The number of concentric circles.
+        thickness (int): The thickness of each circle.
+
+    Returns:
+        np.ndarray: A 2D NumPy array representing the pattern image.
+    """
+    if size <= 0 or num_circles <= 0 or thickness <= 0:
+        raise ValueError("Size, number of circles, and thickness must be positive integers.")
+
+    # Initialize an empty array
+    pattern = np.zeros((size, size), dtype=np.uint8)
+
+    center = size // 2
+    max_radius = min(center, size - center)
+    step = max_radius // num_circles
+
+    for i in range(num_circles):
+        radius = step * (i + 1)
+        y, x = np.ogrid[:size, :size]
+        distance = np.sqrt((x - center) ** 2 + (y - center) ** 2)
+        mask = (radius - thickness < distance) & (distance <= radius)
+        pattern[mask] = 255
+
+    return pattern
+
 def generate_mosaic_image(size: int=1024, n: int=3) -> np.ndarray:
     image = np.zeros((size, size), dtype=float)
     values = np.linspace(0, 255, n**2, dtype=int)
@@ -764,40 +878,127 @@ def generate_solid_circle(size=256):
 
 
 # ----------------- Image generator functions -----------------
-def corner_blocks_generator(size: int = 256, block_size: int = 64, intensity: int = 255):
-    """
-    Generator function to create square images with a single block in one of the four corners.
-    
-    Args:
-        size (int): The size of the square image (width and height).
-        block_size (int): The size of the square block.
-        intensity (int): The intensity value of the block (0-255 for grayscale).
-    
-    Yields:
-        np.ndarray: Generated image with a block in one of the corners.
-    """
-    # Ensure the block size fits within the image size
-    if block_size > size:
-        raise ValueError("block_size must be less than or equal to size.")
-    
-    # Define the coordinates for the four corners
-    corners = [
-        (0, 0),  # Top-left
-        (0, size - block_size),  # Top-right
-        (size - block_size, 0),  # Bottom-left
-        (size - block_size, size - block_size)  # Bottom-right
-    ]
-    
-    # Start cycling through the corners
-    while True:
-        for corner in corners:
-            # Create a black background image
-            image = np.zeros((size, size), dtype=np.uint8)
-            # Define the block's position
-            x, y = corner
-            # Set the block's intensity
-            image[x:x+block_size, y:y+block_size] = intensity
-            yield image
+# def corner_blocks_generator(size: int = 256, block_size: int = 64, intensity: int = 255, special: int = 0):
+#     """
+#     Generator function to create square images with blocks in specified corners.
+
+#     Args:
+#         size (int): The size of the square image (width and height).
+#         block_size (int): The size of the square block.
+#         intensity (int): The intensity value of the block (0-255 for grayscale).
+#         special (int): Specifies which corners to include blocks in:
+#                        0 - All four corners
+#                        1 - Top-left and Top-right
+#                        2 - Top-left and Bottom-left
+#                        3 - Bottom-left and Bottom-right
+#                        4 - Top-right and Bottom-right
+
+#     Yields:
+#         np.ndarray: Generated image with blocks in the specified corners.
+#     """
+#     # Ensure the block size fits within the image size
+#     if block_size > size:
+#         raise ValueError("block_size must be less than or equal to size.")
+
+#     # Define the coordinates for the four corners
+#     corners = [
+#         (0, 0),  # Top-left
+#         (0, size - block_size),  # Top-right
+#         (size - block_size, 0),  # Bottom-left
+#         (size - block_size, size - block_size)  # Bottom-right
+#     ]
+
+#     # Define corner combinations based on the special parameter
+#     special_mappings = {
+#         0: corners,  # All corners
+#         1: [corners[0], corners[1]],  # Top-left and Top-right
+#         2: [corners[0], corners[2]],  # Top-left and Bottom-left
+#         3: [corners[2], corners[3]],  # Bottom-left and Bottom-right
+#         4: [corners[1], corners[3]],  # Top-right and Bottom-right
+#     }
+
+#     selected_corners = special_mappings.get(special, corners)
+
+#     # Start cycling through the selected corners
+#     while True:
+#         for corner in selected_corners:
+#             # Create a black background image
+#             image = np.zeros((size, size), dtype=np.uint8)
+#             # Define the block's position
+#             x, y = corner
+#             # Set the block's intensity
+#             image[x:x+block_size, y:y+block_size] = intensity
+#             yield image
+
+
+class CornerBlocksCalibrator:
+    def __init__(self, size: int = 256, block_size: int = 64, intensity: int = 255, special: int = 0):
+        """
+        Initialize the CornerBlocksCalibrator with properties and state.
+
+        Args:
+            size (int): The size of the square image (width and height).
+            block_size (int): The size of the square block.
+            intensity (int): The intensity value of the block (0-255 for grayscale).
+            special (int): Specifies which corners to include blocks in:
+                           0 - All four corners
+                           1 - Top-left and Top-right
+                           2 - Top-left and Bottom-left
+                           3 - Bottom-left and Bottom-right
+                           4 - Top-right and Bottom-right
+        """
+        if block_size > size:
+            raise ValueError("block_size must be less than or equal to size.")
+
+        self.size = size
+        self.block_size = block_size
+        self.intensity = intensity
+        self.special = special
+        self.canvas = np.zeros((size, size), dtype=np.uint8)
+        self.state_index = 0
+
+        self.corners = [
+            (0, 0),  # Top-left
+            (0, size - block_size),  # Top-right
+            (size - block_size, 0),  # Bottom-left
+            (size - block_size, size - block_size)  # Bottom-right
+        ]
+
+    def set_special(self, special: int):
+        """
+        Set the special property to change the corner pattern dynamically.
+
+        Args:
+            special (int): Specifies which corners to include blocks in.
+        """
+        if special not in range(5):
+            raise ValueError("special must be between 0 and 4.")
+        self.special = special
+        #self.state_index = 0  # Reset state index
+
+    def generate_blocks(self):
+        """
+        Update the canvas based on the current state and special pattern.
+        """
+
+        # Define corner combinations based on the special parameter
+        special_mappings = {
+            0: self.corners,  # All corners
+            1: [self.corners[0], self.corners[1]],  # Top-left and Top-right
+            2: [self.corners[0], self.corners[2]],  # Top-left and Bottom-left
+            3: [self.corners[2], self.corners[3]],  # Bottom-left and Bottom-right
+            4: [self.corners[1], self.corners[3]],  # Top-right and Bottom-right
+        }
+
+        selected_corners = special_mappings[self.special]
+
+        # Update canvas
+        self.canvas.fill(0)  # Clear the canvas
+        x, y = selected_corners[self.state_index if self.state_index < len(selected_corners) else 0]
+        self.canvas[x:x + self.block_size, y:y + self.block_size] = self.intensity
+
+        # Update state index for the next call
+        self.state_index = (self.state_index + 1) % len(selected_corners)
 
 
 def moving_blocks_generator(size: int=256, block_size: int=32, intensity: int=255):

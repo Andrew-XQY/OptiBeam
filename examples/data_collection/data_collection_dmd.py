@@ -18,6 +18,7 @@ conf = {
     'dmd_rotation': 47+90,  # DMD rotation angle for image orientation correction
     'dmd_bitDepth': 8,  # DMD bit depth
     'dmd_picture_time': 100000,  # DMD picture time in microseconds, corresponds to 50 Hz
+    'dmd_alp_version': '4.3',  # DMD ALP version
     'crop_areas': [((871, 434), (1027, 590)), ((2848, 440), (3042, 634))],  # crop areas for the camera images
     'sim_pattern_max_num': 100,  # simulation: maximum number of distributions in the simulation
     'sim_fade_rate': 0.96,  # simulation: the probability of a distribution to disappear
@@ -25,14 +26,16 @@ conf = {
     'sim_std_2': 0.2, # simulation: higher indication of std
     'sim_max_intensity': 100, # simulation: peak pixel intensity in a single distribution
     'sim_dim': 512,   # simulation: simulated image resolution
+    'temporal_shift_freq': 5,  # simulation: temporal shift frequency
 }
 
 # ============================
 # Hardware/Software Initialization
 # ============================
 # DMD Initialization 
-DMD = dmd.ViALUXDMD(ALP4(version = '4.3'))
-calibration_img = simulation.generate_radial_gradient() # generate_upward_arrow(), dmd_calibration_pattern_generation()
+DMD = dmd.ViALUXDMD(ALP4(version = conf['dmd_alp_version']))
+# generate_upward_arrow(), dmd_calibration_pattern_generation()  
+calibration_img = simulation.generate_circle_fiber_coupling_pattern(line_width=20)
 calibration_img = simulation.macro_pixel(calibration_img, size=int(conf['dmd_dim']/calibration_img.shape[0])) 
 DMD.display_image(dmd.dmd_img_adjustment(calibration_img, conf['dmd_dim'], angle=conf['dmd_rotation'])) # preload for calibration
 # Cameras Initialization
@@ -45,14 +48,14 @@ MANAGER.synchronization()
 # Select crop areas (optional steps)
 # ============================
 # take a sample image to (later manually) select crop areas for automatic resizing
-calibration_img = simulation.dmd_calibration_pattern_generation()
-calibration_img = simulation.macro_pixel(calibration_img, size=int(conf['dmd_dim']/calibration_img.shape[0])) 
-DMD.display_image(dmd.dmd_img_adjustment(calibration_img, conf['dmd_dim'], angle=conf['dmd_rotation'])) # preload for calibration
-test_img = MANAGER.schedule_action_command(int(500 * 1e6)) # schedule for milliseconds later
-test_img = processing.add_grid(test_img, partitions=50)
-# crop_areas = processing.select_crop_areas_center(test_img, num=2, scale_factor=0.4, autodetect=False) 
-crop_areas = processing.select_crop_areas_corner(test_img, num=2, scale_factor=0.5) 
-sys.exit(f"Crop areas selected: {crop_areas} \nProcedure completed.")
+# calibration_img = simulation.dmd_calibration_pattern_generation()
+# calibration_img = simulation.macro_pixel(calibration_img, size=int(conf['dmd_dim']/calibration_img.shape[0])) 
+# DMD.display_image(dmd.dmd_img_adjustment(calibration_img, conf['dmd_dim'], angle=conf['dmd_rotation'])) # preload for calibration
+# test_img = MANAGER.schedule_action_command(int(500 * 1e6)) # schedule for milliseconds later
+# test_img = processing.add_grid(test_img, partitions=50)
+# # crop_areas = processing.select_crop_areas_center(test_img, num=2, scale_factor=0.4, autodetect=False) 
+# crop_areas = processing.select_crop_areas_corner(test_img, num=2, scale_factor=0.5) 
+# sys.exit(f"Crop areas selected: {crop_areas} \nProcedure completed.")
 
 
 
@@ -77,7 +80,6 @@ process_funcs = [utils.rgb_to_grayscale, utils.split_image, lambda x : x[0].asty
 
 # create a queue of image sources
 # simulation_config, other_notes, experiment_description, image_source, purpose, images_per_sample, is_params, is_calibration
-temporal_shift_freq = 5
 queue = []
 queue.append({'experiment_description':'calibration image', 
               'purpose':'calibration',
@@ -104,15 +106,15 @@ queue.append({'experiment_description':'2d multi-gaussian distributions simulati
               'images_per_sample':2,
               'simulation_config':CANVAS.get_metadata(),
               'other_notes':{key: value for key, value in conf.items() if 'sim' in key},
-              'data':simulation.temporal_shift(temporal_shift_freq)(simulation.canvas_generator)(CANVAS, conf),
-              'len':conf['number_of_images'] + utils.ceil_int_div(conf['number_of_images'], temporal_shift_freq)}) 
+              'data':simulation.temporal_shift(conf['temporal_shift_freq'])(simulation.canvas_generator)(CANVAS, conf),
+              'len':conf['number_of_images'] + utils.ceil_int_div(conf['number_of_images'], conf['temporal_shift_freq'])}) 
 queue.append({'experiment_description':'local real beam image for evaluation',
               'purpose':'testing',
               'images_per_sample':2,
               'image_source':'e-beam',
               'is_params':True,
-              'data':simulation.temporal_shift(temporal_shift_freq)(simulation.read_local_generator)(paths, process_funcs),
-              'len':len(paths) + utils.ceil_int_div(len(paths), temporal_shift_freq)}) 
+              'data':simulation.temporal_shift(conf['temporal_shift_freq'])(simulation.read_local_generator)(paths, process_funcs),
+              'len':len(paths) + utils.ceil_int_div(len(paths), conf['temporal_shift_freq'])}) 
 
 
 # ============================

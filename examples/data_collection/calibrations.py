@@ -2,18 +2,7 @@ from conf import *
 from ALP4 import *
 import datetime, time
 import cv2
-from multiprocessing import Process, Event
-
-# ============================
-# Dataset Parameters
-# ============================
-conf = {
-    'dmd_dim': 1024,  # DMD working square area resolution
-    'dmd_rotation': 47+90,  # DMD rotation angle for image orientation correction
-    'dmd_bitDepth': 8,  # DMD bit depth
-    'dmd_picture_time': 100000,  # DMD picture time in microseconds, corresponds to 50 Hz
-    'crop_areas': [((871, 434), (1027, 590)), ((2848, 440), (3042, 634))]  # crop areas for the camera images
-}
+from multiprocessing import Process, Event, Queue
 
 # ============================
 # Multiprocessing DMD image display and camera capture
@@ -33,19 +22,20 @@ def camera_generator(stop_event):
         stop_event.set()
     MANAGER.end()
 
-def dmd_generator(stop_event):
-    corner_gen = simulation.corner_blocks_generator()
-    while not stop_event.is_set():
-        yield next(corner_gen)
-
 # Camera process
-def camera_process(stop_event, conf=None):
+def camera_process(stop_event, queue, conf=None):
+    def on_trackbar(val):
+        queue.put(val)  # Send the trackbar value to the queue
+
+    cv2.namedWindow("Camera Feed")
+    cv2.createTrackbar("Special", "Camera Feed", 0, 4, on_trackbar)
     gen = camera_generator(stop_event)
     for frame in gen:
         if stop_event.is_set():
             break
         # Display the camera frame
         frame = processing.crop_image_from_coordinates(frame, conf['crop_areas'])
+        frame = utils.scale_image(frame, 2)
         cv2.imshow("Camera Feed", frame)
         if cv2.waitKey(1) & 0xFF == 27:  # Press 'esc' to stop
             stop_event.set()
@@ -53,12 +43,14 @@ def camera_process(stop_event, conf=None):
     cv2.destroyAllWindows()
 
 # DMD process
-def dmd_process(stop_event, conf=None):
+def dmd_process(stop_event, queue, conf=None):
     DMD = dmd.ViALUXDMD(ALP4(version = '4.3'))
-    gen = dmd_generator(stop_event)
-    for img in gen:
-        if stop_event.is_set():
-            break
+    calibrator = simulation.CornerBlocksCalibrator()
+    while not stop_event.is_set():
+        if not queue.empty():
+            calibrator.set_special(queue.get())
+        calibrator.generate_blocks()
+        img = calibrator.canvas
         img = simulation.macro_pixel(img, size=int(conf['dmd_dim']/img.shape[0])) 
         DMD.display_image(dmd.dmd_img_adjustment(img, conf['dmd_dim'], angle=conf['dmd_rotation']))
         time.sleep(1)
@@ -66,12 +58,24 @@ def dmd_process(stop_event, conf=None):
 
 
 if __name__ == "__main__":
+    # ============================
+    # Dataset Parameters
+    # ============================
+    conf = {
+        'dmd_dim': 1024,  # DMD working square area resolution
+        'dmd_rotation': 47+90,  # DMD rotation angle for image orientation correction
+        'dmd_bitDepth': 8,  # DMD bit depth
+        'dmd_picture_time': 100000,  # DMD picture time in microseconds, corresponds to 50 Hz
+        'crop_areas': [((871, 434), (1027, 590)), ((2848, 440), (3042, 634))]  # crop areas for the camera images
+    }
+
     # Create a stop event for graceful termination
     stop_event = Event()
+    queue = Queue()
 
     # Create and start processes
-    camera_proc = Process(target=camera_process, args=(stop_event, conf))
-    dmd_proc = Process(target=dmd_process, args=(stop_event, conf))
+    camera_proc = Process(target=camera_process, args=(stop_event, queue, conf))
+    dmd_proc = Process(target=dmd_process, args=(stop_event, queue, conf))
 
     camera_proc.start()
     dmd_proc.start()

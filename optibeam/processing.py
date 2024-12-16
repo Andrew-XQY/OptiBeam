@@ -1,5 +1,8 @@
 import cv2
 import numpy as np
+import matplotlib.pyplot as plt
+from collections import deque
+from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 from .utils import crop_images, resize_image, join_images, resize_image_high_quality
 
 
@@ -101,6 +104,91 @@ def add_grid(image: np.ndarray, partitions: int, grid_color: int = 255) -> np.nd
     return grid_image
 
 
+def calculate_pixel_sum(image: np.ndarray, square_values: bool = False) -> float:
+    """
+    Calculate the accumulative total pixel value of an image.
+
+    Args:
+        image (np.ndarray): Input image as a single-channel NumPy array.
+        square_values (bool): If True, square the pixel values before summing.
+
+    Returns:
+        float: The accumulative total pixel value.
+    """
+    if not isinstance(image, np.ndarray):
+        raise ValueError("The input image must be a NumPy array.")
+
+    if square_values:
+        return np.sum(np.square(image))
+    else:
+        return np.sum(image)
+
+class IntensityMonitor:
+    def __init__(self, buffer_size=100):
+        """
+        Initialize the IntensityMonitor object.
+
+        Args:
+            buffer_size (int): Maximum size of the intensity buffer.
+        """
+        self.buffer = deque(maxlen=buffer_size)
+
+    def add_image(self, image: np.ndarray, square_values: bool = False) -> None:
+        """
+        Process an image to calculate its intensity and add it to the buffer.
+
+        Args:
+            image (np.ndarray): Input image as a single-channel NumPy array.
+            square_values (bool): If True, square the pixel values before summing.
+        """
+        try:
+            intensity = calculate_pixel_sum(image, square_values)
+        except Exception:
+            intensity = 0  # Default to 0 if the calculation fails
+        self.buffer.append(intensity)
+
+    def plot_intensity(self, channel=1) -> np.ndarray:
+        """
+        Generate a time-series plot of the intensity buffer.
+
+        Args:
+            channel (int): Number of channels (1 for grayscale, 3 for RGB-like dummy expansion).
+
+        Returns:
+            np.ndarray: The plotted Matplotlib figure as a NumPy array.
+        """
+        fig, ax = plt.subplots()
+        ax.plot(range(len(self.buffer)), list(self.buffer), label="Intensity Sum")
+        ax.set_title("Intensity Over Time")
+        ax.set_xlabel("Frame Index")
+        ax.set_ylabel("Intensity Sum")
+        ax.legend()
+        ax.grid()
+
+        # Convert the plot to a NumPy array
+        canvas = FigureCanvas(fig)
+        canvas.draw()
+        image = np.frombuffer(canvas.tostring_rgb(), dtype='uint8')
+        image = image.reshape(canvas.get_width_height()[::-1] + (3,))
+
+        if channel == 1:
+            # Convert to grayscale by averaging channels
+            image = np.mean(image, axis=2).astype('uint8')
+
+        plt.close(fig)  # Close the figure to free memory
+        return image
+
+    def demo(self, channel=1):
+        """
+        Display the intensity plot.
+
+        Args:
+            channel (int): Number of channels (1 for grayscale, 3 for RGB-like dummy expansion).
+        """
+        image = self.plot_intensity(channel=channel)
+        plt.imshow(image, cmap="gray" if channel == 1 else None)
+        plt.axis('off')
+        plt.show()
 
 
 # ----------------------------- image processing -----------------------------
