@@ -148,6 +148,9 @@ def deprecated_class(reason):
         return cls
     return class_rebuilder
 
+def list_to_generator(lst):
+    for item in lst:
+        yield item
 
 # ------------------- multiprocessing -------------------
 
