@@ -22,6 +22,20 @@ def camera_generator(stop_event):
         stop_event.set()
     MANAGER.end()
 
+# DMD process
+def dmd_process(stop_event, queue, conf=None):
+    DMD = dmd.ViALUXDMD(ALP4(version = '4.3'))
+    calibrator = simulation.CornerBlocksCalibrator()
+    while not stop_event.is_set():
+        if not queue.empty():
+            calibrator.set_special(queue.get())
+        calibrator.generate_blocks()
+        img = calibrator.canvas
+        img = simulation.macro_pixel(img, size=int(conf['dmd_dim']/img.shape[0])) 
+        DMD.display_image(dmd.dmd_img_adjustment(img, conf['dmd_dim'], angle=conf['dmd_rotation']))
+        time.sleep(2)
+    DMD.end()
+
 # Camera process
 def camera_process(stop_event, queue, conf=None):
     def on_trackbar(val):
@@ -35,26 +49,17 @@ def camera_process(stop_event, queue, conf=None):
             break
         # Display the camera frame
         frame = processing.crop_image_from_coordinates(frame, conf['crop_areas'])
+        l, r = utils.split_image(frame)
+        ratio = processing.get_coupling_ratio(input_img=l, output_img=r)
+        ratio = round(ratio, 2)
         frame = utils.scale_image(frame, 2)
+        cv2.putText(frame, 'Coupling Ratio: ' + str(ratio), (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
         cv2.imshow("Camera Feed", frame)
         if cv2.waitKey(1) & 0xFF == 27:  # Press 'esc' to stop
             stop_event.set()
             break
     cv2.destroyAllWindows()
 
-# DMD process
-def dmd_process(stop_event, queue, conf=None):
-    DMD = dmd.ViALUXDMD(ALP4(version = '4.3'))
-    calibrator = simulation.CornerBlocksCalibrator()
-    while not stop_event.is_set():
-        if not queue.empty():
-            calibrator.set_special(queue.get())
-        calibrator.generate_blocks()
-        img = calibrator.canvas
-        img = simulation.macro_pixel(img, size=int(conf['dmd_dim']/img.shape[0])) 
-        DMD.display_image(dmd.dmd_img_adjustment(img, conf['dmd_dim'], angle=conf['dmd_rotation']))
-        time.sleep(0.5)
-    DMD.end()
 
 
 if __name__ == "__main__":

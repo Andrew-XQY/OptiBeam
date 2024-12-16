@@ -104,7 +104,7 @@ def add_grid(image: np.ndarray, partitions: int, grid_color: int = 255) -> np.nd
     return grid_image
 
 
-def calculate_pixel_sum(image: np.ndarray, square_values: bool = False) -> float:
+def get_pixel_sum(image: np.ndarray, square_values: bool = False) -> float:
     """
     Calculate the accumulative total pixel value of an image.
 
@@ -122,6 +122,25 @@ def calculate_pixel_sum(image: np.ndarray, square_values: bool = False) -> float
         return np.sum(np.square(image))
     else:
         return np.sum(image)
+    
+def get_coupling_ratio(input_img: np.ndarray, output_img: np.ndarray) -> float:
+    """
+    Calculates the ratio of the sum of pixel values of two images using a given function `get_pixel_sum`.
+
+    Args:
+        input_img (np.ndarray): The input image represented as a NumPy array.
+        output_img (np.ndarray): The output image represented as a NumPy array.
+
+    Returns:
+        float: The ratio of the pixel value sums, calculated as 
+               get_pixel_sum(output_img) / get_pixel_sum(input_img).
+    """
+    # Get the sum of pixel values for both images
+    input_sum = get_pixel_sum(input_img)
+    output_sum = get_pixel_sum(output_img)
+    # Calculate the ratio
+    ratio = output_sum / input_sum
+    return ratio
 
 class IntensityMonitor:
     def __init__(self, buffer_size=100):
@@ -142,7 +161,7 @@ class IntensityMonitor:
             square_values (bool): If True, square the pixel values before summing.
         """
         try:
-            intensity = calculate_pixel_sum(image, square_values)
+            intensity = get_pixel_sum(image, square_values)
         except Exception:
             intensity = 0  # Default to 0 if the calculation fails
         self.buffer.append(intensity)
