@@ -48,14 +48,14 @@ MANAGER.synchronization()
 # Select crop areas (optional steps)
 # ============================
 # take a sample image to (later manually) select crop areas for automatic resizing
-# calibration_img = simulation.dmd_calibration_pattern_generation()
-# calibration_img = simulation.macro_pixel(calibration_img, size=int(conf['dmd_dim']/calibration_img.shape[0])) 
-# DMD.display_image(dmd.dmd_img_adjustment(calibration_img, conf['dmd_dim'], angle=conf['dmd_rotation'])) # preload for calibration
-# test_img = MANAGER.schedule_action_command(int(500 * 1e6)) # schedule for milliseconds later
-# test_img = processing.add_grid(test_img, partitions=50)
-# # crop_areas = processing.select_crop_areas_center(test_img, num=2, scale_factor=0.4, autodetect=False) 
-# crop_areas = processing.select_crop_areas_corner(test_img, num=2, scale_factor=0.5) 
-# sys.exit(f"Crop areas selected: {crop_areas} \nProcedure completed.")
+calibration_img = simulation.dmd_calibration_pattern_generation()
+calibration_img = simulation.macro_pixel(calibration_img, size=int(conf['dmd_dim']/calibration_img.shape[0])) 
+DMD.display_image(dmd.dmd_img_adjustment(calibration_img, conf['dmd_dim'], angle=conf['dmd_rotation'])) # preload for calibration
+test_img = MANAGER.schedule_action_command(int(500 * 1e6)) # schedule for milliseconds later
+test_img = processing.add_grid(test_img, partitions=50)
+# crop_areas = processing.select_crop_areas_center(test_img, num=2, scale_factor=0.4, autodetect=False) 
+crop_areas = processing.select_crop_areas_corner(test_img, num=2, scale_factor=0.5) 
+sys.exit(f"Crop areas selected: {crop_areas} \nProcedure completed.")
 
 
 

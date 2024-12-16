@@ -53,7 +53,7 @@ def dmd_process(stop_event, queue, conf=None):
         img = calibrator.canvas
         img = simulation.macro_pixel(img, size=int(conf['dmd_dim']/img.shape[0])) 
         DMD.display_image(dmd.dmd_img_adjustment(img, conf['dmd_dim'], angle=conf['dmd_rotation']))
-        time.sleep(1)
+        time.sleep(0.5)
     DMD.end()
 
 
@@ -66,7 +66,7 @@ if __name__ == "__main__":
         'dmd_rotation': 47+90,  # DMD rotation angle for image orientation correction
         'dmd_bitDepth': 8,  # DMD bit depth
         'dmd_picture_time': 100000,  # DMD picture time in microseconds, corresponds to 50 Hz
-        'crop_areas': [((871, 434), (1027, 590)), ((2848, 440), (3042, 634))]  # crop areas for the camera images
+        'crop_areas': [((871, 432), (1031, 592)), ((2867, 446), (3059, 638))]  # crop areas for the camera images
     }
 
     # Create a stop event for graceful termination

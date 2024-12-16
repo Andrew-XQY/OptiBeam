@@ -109,7 +109,7 @@ def mouse_callback(event, x, y, flags, param):
 
 
 # Display the image with the red box and magnified area
-def display_image(save_to='', scale_factor=0.65):
+def display_image(save_to='', scale_factor=0.65, intensity_monitor=False):
     
     coupling = processing.IntensityMonitor()
     
@@ -151,13 +151,12 @@ def display_image(save_to='', scale_factor=0.65):
             
             sharpness_text = f"Intensity: {sharpness:.2f}"
             
-            intensity = coupling.add_image(resized_img)
             # Display the text on the image
             cv2.putText(resized_img, sharpness_text, (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
-            
-            
-            
-            cv2.imshow('Camera Output', utils.join_images([resized_img,intensity]))
+            if intensity_monitor:
+                    intensity = coupling.add_image(resized_img)
+                    resized_img = utils.join_images([resized_img,intensity])
+            cv2.imshow('Camera Output', resized_img)
             
             key = cv2.waitKey(1)
             if key == 27:  # ESC key to exit

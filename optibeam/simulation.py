@@ -878,58 +878,6 @@ def generate_solid_circle(size=256):
 
 
 # ----------------- Image generator functions -----------------
-# def corner_blocks_generator(size: int = 256, block_size: int = 64, intensity: int = 255, special: int = 0):
-#     """
-#     Generator function to create square images with blocks in specified corners.
-
-#     Args:
-#         size (int): The size of the square image (width and height).
-#         block_size (int): The size of the square block.
-#         intensity (int): The intensity value of the block (0-255 for grayscale).
-#         special (int): Specifies which corners to include blocks in:
-#                        0 - All four corners
-#                        1 - Top-left and Top-right
-#                        2 - Top-left and Bottom-left
-#                        3 - Bottom-left and Bottom-right
-#                        4 - Top-right and Bottom-right
-
-#     Yields:
-#         np.ndarray: Generated image with blocks in the specified corners.
-#     """
-#     # Ensure the block size fits within the image size
-#     if block_size > size:
-#         raise ValueError("block_size must be less than or equal to size.")
-
-#     # Define the coordinates for the four corners
-#     corners = [
-#         (0, 0),  # Top-left
-#         (0, size - block_size),  # Top-right
-#         (size - block_size, 0),  # Bottom-left
-#         (size - block_size, size - block_size)  # Bottom-right
-#     ]
-
-#     # Define corner combinations based on the special parameter
-#     special_mappings = {
-#         0: corners,  # All corners
-#         1: [corners[0], corners[1]],  # Top-left and Top-right
-#         2: [corners[0], corners[2]],  # Top-left and Bottom-left
-#         3: [corners[2], corners[3]],  # Bottom-left and Bottom-right
-#         4: [corners[1], corners[3]],  # Top-right and Bottom-right
-#     }
-
-#     selected_corners = special_mappings.get(special, corners)
-
-#     # Start cycling through the selected corners
-#     while True:
-#         for corner in selected_corners:
-#             # Create a black background image
-#             image = np.zeros((size, size), dtype=np.uint8)
-#             # Define the block's position
-#             x, y = corner
-#             # Set the block's intensity
-#             image[x:x+block_size, y:y+block_size] = intensity
-#             yield image
-
 
 class CornerBlocksCalibrator:
     def __init__(self, size: int = 256, block_size: int = 64, intensity: int = 255, special: int = 0):
