@@ -25,7 +25,7 @@ def camera_generator(stop_event):
 # DMD process
 def dmd_process(stop_event, queue, conf=None):
     DMD = dmd.ViALUXDMD(ALP4(version = '4.3'))
-    calibrator = simulation.CornerBlocksCalibrator()
+    calibrator = simulation.CornerBlocksCalibrator(block_size=32)
     while not stop_event.is_set():
         if not queue.empty():
             calibrator.set_special(queue.get())
@@ -33,7 +33,7 @@ def dmd_process(stop_event, queue, conf=None):
         img = calibrator.canvas
         img = simulation.macro_pixel(img, size=int(conf['dmd_dim']/img.shape[0])) 
         DMD.display_image(dmd.dmd_img_adjustment(img, conf['dmd_dim'], angle=conf['dmd_rotation']))
-        time.sleep(2)
+        time.sleep(1)
     DMD.end()
 
 # Camera process

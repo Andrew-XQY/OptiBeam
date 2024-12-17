@@ -3,9 +3,10 @@
 """
 from conf import *
 from ALP4 import *
+from tqdm import tqdm
 import datetime, time
 import cv2, json
-from tqdm import tqdm
+import subprocess
 import traceback
 
 
@@ -13,8 +14,12 @@ import traceback
 # Dataset Parameters
 # ============================
 conf = {
+    'config_crop_area': False, 
+    'camera_order_flip': True,  # camera order flip
     'number_of_images': 20,  # simulation: number of images to generate in this batch
-    'number_of_test': 10,
+    'number_of_test': 10,  # left none for all images
+    'number_of_minst': 10,
+    'temporal_shift_freq': 5,  # simulation: temporal shift frequency   
     'dmd_dim': 1024,  # DMD working square area resolution
     'dmd_rotation': 47+90,  # DMD rotation angle for image orientation correction
     'dmd_bitDepth': 8,  # DMD bit depth
@@ -27,7 +32,6 @@ conf = {
     'sim_std_2': 0.2, # simulation: higher indication of std
     'sim_max_intensity': 100, # simulation: peak pixel intensity in a single distribution
     'sim_dim': 512,   # simulation: simulated image resolution
-    'temporal_shift_freq': 5,  # simulation: temporal shift frequency
 }
 
 # ============================
@@ -41,44 +45,52 @@ calibration_img = simulation.macro_pixel(calibration_img, size=int(conf['dmd_dim
 DMD.display_image(dmd.dmd_img_adjustment(calibration_img, conf['dmd_dim'], angle=conf['dmd_rotation'])) # preload for calibration
 # Cameras Initialization
 MANAGER = camera.MultiBaslerCameraManager()
+if conf['camera_order_flip']: MANAGER.flip = True
 MANAGER.initialize()
 MANAGER.synchronization()
 
 
 # ============================
-# Select crop areas (optional steps)
+# Select crop areas (optional steps), process will stop.
 # ============================
-# take a sample image to (later manually) select crop areas for automatic resizing
-# calibration_img = simulation.dmd_calibration_pattern_generation()
-# calibration_img = simulation.macro_pixel(calibration_img, size=int(conf['dmd_dim']/calibration_img.shape[0])) 
-# DMD.display_image(dmd.dmd_img_adjustment(calibration_img, conf['dmd_dim'], angle=conf['dmd_rotation'])) # preload for calibration
-# test_img = MANAGER.schedule_action_command(int(500 * 1e6)) # schedule for milliseconds later
-# test_img = processing.add_grid(test_img, partitions=50)
-# # crop_areas = processing.select_crop_areas_center(test_img, num=2, scale_factor=0.4, autodetect=False) 
-# crop_areas = processing.select_crop_areas_corner(test_img, num=2, scale_factor=0.5) 
-# sys.exit(f"Crop areas selected: {crop_areas} \nProcedure completed.")
+if conf['config_crop_area']:
+    # take a sample image to (later manually) select crop areas for automatic resizing
+    calibration_img = simulation.dmd_calibration_pattern_generation()
+    calibration_img = simulation.macro_pixel(calibration_img, size=int(conf['dmd_dim']/calibration_img.shape[0])) 
+    DMD.display_image(dmd.dmd_img_adjustment(calibration_img, conf['dmd_dim'], angle=conf['dmd_rotation'])) # preload for calibration
+    test_img = MANAGER.schedule_action_command(int(500 * 1e6)) # schedule for milliseconds later
+    test_img = processing.add_grid(test_img, partitions=50)
+    # crop_areas = processing.select_crop_areas_center(test_img, num=2, scale_factor=0.4, autodetect=False) 
+    crop_areas = processing.select_crop_areas_corner(test_img, num=2, scale_factor=0.5) 
+    sys.exit(f"Crop areas selected: {crop_areas} \nProcedure completed.")
 
 
 
 # ============================
 # Image sources queue initialization
 # ============================
-# Database Initialization
 DB = database.SQLiteDB(DATABASE_ROOT)
 ImageMeta = metadata.ImageMetadata()
 ConfMeta = metadata.ConfigMetaData()
+
 # Simulation Initialization
 CANVAS = simulation.DynamicPatterns(conf['sim_dim'], conf['sim_dim'])
 CANVAS._distributions = [simulation.StaticGaussianDistribution(CANVAS) for _ in range(conf['sim_pattern_max_num'])] 
 # Local image
 path_to_images = ["../../DataHub/local_images/MMF/procIMGs/processed",
                   "../../DataHub/local_images/MMF/procIMGs_2/processed"]
-paths = utils.get_all_file_paths(path_to_images)[:conf['number_of_test']]
+paths = utils.get_all_file_paths(path_to_images) 
+if conf['number_of_test']:
+    paths = paths[:conf['number_of_test']]
 process_funcs = [utils.rgb_to_grayscale, utils.split_image, lambda x : x[0].astype(np.uint8)]
 
-minst_path = "../../DataHub/local_images/MNIST_ORG/t10k-images.idx3-ubyte"
-imgs_array = read_MNIST_images(minst_path)[:conf['number_of_test']]
-imgs_array = utils.list_to_generator(imgs_array)
+if conf['number_of_minst']:
+    minst_path = "../../DataHub/local_images/MNIST_FASHION/t10k-images-idx3-ubyte"
+    imgs_array = read_MNIST_images(minst_path)[:conf['number_of_minst']]
+    minst_len = len(imgs_array)
+    imgs_array = utils.list_to_generator(imgs_array)
+    print(type(imgs_array))
+
 
 # create a queue of image sources
 # simulation_config, other_notes, experiment_description, image_source, purpose, images_per_sample, is_params, is_calibration
@@ -101,7 +113,7 @@ queue.append({'experiment_description':'position based coupling intensity',
               'image_source':'simulation',
               'images_per_sample':2,
               'data':simulation.moving_blocks_generator(size=256, block_size=32, intensity=255),
-              'len':16}) 
+              'len':64}) 
 queue.append({'experiment_description':'2d multi-gaussian distributions simulation',
               'purpose':'training',
               'image_source':'simulation',
@@ -117,12 +129,12 @@ queue.append({'experiment_description':'local real beam image for evaluation',
               'is_params':True,
               'data':simulation.temporal_shift(conf['temporal_shift_freq'])(simulation.read_local_generator)(paths, process_funcs),
               'len':len(paths) + utils.ceil_int_div(len(paths), conf['temporal_shift_freq'])}) 
-# queue.append({'experiment_description':'MINST for fun',
-#               'purpose':'testing',
-#               'images_per_sample':2,
-#               'image_source':'MINST',
-#               'data':simulation.temporal_shift(conf['temporal_shift_freq'])(imgs_array)(),
-#               'len':conf['number_of_test'] + utils.ceil_int_div(conf['number_of_test'], conf['temporal_shift_freq'])}) 
+queue.append({'experiment_description':'MINST for fun',
+              'purpose':'testing',
+              'images_per_sample':2,
+              'image_source':'MINST',
+              'data':simulation.temporal_shift(conf['temporal_shift_freq'])(utils.identity)(imgs_array),
+              'len':minst_len + utils.ceil_int_div(minst_len, conf['temporal_shift_freq'])}) 
 
 
 # ============================
@@ -163,7 +175,8 @@ try:
         if not DB.record_exists("mmf_experiment_config", "hash", ConfMeta.get_hash()):
             DB.sql_execute(ConfMeta.to_sql_insert("mmf_experiment_config")) # save the experiment metadata to the database
         else:
-            raise ValueError("The experiment metadata already exists in the database.")
+            print("Notice: The experiment metadata already exists in the database.")
+            #raise ValueError("The experiment metadata already exists in the database.")
         config_id = DB.get_max("mmf_experiment_config", "id")
 
         # print to indicate the current experiment name
@@ -222,7 +235,7 @@ except Exception as e:
     print(f"An error occured, data collection stopped. {e}")
     traceback.print_exc()
     
-# update actual number of images captured
+# update actual number of images captured, excluding the temporal shift check images
 sql = """
     SELECT 
         meta.batch AS batch, 
@@ -239,7 +252,6 @@ sql = """
 df = DB.sql_select(sql)
 sql = DB.batch_update("mmf_experiment_config", "batch", df)
 DB.sql_execute(sql, multiple=True)
-
 
 # ============================
 # Close everything properly

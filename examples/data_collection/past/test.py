@@ -1,3 +1,32 @@
+
+# Database Initialization
+initialization_db = "examples/data_collection/initialization.py"  
+if not os.path.exists(DATABASE_ROOT):
+    print(f"'{DATABASE_ROOT}' does not exist. Running '{initialization_db}'...")
+    # Run the script
+    subprocess.run(["python", initialization_db], check=True)
+    
+    
+    
+
+
+# Clean invalid entrys (where the image number is 0 in mmf_experiment_config)
+sql_clean = """
+    DELETE FROM
+        mmf_experiment_config
+    WHERE 
+        total_images = 0 OR total_images IS NULL;
+"""
+DB.sql_execute(sql_clean, multiple=True)
+
+
+
+
+
+
+
+
+
 """
     This script is the main script for fiber image/speckle pattern data collection
 """

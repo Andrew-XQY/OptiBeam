@@ -13,6 +13,12 @@ from typing import *
 
 
 # ------------------- functional modules -------------------
+def identity(x):
+    """
+    The identity function that returns the input as output.
+    """
+    return x
+
 def add_progress_bar(iterable_arg_index=0):
     """
     Decorator to add a progress bar to the specified iterable argument of a function.
