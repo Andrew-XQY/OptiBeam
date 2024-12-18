@@ -35,6 +35,15 @@ def dmd_process(stop_event, queue, conf=None):
         DMD.display_image(dmd.dmd_img_adjustment(img, conf['dmd_dim'], angle=conf['dmd_rotation']))
         time.sleep(1)
     DMD.end()
+    
+def dmd_process_1(stop_event, queue, conf=None):
+    DMD = dmd.ViALUXDMD(ALP4(version = '4.3'))
+    while not stop_event.is_set():
+        img = np.ones((256, 256)) * 100
+        img = simulation.macro_pixel(img, size=int(conf['dmd_dim']/img.shape[0])) 
+        DMD.display_image(dmd.dmd_img_adjustment(img, conf['dmd_dim'], angle=conf['dmd_rotation']))
+        time.sleep(1)
+    DMD.end()
 
 # Camera process
 def camera_process(stop_event, queue, conf=None):
@@ -71,7 +80,7 @@ if __name__ == "__main__":
         'dmd_rotation': 47+90,  # DMD rotation angle for image orientation correction
         'dmd_bitDepth': 8,  # DMD bit depth
         'dmd_picture_time': 100000,  # DMD picture time in microseconds, corresponds to 50 Hz
-        'crop_areas': [((871, 432), (1031, 592)), ((2867, 446), (3059, 638))]  # crop areas for the camera images
+        'crop_areas': [((865, 425), (1031, 591)), ((2757, 342), (3217, 802))]  # crop areas for the camera images
     }
 
     # Create a stop event for graceful termination
@@ -80,7 +89,7 @@ if __name__ == "__main__":
 
     # Create and start processes
     camera_proc = Process(target=camera_process, args=(stop_event, queue, conf))
-    dmd_proc = Process(target=dmd_process, args=(stop_event, queue, conf))
+    dmd_proc = Process(target=dmd_process_1, args=(stop_event, queue, conf))
 
     camera_proc.start()
     dmd_proc.start()

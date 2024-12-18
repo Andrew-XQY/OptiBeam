@@ -1,3 +1,7 @@
+# ============================
+# Initialization
+# ============================
+
 import os
 script_path = os.path.abspath(__file__)  # Get the absolute path of the current .py file
 up_two_levels = os.path.join(os.path.dirname(script_path), '../../')
@@ -16,9 +20,9 @@ training.check_tensorflow_gpu()
 training.check_tensorflow_version()
 os.environ['TF_GPU_ALLOCATOR'] = 'cuda_malloc_async'
 
-DATASET = "2024-08-15"
+DATASET = "2024-12-17"
 current_date = datetime.now().strftime("%Y%m%d_%H%M")
-dev_flag = True
+dev_flag = False
 
 if dev_flag:
     ABS_DIR = f"C:/Users/qiyuanxu/Documents/DataHub/datasets/{DATASET}/"
@@ -34,6 +38,11 @@ utils.check_and_create_folder(SAVE_TO)
 utils.check_and_create_folder(SAVE_TO+'models')
 utils.check_and_create_folder(log_save_path)
 
+
+
+# ============================
+# Model Construction
+# ============================
 
 @tf.keras.utils.register_keras_serializable()
 def downsample(filters, size, apply_batchnorm=True):
@@ -126,18 +135,22 @@ def Autoencoder(input_shape):
 
 
 
-
-# ------------------------------ dataset preparation -----------------------------------
+# ============================
+# Data Preparation
+# ============================
 
 batch_size = 4
 DB = database.SQLiteDB(DATABASE_ROOT)
 
 # creating training set
 sql = """
-    SELECT id, batch, image_path, comments
-    FROM mmf_dataset_metadata
-    WHERE is_calibration = 0 AND batch = 1 
-    LIMIT 100
+    SELECT 
+        id, batch, purpose, image_path, comments
+    FROM 
+        mmf_dataset_metadata
+    WHERE 
+        is_calibration = 0 AND purpose = 'training' AND comments != 'temporal_shift_check'
+    LIMIT 25000
 """
 df = DB.sql_select(sql)
 print('Total number of records in the table: ' + str(len(df)))
@@ -147,15 +160,17 @@ datapipeline.datapipeline_conclusion(train_dataset, batch_size)
 
 # creating validation set
 sql = """
-    SELECT id, batch, image_path
-    FROM mmf_dataset_metadata
-    WHERE is_calibration = 0 AND batch = 2
-    LIMIT 10
+    SELECT 
+        id, batch, purpose, image_path, comments
+    FROM 
+        mmf_dataset_metadata
+    WHERE 
+        is_calibration = 0 AND purpose = 'testing' AND comments IS NULL
 """
 df = DB.sql_select(sql)
 print('Total number of records in the table: ' + str(len(df)))
 val_paths = [ABS_DIR+i for i in df["image_path"].to_list()]
-val_paths = [val_paths[i] for i in range(0, len(val_paths), 10)]  # (take 10% of the data for validation, the rest will be used for testing)
+val_paths = [val_paths[i] for i in range(0, len(val_paths), 5)]  # (take 20% of the data for validation, the rest will be used for testing)
 val_dataset = datapipeline.tf_dataset_prep(val_paths, datapipeline.load_and_process_image, batch_size, shuffle=False)
 datapipeline.datapipeline_conclusion(val_dataset, batch_size)
 
@@ -163,7 +178,10 @@ datapipeline.datapipeline_conclusion(val_dataset, batch_size)
 
 
 
-# ------------------------------ model training -----------------------------------
+# ============================
+# Model Training
+# ============================
+
 for left_imgs, right_imgs in train_dataset.take(1):
     shape = left_imgs.shape[1:]
 
@@ -178,7 +196,6 @@ adam_optimizer = tf.keras.optimizers.Adam(learning_rate=0.005) # 0.0001
 autoencoder.compile(optimizer=adam_optimizer, 
                     loss=tf.keras.losses.MeanSquaredError())
 
-
 history = autoencoder.fit(
     train_dataset,  # Dataset already includes batching and shuffling
     epochs=80,
@@ -187,15 +204,17 @@ history = autoencoder.fit(
     verbose=1 if dev_flag else 2  # Less verbose output suitable for large logs
 )
 
-# ------------------------------ save models -----------------------------------
+
+
+# ============================
+# Save Model/Results
+# ============================
 
 autoencoder.save(SAVE_TO+'models/model.keras')
 print('model saved!')
-
 # Save the training history
 with open(log_save_path+'training_history.pkl', 'wb') as file:
     pickle.dump(history.history, file)
-    
 # Save all the other information
 Logger = training.Logger(log_dir=log_save_path, model=autoencoder, dataset=DATASET, history=history)
 Logger.save()

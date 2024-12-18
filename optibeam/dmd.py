@@ -11,6 +11,13 @@ class DMD(ABC):
     Abstract base class for Digital Micromirror Devices (DMDs).
     Defines the basic interface for getting DMD dimensions.
     """
+    def __init__(self):
+        self.name = None
+        self.bitDepth = None
+        self.pictureTime = None
+        self.hight = None
+        self.width = None
+        
     def __repr__(self) -> str:
         return f"{self.__class__.__name__} with dimensions: {self.get_height()}x{self.get_width()} pixels."
     
@@ -33,7 +40,7 @@ class DMD(ABC):
         pass
     
     @abstractmethod
-    def display_image(self, image: np.ndarray, bitDepth: int=8) -> None:
+    def display_image(self, image: np.ndarray) -> None:
         """
         Display an image on the DMD.
         Args:
@@ -101,12 +108,22 @@ class ViALUXDMD(DMD):
         # Initialize the device
         self.dmd = dmd
         self.dmd.Initialize()
+        self.pictureTime = 20000  #  in microseconds. 50 Hz = 20000 us
+        self.bitDepth = 8  # 8-bit grayscale 256 levels
+        self.hight = self.dmd.nSizeY
+        self.width = self.dmd.nSizeX
+        
+    def set_pictureTime(self, pictureTime: int) -> None:
+        self.pictureTime = pictureTime
+    
+    def set_bitDepth(self, bitDepth: int) -> None:
+        self.bitDepth = bitDepth
     
     def get_height(self) -> int:
-        return self.dmd.nSizeY
+        return self.hight
 
     def get_width(self) -> int:
-        return self.dmd.nSizeX
+        return self.width
     
     def free_memory(self) -> None:
         # Stop the sequence display
@@ -114,23 +131,23 @@ class ViALUXDMD(DMD):
         # Free the sequence from the onboard memory
         self.dmd.FreeSeq()
     
-    def display_image(self, image: np.ndarray, bitDepth: int=8) -> None:
+    def display_image(self, image: np.ndarray) -> None:
         image = self.adjust_image(image)
         imgSeq = image.ravel()
         # Allocate the onboard memory for the image sequence
-        self.dmd.SeqAlloc(nbImg = 1, bitDepth = bitDepth)
+        self.dmd.SeqAlloc(nbImg = 1, bitDepth = self.bitDepth)
         # Send the image sequence as a 1D list/array/numpy array
         self.dmd.SeqPut(imgData = imgSeq)
         # Set image rate to 50 Hz
-        self.dmd.SetTiming(pictureTime = 100000) # in microseconds. 50 Hz = 20000 us
+        self.dmd.SetTiming(pictureTime = self.pictureTime) # in microseconds. 50 Hz = 20000 us
         # Run the sequence in a loop
         self.dmd.Run()
         # time.sleep(0.01)
 
     def get_metadata(self) -> dict:
         config = {}
-        config["bit_depth"] = 8
-        config["picture_time"] = 100000  #  setting picture_time to 20,000 µs results in a frame rate of 50 fps
+        config["bit_depth"] = self.bitDepth
+        config["picture_time"] = self.pictureTime  
         return config
     
     def end(self) -> None:

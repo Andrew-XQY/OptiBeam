@@ -290,7 +290,7 @@ class SQLiteDB(Database):
         exists = self.cursor.fetchone()[0] == 1
         return exists
     
-    def batch_update(self, table_name, primary_key, df):
+    def batch_update(self, table_name, primary_key, df) -> str:
         """
         Generate SQL UPDATE statements for updating rows in an SQLite table based on a DataFrame.
 
@@ -311,7 +311,7 @@ class SQLiteDB(Database):
         return "\n".join(sql_commands)
 
     
-    def batch_delete(self, table_name, id_column, id_list):
+    def batch_delete(self, table_name, id_column, id_list) -> str:
         """
         Construct a SQL DELETE statement for batch deletions based on primary key values.
 

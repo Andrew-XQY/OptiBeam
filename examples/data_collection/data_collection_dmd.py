@@ -14,9 +14,9 @@ import traceback
 # Dataset Parameters
 # ============================
 conf = {
-    'config_crop_area': False, 
+    'config_crop_area': True, 
     'camera_order_flip': True,  # camera order flip
-    'cam_shedule_time': int(500 * 1e6),  # camera schedule time in milliseconds
+    'cam_schedule_time': int(300 * 1e6),  # camera schedule time in milliseconds
     'base_resolution': (256, 256),  # base resolution for all images
     'number_of_images': 50000,  # simulation: number of images to generate in this batch
     'number_of_test': None,  # left none for all images
@@ -25,9 +25,9 @@ conf = {
     'dmd_dim': 1024,  # DMD working square area resolution
     'dmd_rotation': 47+90,  # DMD rotation angle for image orientation correction
     'dmd_bitDepth': 8,  # DMD bit depth
-    'dmd_picture_time': 100000,  # DMD picture time in microseconds, corresponds to 50 Hz -> 20000, 100 Hz -> 100000
+    'dmd_picture_time': 20000,  # DMD picture time in microseconds, corresponds to 50 Hz -> 20000, 10 Hz -> 100000
     'dmd_alp_version': '4.3',  # DMD ALP version
-    'crop_areas': [((871, 432), (1031, 592)), ((2867, 446), (3059, 638))],  # crop areas for the camera images
+    'crop_areas': [((865, 425), (1031, 591)), ((2757, 342), (3217, 802))],  # crop areas for the camera images
     'sim_pattern_max_num': 100,  # simulation: maximum number of distributions in the simulation
     'sim_fade_rate': 0.96,  # simulation: the probability of a distribution to disappear
     'sim_std_1': 0.03, # simulation: lower indication of std
@@ -36,13 +36,17 @@ conf = {
     'sim_dim': 512,   # simulation: simulated image resolution
 }
 
+# [((871, 432), (1031, 592)), ((2867, 446), (3059, 638))]
+
 # ============================
 # Hardware/Software Initialization
 # ============================
 # DMD Initialization 
 DMD = dmd.ViALUXDMD(ALP4(version = conf['dmd_alp_version'])) 
+DMD.set_pictureTime(conf['dmd_picture_time'])
 # generate_upward_arrow(), dmd_calibration_pattern_generation()   generate_circle_fiber_coupling_pattern(line_width=20)
-calibration_img = simulation.generate_radial_gradient()
+calibration_img = np.ones((256, 256)) * 100
+# calibration_img = simulation.generate_radial_gradient()
 calibration_img = simulation.macro_pixel(calibration_img, size=int(conf['dmd_dim']/calibration_img.shape[0])) 
 DMD.display_image(dmd.dmd_img_adjustment(calibration_img, conf['dmd_dim'], angle=conf['dmd_rotation'])) # preload for calibration
 # Cameras Initialization
@@ -60,9 +64,9 @@ if conf['config_crop_area']:
     calibration_img = simulation.dmd_calibration_pattern_generation()
     calibration_img = simulation.macro_pixel(calibration_img, size=int(conf['dmd_dim']/calibration_img.shape[0])) 
     DMD.display_image(dmd.dmd_img_adjustment(calibration_img, conf['dmd_dim'], angle=conf['dmd_rotation'])) # preload for calibration
-    test_img = MANAGER.schedule_action_command(conf['cam_shedule_time']) # schedule for milliseconds later
+    test_img = MANAGER.schedule_action_command(conf['cam_schedule_time']) # schedule for milliseconds later
     test_img = processing.add_grid(test_img, partitions=50)
-    crop_areas = processing.select_crop_areas_corner(test_img, num=2, scale_factor=0.5) 
+    crop_areas = processing.select_crop_areas_corner(test_img, num=2, scale_factor=0.4) 
     sys.exit(f"Crop areas selected: {crop_areas} \nProcedure completed.")
 
 
@@ -127,7 +131,7 @@ queue.append({'experiment_description':'local real beam image for evaluation',
               'data':simulation.temporal_shift(conf['temporal_shift_freq'])(simulation.read_local_generator)(paths, process_funcs),
               'len':len(paths) + utils.ceil_int_div(len(paths), conf['temporal_shift_freq'])}) 
 queue.append({'experiment_description':'MINST for fun',
-              'purpose':'testing',
+              'purpose':'fun',
               'images_per_sample':2,
               'image_source':'MINST',
               'data':simulation.temporal_shift(conf['temporal_shift_freq'])(utils.identity)(imgs_array),
@@ -188,7 +192,7 @@ try:
             DMD.display_image(display)  # if loading too fast, the DMD might report memory error
             
             # capture the image from the cameras (Scheduled action command)
-            image = MANAGER.schedule_action_command(conf['cam_shedule_time']) 
+            image = MANAGER.schedule_action_command(conf['cam_schedule_time']) 
             if image is not None:
                 img_size = (image.shape[0], int(image.shape[1]//2))  
                 if experiment.get("include_simulation", False): # optional, add the very original image
@@ -196,7 +200,7 @@ try:
                     image = np.hstack((original_image, image))
                 filename = str(time.time_ns()) + '.png'
                 image_path = save_dir + '/' + filename # absolute path save on the local machine
-                relative_path = '/'.join(['datasets', str(batch), filename]) # relative path save in the database
+                relative_path = '/'.join(['dataset', str(batch), filename]) # relative path save in the database
                 # crop the image to regions of interest
                 image = processing.crop_image_from_coordinates(image, conf['crop_areas'])
                 # image statistics info
