@@ -13,6 +13,9 @@ from contextlib import ContextDecorator
 name = datetime.datetime.now().strftime('%Y-%m-%d')
 DATABASE_ROOT = f"../../DataHub/datasets/{name}/db/dataset_meta.db"
 DATASET_ROOT = f"../../DataHub/datasets/{name}/dataset/"
+path_to_images = ["../../DataHub/local_images/MMF/procIMGs/processed",
+                  "../../DataHub/local_images/MMF/procIMGs_2/processed"]
+minst_path = "../../DataHub/local_images/MNIST_FASHION/t10k-images-idx3-ubyte"
 
 class ChangeDirToFileLocation(ContextDecorator):
     def __enter__(self):

@@ -16,14 +16,16 @@ import traceback
 conf = {
     'config_crop_area': False, 
     'camera_order_flip': True,  # camera order flip
-    'number_of_images': 20,  # simulation: number of images to generate in this batch
-    'number_of_test': 10,  # left none for all images
-    'number_of_minst': 10,
-    'temporal_shift_freq': 5,  # simulation: temporal shift frequency   
+    'cam_shedule_time': int(500 * 1e6),  # camera schedule time in milliseconds
+    'base_resolution': (256, 256),  # base resolution for all images
+    'number_of_images': 50000,  # simulation: number of images to generate in this batch
+    'number_of_test': None,  # left none for all images
+    'number_of_minst': 100,
+    'temporal_shift_freq': 50,  # simulation: temporal shift frequency   
     'dmd_dim': 1024,  # DMD working square area resolution
     'dmd_rotation': 47+90,  # DMD rotation angle for image orientation correction
     'dmd_bitDepth': 8,  # DMD bit depth
-    'dmd_picture_time': 100000,  # DMD picture time in microseconds, corresponds to 50 Hz
+    'dmd_picture_time': 100000,  # DMD picture time in microseconds, corresponds to 50 Hz -> 20000, 100 Hz -> 100000
     'dmd_alp_version': '4.3',  # DMD ALP version
     'crop_areas': [((871, 432), (1031, 592)), ((2867, 446), (3059, 638))],  # crop areas for the camera images
     'sim_pattern_max_num': 100,  # simulation: maximum number of distributions in the simulation
@@ -58,12 +60,10 @@ if conf['config_crop_area']:
     calibration_img = simulation.dmd_calibration_pattern_generation()
     calibration_img = simulation.macro_pixel(calibration_img, size=int(conf['dmd_dim']/calibration_img.shape[0])) 
     DMD.display_image(dmd.dmd_img_adjustment(calibration_img, conf['dmd_dim'], angle=conf['dmd_rotation'])) # preload for calibration
-    test_img = MANAGER.schedule_action_command(int(500 * 1e6)) # schedule for milliseconds later
+    test_img = MANAGER.schedule_action_command(conf['cam_shedule_time']) # schedule for milliseconds later
     test_img = processing.add_grid(test_img, partitions=50)
-    # crop_areas = processing.select_crop_areas_center(test_img, num=2, scale_factor=0.4, autodetect=False) 
     crop_areas = processing.select_crop_areas_corner(test_img, num=2, scale_factor=0.5) 
     sys.exit(f"Crop areas selected: {crop_areas} \nProcedure completed.")
-
 
 
 # ============================
@@ -77,15 +77,12 @@ ConfMeta = metadata.ConfigMetaData()
 CANVAS = simulation.DynamicPatterns(conf['sim_dim'], conf['sim_dim'])
 CANVAS._distributions = [simulation.StaticGaussianDistribution(CANVAS) for _ in range(conf['sim_pattern_max_num'])] 
 # Local image
-path_to_images = ["../../DataHub/local_images/MMF/procIMGs/processed",
-                  "../../DataHub/local_images/MMF/procIMGs_2/processed"]
 paths = utils.get_all_file_paths(path_to_images) 
 if conf['number_of_test']:
     paths = paths[:conf['number_of_test']]
 process_funcs = [utils.rgb_to_grayscale, utils.split_image, lambda x : x[0].astype(np.uint8)]
 
 if conf['number_of_minst']:
-    minst_path = "../../DataHub/local_images/MNIST_FASHION/t10k-images-idx3-ubyte"
     imgs_array = read_MNIST_images(minst_path)[:conf['number_of_minst']]
     minst_len = len(imgs_array)
     imgs_array = utils.list_to_generator(imgs_array)
@@ -106,13 +103,13 @@ queue.append({'experiment_description': 'full screen image',
               'purpose':'intensity_full',
               'image_source':'simulation',
               'images_per_sample':2,
-              'data': [np.ones((256, 256)) * 100],
+              'data': [np.ones(conf['base_resolution']) * 100],
               'len':1}) 
 queue.append({'experiment_description':'position based coupling intensity',
               'purpose':'intensity_position',
               'image_source':'simulation',
               'images_per_sample':2,
-              'data':simulation.moving_blocks_generator(size=256, block_size=32, intensity=255),
+              'data':simulation.moving_blocks_generator(size=conf['base_resolution'][0], block_size=32, intensity=255),
               'len':64}) 
 queue.append({'experiment_description':'2d multi-gaussian distributions simulation',
               'purpose':'training',
@@ -185,26 +182,23 @@ try:
             comment = None
             if isinstance(img, tuple): # check if the generator returns a tuple (image, comment)
                 img, comment = img
-            # Preprocess the image before displaying on the DMD
             display = img.copy()
             display = simulation.macro_pixel(display, size=int(conf['dmd_dim']/display.shape[0])) 
-            # Because the DMD is rotated by about 45 degrees, we need to rotate the generated image by ~45 degrees back
             display = dmd.dmd_img_adjustment(display, conf['dmd_dim'], angle=conf['dmd_rotation'])
             DMD.display_image(display)  # if loading too fast, the DMD might report memory error
             
             # capture the image from the cameras (Scheduled action command)
-            image = MANAGER.schedule_action_command(int(500 * 1e6)) # schedule for milliseconds later
+            image = MANAGER.schedule_action_command(conf['cam_shedule_time']) 
             if image is not None:
                 img_size = (image.shape[0], int(image.shape[1]//2))  
-                if experiment.get("include_simulation", False):
-                    original_image = cv2.resize(img, (image.shape[0],image.shape[0])) # add the very original image
+                if experiment.get("include_simulation", False): # optional, add the very original image
+                    original_image = cv2.resize(img, (image.shape[0],image.shape[0])) 
                     image = np.hstack((original_image, image))
                 filename = str(time.time_ns()) + '.png'
                 image_path = save_dir + '/' + filename # absolute path save on the local machine
-                relative_path = '/'.join(['datasets', str(batch), filename]) # relative path 
+                relative_path = '/'.join(['datasets', str(batch), filename]) # relative path save in the database
                 # crop the image to regions of interest
                 image = processing.crop_image_from_coordinates(image, conf['crop_areas'])
-                
                 # image statistics info
                 ground_truth, speckle = utils.split_image(image)
                 stats = {'ground_truth_img':analysis.analyze_image(ground_truth),
