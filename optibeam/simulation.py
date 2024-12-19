@@ -1008,7 +1008,7 @@ def read_local_generator(
                 print(f"Failed to process {file_path}: {e}")
     return generator()
 
-def temporal_shift(frequency):
+def temporal_shift(frequency: int, intensity: int=80) -> Callable:
     """
     A decorator to add a temporal shift check every 'frequency' steps.
     
@@ -1026,7 +1026,7 @@ def temporal_shift(frequency):
             counter = 0
             for item in func(*args, **kwargs):  # Iterate over the main generator
                 if counter % frequency == 0:  # Add extra image conditionally
-                    yield (np.ones((256, 256)) * 100, 'temporal_shift_check')
+                    yield (np.ones((256, 256)) * intensity, 'temporal_shift_check')
                 yield item  # Yield original item
                 counter += 1
         return wrapper
