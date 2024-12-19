@@ -79,8 +79,8 @@ if __name__ == "__main__":
         'dmd_dim': 1024,  # DMD working square area resolution
         'dmd_rotation': 47+90,  # DMD rotation angle for image orientation correction
         'dmd_bitDepth': 8,  # DMD bit depth
-        'dmd_picture_time': 100000,  # DMD picture time in microseconds, corresponds to 50 Hz
-        'crop_areas': [((865, 425), (1031, 591)), ((2757, 342), (3217, 802))]  # crop areas for the camera images
+        'dmd_picture_time': 20000,  # DMD picture time in microseconds, corresponds to 50 Hz
+        'crop_areas': [((869, 433), (1027, 591)), ((2762, 343), (3216, 797))]  # crop areas for the camera images
     }
 
     # Create a stop event for graceful termination
@@ -89,7 +89,7 @@ if __name__ == "__main__":
 
     # Create and start processes
     camera_proc = Process(target=camera_process, args=(stop_event, queue, conf))
-    dmd_proc = Process(target=dmd_process_1, args=(stop_event, queue, conf))
+    dmd_proc = Process(target=dmd_process, args=(stop_event, queue, conf))
 
     camera_proc.start()
     dmd_proc.start()

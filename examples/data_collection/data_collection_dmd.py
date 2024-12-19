@@ -14,7 +14,7 @@ import traceback
 # Dataset Parameters
 # ============================
 conf = {
-    'config_crop_area': True, 
+    'config_crop_area': False, 
     'camera_order_flip': True,  # camera order flip
     'cam_schedule_time': int(300 * 1e6),  # camera schedule time in milliseconds
     'base_resolution': (256, 256),  # base resolution for all images
@@ -27,7 +27,7 @@ conf = {
     'dmd_bitDepth': 8,  # DMD bit depth
     'dmd_picture_time': 20000,  # DMD picture time in microseconds, corresponds to 50 Hz -> 20000, 10 Hz -> 100000
     'dmd_alp_version': '4.3',  # DMD ALP version
-    'crop_areas': [((865, 425), (1031, 591)), ((2757, 342), (3217, 802))],  # crop areas for the camera images
+    'crop_areas': [((868, 433), (1028, 593)), ((2762, 343), (3216, 797))],  # crop areas for the camera images
     'sim_pattern_max_num': 100,  # simulation: maximum number of distributions in the simulation
     'sim_fade_rate': 0.96,  # simulation: the probability of a distribution to disappear
     'sim_std_1': 0.03, # simulation: lower indication of std
@@ -45,8 +45,8 @@ conf = {
 DMD = dmd.ViALUXDMD(ALP4(version = conf['dmd_alp_version'])) 
 DMD.set_pictureTime(conf['dmd_picture_time'])
 # generate_upward_arrow(), dmd_calibration_pattern_generation()   generate_circle_fiber_coupling_pattern(line_width=20)
-calibration_img = np.ones((256, 256)) * 100
-# calibration_img = simulation.generate_radial_gradient()
+# calibration_img = np.ones((256, 256)) * 100
+calibration_img = simulation.generate_radial_gradient()
 calibration_img = simulation.macro_pixel(calibration_img, size=int(conf['dmd_dim']/calibration_img.shape[0])) 
 DMD.display_image(dmd.dmd_img_adjustment(calibration_img, conf['dmd_dim'], angle=conf['dmd_rotation'])) # preload for calibration
 # Cameras Initialization
@@ -66,7 +66,7 @@ if conf['config_crop_area']:
     DMD.display_image(dmd.dmd_img_adjustment(calibration_img, conf['dmd_dim'], angle=conf['dmd_rotation'])) # preload for calibration
     test_img = MANAGER.schedule_action_command(conf['cam_schedule_time']) # schedule for milliseconds later
     test_img = processing.add_grid(test_img, partitions=50)
-    crop_areas = processing.select_crop_areas_corner(test_img, num=2, scale_factor=0.4) 
+    crop_areas = processing.select_crop_areas_corner(test_img, num=2, scale_factor=0.6) 
     sys.exit(f"Crop areas selected: {crop_areas} \nProcedure completed.")
 
 
@@ -150,9 +150,9 @@ try:
             "experiment_date": datetime.datetime.now().strftime('%Y-%m-%d'),
             "image_device": "dmd",  # scintillation-screen, dmd, slm, led, OTR.
             "fiber_config": {
-                "fiber_length": "10 m",
-                "fiber_name": "600 micrometer Core-diameter Step-Index Multimode Fiber Patch Cable",
-                "fiber_url": "FT600UMT",
+                "fiber_length": "5 m",
+                "fiber_name": "1500 micrometer Core-diameter Step-Index Multimode Fiber Patch Cable",
+                "fiber_url": "FP1500ERT",  # FP1500ERT  FT600UMT
             },
             "camera_config": MANAGER.get_metadata(), # assume not changing during entire experiment
             "other_config": {
