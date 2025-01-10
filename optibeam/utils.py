@@ -5,6 +5,7 @@ import numpy as np
 import threading
 import platform, warnings
 import multiprocessing, multiprocess
+import random
 from skimage.transform import resize
 from functools import wraps, reduce
 from PIL import Image
@@ -157,6 +158,25 @@ def deprecated_class(reason):
 def list_to_generator(lst):
     for item in lst:
         yield item
+
+def select_random_elements(lst, n):
+    """
+    Randomly select n elements from a list.
+
+    Args:
+        lst (list): The original list to select elements from.
+        n (int): The number of elements to select.
+
+    Returns:
+        list: A sublist containing n randomly selected elements.
+
+    Raises:
+        ValueError: If n is greater than the length of the list.
+    """
+    if n > len(lst):
+        raise ValueError("n cannot be greater than the length of the list")
+    
+    return random.sample(lst, n)
 
 # ------------------- multiprocessing -------------------
 

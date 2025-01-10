@@ -18,8 +18,8 @@ conf = {
     'camera_order_flip': True,  # camera order flip
     'cam_schedule_time': int(300 * 1e6),  # camera schedule time in milliseconds
     'base_resolution': (256, 256),  # base resolution for all images
-    'number_of_images': 50000,  # simulation: number of images to generate in this batch
-    'number_of_test': None,  # left none for all images
+    'number_of_images': 25000,  # simulation: number of images to generate in this batch
+    'number_of_test': 2000,  # left none for all images
     'number_of_minst': 100,
     'temporal_shift_freq': 50,  # simulation: temporal shift frequency   
     'dmd_dim': 1024,  # DMD working square area resolution
@@ -30,8 +30,8 @@ conf = {
     'crop_areas': [((868, 433), (1028, 593)), ((2762, 343), (3216, 797))],  # crop areas for the camera images
     'sim_pattern_max_num': 100,  # simulation: maximum number of distributions in the simulation
     'sim_fade_rate': 0.96,  # simulation: the probability of a distribution to disappear
-    'sim_std_1': 0.03, # simulation: lower indication of std
-    'sim_std_2': 0.2, # simulation: higher indication of std
+    'sim_std_1': 0.02, # simulation: lower indication of std   0.03
+    'sim_std_2': 0.25, # simulation: higher indication of std   0.2
     'sim_max_intensity': 100, # simulation: peak pixel intensity in a single distribution
     'sim_dim': 512,   # simulation: simulated image resolution
 }
@@ -83,11 +83,11 @@ CANVAS._distributions = [simulation.StaticGaussianDistribution(CANVAS) for _ in 
 # Local image
 paths = utils.get_all_file_paths(path_to_images) 
 if conf['number_of_test']:
-    paths = paths[:conf['number_of_test']]
+    paths = utils.select_random_elements(paths, conf['number_of_test'])
 process_funcs = [utils.rgb_to_grayscale, utils.split_image, lambda x : x[0].astype(np.uint8)]
 
 if conf['number_of_minst']:
-    imgs_array = read_MNIST_images(minst_path)[:conf['number_of_minst']]
+    imgs_array = utils.select_random_elements(read_MNIST_images(minst_path), conf['number_of_minst'])
     minst_len = len(imgs_array)
     imgs_array = utils.list_to_generator(imgs_array)
     print(type(imgs_array))
@@ -96,33 +96,33 @@ if conf['number_of_minst']:
 # create a queue of image sources
 # simulation_config, other_notes, experiment_description, image_source, purpose, images_per_sample, is_params, is_calibration
 queue = []
-queue.append({'experiment_description':'calibration image', 
-              'purpose':'calibration',
-              'image_source':'simulation',
-              'images_per_sample':2,
-              'is_calibration':True,
-              'data':[simulation.dmd_calibration_pattern_generation()],
-              'len':1}) 
-queue.append({'experiment_description': 'full screen image',
-              'purpose':'intensity_full',
-              'image_source':'simulation',
-              'images_per_sample':2,
-              'data': [np.ones(conf['base_resolution']) * 100],
-              'len':1}) 
-queue.append({'experiment_description':'position based coupling intensity',
-              'purpose':'intensity_position',
-              'image_source':'simulation',
-              'images_per_sample':2,
-              'data':simulation.moving_blocks_generator(size=conf['base_resolution'][0], block_size=32, intensity=255),
-              'len':64}) 
-queue.append({'experiment_description':'2d multi-gaussian distributions simulation',
-              'purpose':'training',
-              'image_source':'simulation',
-              'images_per_sample':2,
-              'simulation_config':CANVAS.get_metadata(),
-              'other_notes':{key: value for key, value in conf.items() if 'sim' in key},
-              'data':simulation.temporal_shift(conf['temporal_shift_freq'])(simulation.canvas_generator)(CANVAS, conf),
-              'len':conf['number_of_images'] + utils.ceil_int_div(conf['number_of_images'], conf['temporal_shift_freq'])}) 
+# queue.append({'experiment_description':'calibration image', 
+#               'purpose':'calibration',
+#               'image_source':'simulation',
+#               'images_per_sample':2,
+#               'is_calibration':True,
+#               'data':[simulation.dmd_calibration_pattern_generation()],
+#               'len':1}) 
+# queue.append({'experiment_description': 'full screen image',
+#               'purpose':'intensity_full',
+#               'image_source':'simulation',
+#               'images_per_sample':2,
+#               'data': [np.ones(conf['base_resolution']) * 100],
+#               'len':1}) 
+# queue.append({'experiment_description':'position based coupling intensity',
+#               'purpose':'intensity_position',
+#               'image_source':'simulation',
+#               'images_per_sample':2,
+#               'data':simulation.moving_blocks_generator(size=conf['base_resolution'][0], block_size=32, intensity=255),
+#               'len':64}) 
+# queue.append({'experiment_description':'2d multi-gaussian distributions simulation',
+#               'purpose':'training',
+#               'image_source':'simulation',
+#               'images_per_sample':2,
+#               'simulation_config':CANVAS.get_metadata(),
+#               'other_notes':{key: value for key, value in conf.items() if 'sim' in key},
+#               'data':simulation.temporal_shift(conf['temporal_shift_freq'])(simulation.canvas_generator)(CANVAS, conf),
+#               'len':conf['number_of_images'] + utils.ceil_int_div(conf['number_of_images'], conf['temporal_shift_freq'])}) 
 queue.append({'experiment_description':'local real beam image for evaluation',
               'purpose':'testing',
               'images_per_sample':2,
@@ -130,12 +130,12 @@ queue.append({'experiment_description':'local real beam image for evaluation',
               'is_params':True,
               'data':simulation.temporal_shift(conf['temporal_shift_freq'])(simulation.read_local_generator)(paths, process_funcs),
               'len':len(paths) + utils.ceil_int_div(len(paths), conf['temporal_shift_freq'])}) 
-queue.append({'experiment_description':'MINST for fun',
-              'purpose':'fun',
-              'images_per_sample':2,
-              'image_source':'MINST',
-              'data':simulation.temporal_shift(conf['temporal_shift_freq'])(utils.identity)(imgs_array),
-              'len':minst_len + utils.ceil_int_div(minst_len, conf['temporal_shift_freq'])}) 
+# queue.append({'experiment_description':'MINST for fun',
+#               'purpose':'fun',
+#               'images_per_sample':2,
+#               'image_source':'MINST',
+#               'data':simulation.temporal_shift(conf['temporal_shift_freq'])(utils.identity)(imgs_array),
+#               'len':minst_len + utils.ceil_int_div(minst_len, conf['temporal_shift_freq'])}) 
 
 
 # ============================
