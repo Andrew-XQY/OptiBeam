@@ -242,6 +242,45 @@ def remap_array(array: np.array, new_min: float, new_max: float,
 
 # ------------------- file operations -------------------
 
+def count_files_in_directory(directory: str, file_types: list = None, recursive: bool = True) -> int:
+    """
+    Counts the total number of files in the specified directory based on file types.
+
+    Args:
+        directory (str): Path to the directory.
+        file_types (list): List of file extensions to filter by (e.g., ['pdf', 'png']).
+                         If None or empty, counts all files.
+        recursive (bool): Whether to include subdirectories. Default is True.
+
+    Returns:
+        int: Total number of files in the directory.
+    """
+    if not os.path.isdir(directory):
+        raise ValueError(f"The provided path is not a valid directory: {directory}")
+
+    total_files = 0
+
+    if file_types:
+        # Ensure all file types are lowercase for case-insensitive matching
+        file_types = [ext.lower() for ext in file_types]
+
+    if recursive:
+        # Walk through the directory tree
+        for root, _, files in os.walk(directory):
+            for file in files:
+                if not file_types or file.lower().split('.')[-1] in file_types:
+                    total_files += 1
+    else:
+        # Only look at the top-level directory
+        for file in os.listdir(directory):
+            file_path = os.path.join(directory, file)
+            if os.path.isfile(file_path):
+                if not file_types or file.lower().split('.')[-1] in file_types:
+                    total_files += 1
+
+    return total_files
+
+
 def get_all_file_paths(dirs, types=['']) -> list:
     """
     Get all file paths in the specified directories with the specified file types.

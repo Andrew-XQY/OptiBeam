@@ -20,9 +20,9 @@ training.check_tensorflow_gpu()
 training.check_tensorflow_version()
 os.environ['TF_GPU_ALLOCATOR'] = 'cuda_malloc_async'
 
-DATASET = "2024-12-17"
+DATASET = "2024-12-19"
 current_date = datetime.now().strftime("%Y%m%d_%H%M")
-dev_flag = False
+dev_flag = True
 
 if dev_flag:
     ABS_DIR = f"C:/Users/qiyuanxu/Documents/DataHub/datasets/{DATASET}/"
@@ -38,7 +38,8 @@ utils.check_and_create_folder(SAVE_TO)
 utils.check_and_create_folder(SAVE_TO+'models')
 utils.check_and_create_folder(log_save_path)
 
-
+# verify the number of files in the dataset folder, for debugging purposes
+print(utils.count_files_in_directory( ABS_DIR + "dataset/4"))
 
 # ============================
 # Model Construction
@@ -192,7 +193,7 @@ print(f"model size: {autoencoder.count_params() * 4 / (1024**2)} MB")
 # Initialize early stopping
 early_stopping = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=8,
                                                   verbose=1, mode='min', restore_best_weights=True)
-adam_optimizer = tf.keras.optimizers.Adam(learning_rate=0.005) # 0.0001
+adam_optimizer = tf.keras.optimizers.Adam(learning_rate=0.0001) # 0.0001
 autoencoder.compile(optimizer=adam_optimizer, 
                     loss=tf.keras.losses.MeanSquaredError())
 
