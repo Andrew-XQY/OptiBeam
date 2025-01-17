@@ -153,6 +153,8 @@ sql = """
         is_calibration = 0 AND purpose = 'training' AND comments != 'temporal_shift_check'
     LIMIT 25000
 """
+
+
 df = DB.sql_select(sql)
 print('Total number of records in the table: ' + str(len(df)))
 train_paths = [ABS_DIR+i for i in df["image_path"].to_list()]
