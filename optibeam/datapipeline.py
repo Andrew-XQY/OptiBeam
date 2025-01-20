@@ -2,15 +2,139 @@ import tensorflow as tf
 import numpy as np
 import pandas as pd
 import ast
+import tarfile
+import os
+import shutil
+import getpass
 
 from PIL import Image
 from abc import ABC, abstractmethod
 from typing import *
 from .utils import get_all_file_paths
 from .database import Database
+from webdav3.client import Client
 
 
-# ----------------- new tf pipeline with prefetch ----------------- 
+
+# ----------------- Cloud Storage based data pipeline -----------------
+
+def extract_tar_file(tar_path, target_folder):
+    """
+    Extracts a .tar file to the specified target folder.
+    
+    Args:
+        tar_path (str): Path to the .tar file.
+        target_folder (str): Directory to extract the files into.
+
+    Returns:
+        None
+    """
+    if not os.path.exists(tar_path):
+        print(f"Error: File '{tar_path}' does not exist.")
+        return
+    
+    if not os.path.exists(target_folder):
+        os.makedirs(target_folder)
+        print(f"Created target folder: {target_folder}")
+    
+    try:
+        print(f"Extracting '{tar_path}' to '{target_folder}'...")
+        with tarfile.open(tar_path) as tar:
+            tar.extractall(path=target_folder)
+            print(f"Extracted '{tar_path}' to '{target_folder}'.")
+    except Exception as e:
+        print(f"Error: {e}")
+        
+        
+def delete_path(path):
+    """
+    Safely deletes a file or a folder (recursively if it's a folder).
+    
+    Args:
+        path (str): Path to the file or folder to delete.
+
+    Returns:
+        None
+    """
+    if not os.path.exists(path):
+        print(f"Error: Path '{path}' does not exist.")
+        return
+    
+    # Safeguard: Prevent accidental deletion of critical paths
+    critical_paths = ['/', 'C:\\', 'C:/', '\\', '.']
+    if os.path.abspath(path) in critical_paths:
+        print(f"Error: Attempt to delete critical path '{path}' is not allowed.")
+        return
+    
+    try:
+        if os.path.isfile(path):
+            os.remove(path)
+            print(f"File '{path}' has been deleted.")
+        elif os.path.isdir(path):
+            shutil.rmtree(path)
+            print(f"Folder '{path}' and all its contents have been deleted.")
+        else:
+            print(f"Error: Path '{path}' is neither a file nor a folder.")
+    except Exception as e:
+        print(f"Error while deleting '{path}': {e}")
+
+
+class CloudStorage(ABC):
+    def __init__(self, cloud_name:str=None):
+        self.cloud_name = cloud_name
+    
+    @abstractmethod 
+    def login(self):
+        pass
+
+    @abstractmethod
+    def download_file(self, local_path:str, remote_path:str):
+        pass
+
+    @abstractmethod
+    def upload_file(self, local_path:str, remote_path:str):
+        pass
+    
+
+class CERNBox(CloudStorage):
+    def __init__(self, cloud_name:str):
+        super().__init__(cloud_name)
+        self.client = None
+    
+    def login(self):
+        # Credentials
+        username = input("Enter your username: ")
+        password = getpass.getpass("Enter your password: ")
+
+        # Define WebDAV options
+        options = {
+            'webdav_hostname': "https://cernbox.cern.ch",
+            'webdav_login': username,
+            'webdav_password': password,
+            'webdav_root':     "/cernbox/webdav/home/",
+            'timeout': 600  # Timeout in seconds (e.g., 10 minutes)
+        }
+        
+        # Initialize the client
+        self.client = Client(options)
+
+    
+    def download_file(self, local_path:str, remote_path:str):
+        try:
+            # Download the file
+            self.client.download_file(remote_path, local_path)
+            print(f"File downloaded successfully: {local_path}")
+        except Exception as e:
+            print(f"Error downloading file: {e}")
+    
+    
+    def upload_file(self, local_path:str, remote_path:str):
+        print(f"To be developed")
+
+
+
+
+# ----------------- tf pipeline with prefetch ----------------- 
 
 def load_and_process_image(path):
     image = tf.io.read_file(path) # Read the image file

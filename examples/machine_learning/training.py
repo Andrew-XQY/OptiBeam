@@ -20,9 +20,9 @@ training.check_tensorflow_gpu()
 training.check_tensorflow_version()
 os.environ['TF_GPU_ALLOCATOR'] = 'cuda_malloc_async'
 
-DATASET = "2024-12-19"
+DATASET = "2024-08-15"
 current_date = datetime.now().strftime("%Y%m%d_%H%M")
-dev_flag = True
+dev_flag = False
 
 if dev_flag:
     ABS_DIR = f"C:/Users/qiyuanxu/Documents/DataHub/datasets/{DATASET}/"
@@ -38,8 +38,6 @@ utils.check_and_create_folder(SAVE_TO)
 utils.check_and_create_folder(SAVE_TO+'models')
 utils.check_and_create_folder(log_save_path)
 
-# verify the number of files in the dataset folder, for debugging purposes
-print(utils.count_files_in_directory( ABS_DIR + "dataset/4"))
 
 # ============================
 # Model Construction
@@ -173,7 +171,7 @@ sql = """
 df = DB.sql_select(sql)
 print('Total number of records in the table: ' + str(len(df)))
 val_paths = [ABS_DIR+i for i in df["image_path"].to_list()]
-val_paths = [val_paths[i] for i in range(0, len(val_paths), 5)]  # (take 20% of the data for validation, the rest will be used for testing)
+val_paths = [val_paths[i] for i in range(0, len(val_paths), 5)]  # (take 20% of the data for validation, the rest will be used for testing, code for testing should corespond to this)
 val_dataset = datapipeline.tf_dataset_prep(val_paths, datapipeline.load_and_process_image, batch_size, shuffle=False)
 datapipeline.datapipeline_conclusion(val_dataset, batch_size)
 
@@ -195,7 +193,7 @@ print(f"model size: {autoencoder.count_params() * 4 / (1024**2)} MB")
 # Initialize early stopping
 early_stopping = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=8,
                                                   verbose=1, mode='min', restore_best_weights=True)
-adam_optimizer = tf.keras.optimizers.Adam(learning_rate=0.0001) # 0.0001
+adam_optimizer = tf.keras.optimizers.Adam(learning_rate=0.0001)   # successful one: 0.0001
 autoencoder.compile(optimizer=adam_optimizer, 
                     loss=tf.keras.losses.MeanSquaredError())
 
