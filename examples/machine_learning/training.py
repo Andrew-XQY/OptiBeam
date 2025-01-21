@@ -15,6 +15,7 @@ import tensorflow as tf
 import pickle
 import random
 
+
 print(os.getcwd())
 training.check_tensorflow_gpu()
 training.check_tensorflow_version()
@@ -37,6 +38,18 @@ log_save_path=SAVE_TO + "logs/"
 utils.check_and_create_folder(SAVE_TO)
 utils.check_and_create_folder(SAVE_TO+'models')
 utils.check_and_create_folder(log_save_path)
+
+# ============================
+# Unzip dataset
+# ============================
+
+
+
+
+
+
+
+
 
 
 # ============================
@@ -152,7 +165,6 @@ sql = """
     LIMIT 25000
 """
 
-
 df = DB.sql_select(sql)
 print('Total number of records in the table: ' + str(len(df)))
 train_paths = [ABS_DIR+i for i in df["image_path"].to_list()]
@@ -174,9 +186,6 @@ val_paths = [ABS_DIR+i for i in df["image_path"].to_list()]
 val_paths = [val_paths[i] for i in range(0, len(val_paths), 5)]  # (take 20% of the data for validation, the rest will be used for testing, code for testing should corespond to this)
 val_dataset = datapipeline.tf_dataset_prep(val_paths, datapipeline.load_and_process_image, batch_size, shuffle=False)
 datapipeline.datapipeline_conclusion(val_dataset, batch_size)
-
-
-
 
 
 # ============================
@@ -219,3 +228,13 @@ with open(log_save_path+'training_history.pkl', 'wb') as file:
 # Save all the other information
 Logger = training.Logger(log_dir=log_save_path, model=autoencoder, dataset=DATASET, history=history)
 Logger.save()
+
+
+
+
+# ============================
+# Delete dataset
+# ============================
+
+
+
