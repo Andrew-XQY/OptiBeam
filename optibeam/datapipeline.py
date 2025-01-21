@@ -39,6 +39,7 @@ def extract_tar_file(tar_path, target_folder):
         print(f"Created target folder: {target_folder}")
     
     try:
+        target_folder = "/".join(target_folder.split("/")[:-1]) # avoid double folder layer
         print(f"Extracting '{tar_path}' to '{target_folder}'...")
         with tarfile.open(tar_path) as tar:
             tar.extractall(path=target_folder)

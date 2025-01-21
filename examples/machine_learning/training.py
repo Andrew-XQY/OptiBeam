@@ -9,11 +9,9 @@ normalized_path = os.path.normpath(up_two_levels)
 os.chdir(normalized_path) # Change the current working directory to the normalized path
 
 from conf import *
-import numpy as np 
 from datetime import datetime
 import tensorflow as tf
 import pickle
-import random
 
 
 print(os.getcwd())
@@ -21,9 +19,9 @@ training.check_tensorflow_gpu()
 training.check_tensorflow_version()
 os.environ['TF_GPU_ALLOCATOR'] = 'cuda_malloc_async'
 
-DATASET = "2024-12-19"
+DATASET = "2024-08-15"
 current_date = datetime.now().strftime("%Y%m%d_%H%M")
-dev_flag = False
+dev_flag = True
 
 if dev_flag:
     ABS_DIR = f"C:/Users/qiyuanxu/Documents/DataHub/datasets/{DATASET}/"
@@ -39,10 +37,13 @@ utils.check_and_create_folder(SAVE_TO)
 utils.check_and_create_folder(SAVE_TO+'models')
 utils.check_and_create_folder(log_save_path)
 
+datapipeline.delete_path(ABS_DIR[:-1])
+exit()
+
 # ============================
 # Unzip dataset
 # ============================
-datapipeline.extract_tar_file(ABS_DIR[:-1]+".tar", "/".join(ABS_DIR.split("/")[:-2]))
+datapipeline.extract_tar_file(ABS_DIR[:-1]+".tar", "/".join(ABS_DIR.split("/")[:-1]))
 
 
 # ============================
