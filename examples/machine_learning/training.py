@@ -19,9 +19,9 @@ training.check_tensorflow_gpu()
 training.check_tensorflow_version()
 os.environ['TF_GPU_ALLOCATOR'] = 'cuda_malloc_async'
 
-DATASET = "2024-08-15"
+DATASET = "2024-12-19"
 current_date = datetime.now().strftime("%Y%m%d_%H%M")
-dev_flag = True
+dev_flag = False
 
 if dev_flag:
     ABS_DIR = f"C:/Users/qiyuanxu/Documents/DataHub/datasets/{DATASET}/"
@@ -37,13 +37,11 @@ utils.check_and_create_folder(SAVE_TO)
 utils.check_and_create_folder(SAVE_TO+'models')
 utils.check_and_create_folder(log_save_path)
 
-datapipeline.delete_path(ABS_DIR[:-1])
-exit()
 
 # ============================
 # Unzip dataset
 # ============================
-datapipeline.extract_tar_file(ABS_DIR[:-1]+".tar", "/".join(ABS_DIR.split("/")[:-1]))
+datapipeline.extract_tar_file(ABS_DIR[:-1]+".tar", "/".join(ABS_DIR.split("/")[:-2]))
 
 
 # ============================
@@ -156,7 +154,7 @@ sql = """
         mmf_dataset_metadata
     WHERE 
         is_calibration = 0 AND purpose = 'training' AND comments != 'temporal_shift_check'
-    LIMIT 25000
+    LIMIT 10000
 """
 
 df = DB.sql_select(sql)
