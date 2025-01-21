@@ -35,6 +35,7 @@ def extract_tar_file(tar_path, target_folder):
             
     if os.path.exists(target_folder):
         print(f"Warning: Target folder '{target_folder}' already exists. Stoped extraction.")
+        return
     else:
         os.makedirs(target_folder)
         print(f"Created target folder: {target_folder}")

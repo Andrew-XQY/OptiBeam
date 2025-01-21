@@ -23,7 +23,7 @@ os.environ['TF_GPU_ALLOCATOR'] = 'cuda_malloc_async'
 
 DATASET = "2024-08-15"
 current_date = datetime.now().strftime("%Y%m%d_%H%M")
-dev_flag = False
+dev_flag = True
 
 if dev_flag:
     ABS_DIR = f"C:/Users/qiyuanxu/Documents/DataHub/datasets/{DATASET}/"
@@ -42,14 +42,7 @@ utils.check_and_create_folder(log_save_path)
 # ============================
 # Unzip dataset
 # ============================
-
-
-
-
-
-
-
-
+datapipeline.extract_tar_file(ABS_DIR[:-1]+".tar", "/".join(ABS_DIR.split("/")[:-2]))
 
 
 # ============================
@@ -235,6 +228,6 @@ Logger.save()
 # ============================
 # Delete dataset
 # ============================
-
+datapipeline.delete_path(ABS_DIR[:-1])
 
 
