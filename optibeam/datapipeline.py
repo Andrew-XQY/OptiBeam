@@ -10,9 +10,7 @@ import getpass
 from PIL import Image
 from abc import ABC, abstractmethod
 from typing import *
-from .utils import get_all_file_paths
-from .database import Database
-from webdav3.client import Client
+# from webdav3.client import Client
 
 
 
@@ -98,6 +96,9 @@ class CloudStorage(ABC):
     def upload_file(self, local_path:str, remote_path:str):
         pass
     
+
+class Client: # Dummy class for testing
+    pass
 
 class CERNBox(CloudStorage):
     def __init__(self, cloud_name:str):

@@ -21,9 +21,9 @@ training.check_tensorflow_gpu()
 training.check_tensorflow_version()
 os.environ['TF_GPU_ALLOCATOR'] = 'cuda_malloc_async'
 
-DATASET = "2024-08-15"
+DATASET = "2024-12-19"
 current_date = datetime.now().strftime("%Y%m%d_%H%M")
-dev_flag = True
+dev_flag = False
 
 if dev_flag:
     ABS_DIR = f"C:/Users/qiyuanxu/Documents/DataHub/datasets/{DATASET}/"
