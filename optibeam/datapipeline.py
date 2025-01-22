@@ -83,6 +83,42 @@ def load_and_process_image(path):
     input = image[:, half_width:]  # right_half
     return input, label
 
+# def load_and_process_image(image_path: str, processing_steps: List[Callable[[np.ndarray], np.ndarray]]=[]) -> np.ndarray:
+#     """
+#     Process an image with a dynamic pipeline of functions.
+
+#     Parameters:
+#     - image_path: str
+#         Path to the image file.
+#     - processing_steps: List[Callable[[np.ndarray], np.ndarray]]
+#         List of processing functions, each taking a NumPy array and returning a NumPy array.
+
+#     Returns:
+#     - np.ndarray
+#         Processed image as a NumPy array.
+#     """
+#     # Step 1: Read the image file
+#     binary_string = tf.io.read_file(image_path)
+
+#     # Step 2: Decode the image
+#     image_tensor = tf.image.decode_image(binary_string)
+
+#     # Step 3: Convert TensorFlow tensor to NumPy array
+#     image_array = image_tensor.numpy()
+
+#     # Step 4: Apply each processing step in sequence
+#     for step in processing_steps:
+#         image_array = step(image_array)
+        
+#     # Step 5: Splite to repare and return the processed image
+#     width = tf.shape(image_array)[1]  # Split the image in half horizontally
+#     half_width = width // 2
+#     label = image_array[:, :half_width]  # left_half
+#     input = image_array[:, half_width:]  # right_half
+#     return input, label
+
+
+
 def tf_dataset_prep(data_dirs, func, batch_size, shuffle=True, buffer_size=1024):
     # Create a Dataset from the list of paths
     dataset = tf.data.Dataset.from_tensor_slices(data_dirs)

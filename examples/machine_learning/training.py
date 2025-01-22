@@ -21,7 +21,7 @@ os.environ['TF_GPU_ALLOCATOR'] = 'cuda_malloc_async'
 
 DATASET = "2024-12-19"
 current_date = datetime.now().strftime("%Y%m%d_%H%M")
-dev_flag = False
+dev_flag = True
 
 if dev_flag:
     ABS_DIR = f"C:/Users/qiyuanxu/Documents/DataHub/datasets/{DATASET}/"
@@ -146,6 +146,10 @@ def Autoencoder(input_shape):
 batch_size = 4
 DB = database.SQLiteDB(DATABASE_ROOT)
 
+# gain_func = utils.preset_kwargs(**{"max_gain":5, "min_gain":1, "scale":10})(apply_intensity_gain)
+# steps = []
+# load_and_process_image = utils.preset_kwargs(processing_steps=steps)(datapipeline.load_and_process_image)
+
 # creating training set
 sql = """
     SELECT 
@@ -154,7 +158,7 @@ sql = """
         mmf_dataset_metadata
     WHERE 
         is_calibration = 0 AND purpose = 'training' AND comments != 'temporal_shift_check'
-    LIMIT 10000
+    LIMIT 20000
 """
 
 df = DB.sql_select(sql)
@@ -178,6 +182,7 @@ val_paths = [ABS_DIR+i for i in df["image_path"].to_list()]
 val_paths = [val_paths[i] for i in range(0, len(val_paths), 5)]  # (take 20% of the data for validation, the rest will be used for testing, code for testing should corespond to this)
 val_dataset = datapipeline.tf_dataset_prep(val_paths, datapipeline.load_and_process_image, batch_size, shuffle=False)
 datapipeline.datapipeline_conclusion(val_dataset, batch_size)
+
 
 
 # ============================
