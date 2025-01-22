@@ -4,13 +4,16 @@ import cv2
 import numpy as np
 import threading
 import platform, warnings
-import multiprocessing, multiprocess
+import multiprocessing, multiprocess, subprocess
+import shutil
 import random
+import tarfile
 from skimage.transform import resize
 from functools import wraps, reduce
 from PIL import Image
 from tqdm import tqdm
 from typing import *
+
 
 
 # ------------------- functional modules -------------------
@@ -376,6 +379,203 @@ class ImageLoader:
             raise TypeError("Unsupported input type. Expected a string or a list of strings.")
         
 
+def is_file_locked(file_path):
+    """
+    Checks if a file is locked.
+    For Windows, assumes no lock exists.
+    For Linux, uses the `lsof` command to detect locks.
+    
+    Args:
+        file_path (str): Path to the file to check.
+    
+    Returns:
+        bool: True if the file is locked, False otherwise.
+    """
+    if platform.system() == "Windows":
+        # Windows: Assume no lock (built-in limitations for lock checking)
+        return False
+    elif platform.system() == "Linux":
+        # Linux: Check with `lsof`
+        try:
+            result = subprocess.run(
+                ['lsof', file_path],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True
+            )
+            return bool(result.stdout.strip())  # Locked if output exists
+        except FileNotFoundError:
+            print("Error: `lsof` command not found. Install it on your system.")
+            return False
+    else:
+        print(f"Unsupported OS: {platform.system()}")
+        return False
+
+
+def get_locking_processes(file_path):
+    """
+    Retrieves a list of processes locking the given file.
+    Only implemented for Linux.
+    
+    Args:
+        file_path (str): Path to the locked file.
+    
+    Returns:
+        list: List of process IDs (PIDs) locking the file.
+    """
+    if platform.system() != "Linux":
+        print("Locking process retrieval is only supported on Linux.")
+        return []
+
+    try:
+        result = subprocess.run(
+            ['lsof', '-t', file_path],  # `-t` outputs only PIDs
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True
+        )
+        return result.stdout.strip().split()  # List of PIDs
+    except FileNotFoundError:
+        print("Error: `lsof` command not found. Install it on your system.")
+        return []
+    
+
+def delete_folder(path):
+    """
+    Deletes a folder efficiently, handling locked files if deletion fails.
+    Includes safeguards to prevent deletion of critical paths.
+    
+    Args:
+        path (str): Path to the folder to delete.
+    
+    Returns:
+        None
+    """
+    # Safeguard: Prevent deletion of critical paths
+    critical_paths = ['/', '/root', '/home', '/var', '/usr', '/bin', '/etc', '.']
+    absolute_path = os.path.abspath(path)
+    
+    if absolute_path in critical_paths or absolute_path.startswith(tuple(critical_paths)):
+        print(f"Error: Deletion of critical path '{absolute_path}' is not allowed.")
+        return
+
+    if not os.path.exists(path):
+        print(f"Error: Path '{path}' does not exist.")
+        return
+
+    try:
+        # Attempt conventional delete first
+        shutil.rmtree(path)
+        print(f"Folder '{path}' deleted successfully.")
+    except Exception as e:
+        print(f"Initial deletion failed for '{path}'. Handling locked files...")
+        # Handle locked files individually
+        for root, dirs, files in os.walk(path, topdown=False):
+            for name in files:
+                file_path = os.path.join(root, name)
+                if is_file_locked(file_path):
+                    print(f"File '{file_path}' is locked. Retrieving locking processes...")
+                    locking_processes = get_locking_processes(file_path)
+                    for pid in locking_processes:
+                        try:
+                            os.kill(int(pid), 9)  # Forcefully terminate the process
+                            print(f"Terminated process {pid} locking '{file_path}'.")
+                        except Exception as ex:
+                            print(f"Failed to terminate process {pid}: {ex}")
+                # Retry deletion
+                try:
+                    os.remove(file_path)
+                    print(f"Deleted file: {file_path}")
+                except Exception as ex:
+                    print(f"Failed to delete file '{file_path}': {ex}")
+            for name in dirs:
+                dir_path = os.path.join(root, name)
+                try:
+                    os.rmdir(dir_path)
+                    print(f"Deleted directory: {dir_path}")
+                except Exception as ex:
+                    print(f"Failed to delete directory '{dir_path}': {ex}")
+        # Attempt to delete the root folder again
+        try:
+            os.rmdir(path)
+            print(f"Deleted root folder: {path}")
+        except Exception as ex:
+            print(f"Failed to delete root folder '{path}': {ex}")
+
+
+# def delete_path(path):
+#     """
+#     Safely deletes a file or a folder (recursively if it's a folder).
+    
+#     Args:
+#         path (str): Path to the file or folder to delete.
+
+#     Returns:
+#         None
+#     """
+#     if not os.path.exists(path):
+#         print(f"Error: Path '{path}' does not exist.")
+#         return
+    
+#     # Safeguard: Prevent accidental deletion of critical paths
+#     critical_paths = ['/', 'C:\\', 'C:/', '\\', '.']
+#     if os.path.abspath(path) in critical_paths:
+#         print(f"Error: Attempt to delete critical path '{path}' is not allowed.")
+#         return
+    
+#     try:
+#         if os.path.isfile(path):
+#             os.remove(path)
+#             print(f"File '{path}' has been deleted.")
+#         elif os.path.isdir(path):
+#             shutil.rmtree(path)
+#             print(f"Folder '{path}' and all its contents have been deleted.")
+#         else:
+#             print(f"Error: Path '{path}' is neither a file nor a folder.")
+#     except Exception as e:
+#         print(f"Error while deleting '{path}': {e}")
+        
+        
+def extract_tar_file(tar_path, target_folder):
+    """
+    Extracts a .tar file to the specified target folder.
+    If the target folder does not exist or the folder to be created already exists, skips extraction.
+
+    Args:
+        tar_path (str): Path to the .tar file.
+        target_folder (str): Directory to extract the files into.
+
+    Returns:
+        None
+    """
+    # Check if the .tar file exists
+    if not os.path.exists(tar_path):
+        print(f"Error: File '{tar_path}' does not exist.")
+        return
+    
+    # Check if the target folder exists
+    if not os.path.exists(target_folder):
+        print(f"Error: Target folder '{target_folder}' does not exist. Skipping extraction.")
+        return
+
+    # Get the folder name that will be created from the .tar file name
+    folder_name = os.path.splitext(os.path.basename(tar_path))[0]
+    extracted_folder_path = os.path.join(target_folder, folder_name)
+
+    # Check if the folder to be created already exists
+    if os.path.exists(extracted_folder_path):
+        print(f"Folder '{extracted_folder_path}' already exists. Skipping extraction.")
+        return
+
+    # Extract the .tar file
+    try:
+        print(f"Extracting '{tar_path}' to '{target_folder}'...")
+        with tarfile.open(tar_path) as tar:
+            tar.extractall(path=target_folder)
+        print(f"Extracted '{tar_path}' successfully to '{target_folder}'.")
+    except Exception as e:
+        print(f"Error during extraction: {e}")
+        
 
 # ------------------- image processing (in place) -------------------
 

@@ -37,11 +37,11 @@ utils.check_and_create_folder(SAVE_TO)
 utils.check_and_create_folder(SAVE_TO+'models')
 utils.check_and_create_folder(log_save_path)
 
-
 # ============================
 # Unzip dataset
 # ============================
-datapipeline.extract_tar_file(ABS_DIR[:-1]+".tar", "/".join(ABS_DIR.split("/")[:-2]))
+if not dev_flag:
+    utils.extract_tar_file(ABS_DIR[:-1]+".tar", "/".join(ABS_DIR.split("/")[:-2]))
 
 
 # ============================
@@ -227,6 +227,6 @@ Logger.save()
 # ============================
 # Delete dataset
 # ============================
-datapipeline.delete_path(ABS_DIR[:-1])
+# utils.delete_folder(ABS_DIR[:-1])
 
 

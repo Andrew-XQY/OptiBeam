@@ -2,9 +2,6 @@ import tensorflow as tf
 import numpy as np
 import pandas as pd
 import ast
-import tarfile
-import os
-import shutil
 import getpass
 
 from PIL import Image
@@ -15,113 +12,6 @@ from typing import *
 
 
 # ----------------- Cloud Storage based data pipeline -----------------
-
-# def extract_tar_file(tar_path, target_folder):
-#     """
-#     Extracts a .tar file to the specified target folder.
-    
-#     Args:
-#         tar_path (str): Path to the .tar file.
-#         target_folder (str): Directory to extract the files into.
-
-#     Returns:
-#         None
-#     """
-#     if not os.path.exists(tar_path):
-#         print(f"Error: File '{tar_path}' does not exist.")
-#         return
-            
-#     if os.path.exists(target_folder):
-#         print(f"Warning: Target folder '{target_folder}' already exists. Stoped extraction.")
-#         return
-#     else:
-#         os.makedirs(target_folder)
-#         print(f"Created target folder: {target_folder}")
-    
-#     try:
-#         target_folder = "/".join(target_folder.split("/")[:-1]) # avoid double folder layer
-#         print(f"Extracting '{tar_path}' to '{target_folder}'...")
-#         with tarfile.open(tar_path) as tar:
-#             tar.extractall(path=target_folder)
-#             print(f"Extracted '{tar_path}' to '{target_folder}'.")
-#     except Exception as e:
-#         print(f"Error: {e}")
-
-def extract_tar_file(tar_path, target_folder):
-    """
-    Extracts a .tar file to the specified target folder.
-    If the target folder does not exist or the folder to be created already exists, skips extraction.
-
-    Args:
-        tar_path (str): Path to the .tar file.
-        target_folder (str): Directory to extract the files into.
-
-    Returns:
-        None
-    """
-    # Check if the .tar file exists
-    if not os.path.exists(tar_path):
-        print(f"Error: File '{tar_path}' does not exist.")
-        return
-    
-    # Check if the target folder exists
-    if not os.path.exists(target_folder):
-        print(f"Error: Target folder '{target_folder}' does not exist. Skipping extraction.")
-        return
-
-    # Get the folder name that will be created from the .tar file name
-    folder_name = os.path.splitext(os.path.basename(tar_path))[0]
-    extracted_folder_path = os.path.join(target_folder, folder_name)
-
-    # Check if the folder to be created already exists
-    if os.path.exists(extracted_folder_path):
-        print(f"Folder '{extracted_folder_path}' already exists. Skipping extraction.")
-        return
-
-    # Extract the .tar file
-    try:
-        print(f"Extracting '{tar_path}' to '{target_folder}'...")
-        with tarfile.open(tar_path) as tar:
-            tar.extractall(path=target_folder)
-        print(f"Extracted '{tar_path}' successfully to '{target_folder}'.")
-    except Exception as e:
-        print(f"Error during extraction: {e}")
-        
-        
-        
-def delete_path(path):
-    """
-    Safely deletes a file or a folder (recursively if it's a folder).
-    
-    Args:
-        path (str): Path to the file or folder to delete.
-
-    Returns:
-        None
-    """
-    if not os.path.exists(path):
-        print(f"Error: Path '{path}' does not exist.")
-        return
-    
-    # Safeguard: Prevent accidental deletion of critical paths
-    critical_paths = ['/', 'C:\\', 'C:/', '\\', '.']
-    if os.path.abspath(path) in critical_paths:
-        print(f"Error: Attempt to delete critical path '{path}' is not allowed.")
-        return
-    
-    try:
-        if os.path.isfile(path):
-            os.remove(path)
-            print(f"File '{path}' has been deleted.")
-        elif os.path.isdir(path):
-            shutil.rmtree(path)
-            print(f"Folder '{path}' and all its contents have been deleted.")
-        else:
-            print(f"Error: Path '{path}' is neither a file nor a folder.")
-    except Exception as e:
-        print(f"Error while deleting '{path}': {e}")
-
-
 class CloudStorage(ABC):
     def __init__(self, cloud_name:str=None):
         self.cloud_name = cloud_name
