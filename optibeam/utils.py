@@ -503,37 +503,37 @@ def delete_folder(path):
             print(f"Failed to delete root folder '{path}': {ex}")
 
 
-# def delete_path(path):
-#     """
-#     Safely deletes a file or a folder (recursively if it's a folder).
+def delete_path(path):
+    """
+    Safely deletes a file or a folder (recursively if it's a folder).
     
-#     Args:
-#         path (str): Path to the file or folder to delete.
+    Args:
+        path (str): Path to the file or folder to delete.
 
-#     Returns:
-#         None
-#     """
-#     if not os.path.exists(path):
-#         print(f"Error: Path '{path}' does not exist.")
-#         return
+    Returns:
+        None
+    """
+    if not os.path.exists(path):
+        print(f"Error: Path '{path}' does not exist.")
+        return
     
-#     # Safeguard: Prevent accidental deletion of critical paths
-#     critical_paths = ['/', 'C:\\', 'C:/', '\\', '.']
-#     if os.path.abspath(path) in critical_paths:
-#         print(f"Error: Attempt to delete critical path '{path}' is not allowed.")
-#         return
+    # Safeguard: Prevent accidental deletion of critical paths
+    critical_paths = ['/', 'C:\\', 'C:/', '\\', '.']
+    if os.path.abspath(path) in critical_paths:
+        print(f"Error: Attempt to delete critical path '{path}' is not allowed.")
+        return
     
-#     try:
-#         if os.path.isfile(path):
-#             os.remove(path)
-#             print(f"File '{path}' has been deleted.")
-#         elif os.path.isdir(path):
-#             shutil.rmtree(path)
-#             print(f"Folder '{path}' and all its contents have been deleted.")
-#         else:
-#             print(f"Error: Path '{path}' is neither a file nor a folder.")
-#     except Exception as e:
-#         print(f"Error while deleting '{path}': {e}")
+    try:
+        if os.path.isfile(path):
+            os.remove(path)
+            print(f"File '{path}' has been deleted.")
+        elif os.path.isdir(path):
+            shutil.rmtree(path)
+            print(f"Folder '{path}' and all its contents have been deleted.")
+        else:
+            print(f"Error: Path '{path}' is neither a file nor a folder.")
+    except Exception as e:
+        print(f"Error while deleting '{path}': {e}")
         
         
 def extract_tar_file(tar_path, target_folder):

@@ -18,10 +18,12 @@ print(os.getcwd())
 training.check_tensorflow_gpu()
 training.check_tensorflow_version()
 os.environ['TF_GPU_ALLOCATOR'] = 'cuda_malloc_async'
-
-DATASET = "2024-12-19"
 current_date = datetime.now().strftime("%Y%m%d_%H%M")
-dev_flag = True
+
+
+DATASET = "2024-08-15"
+dev_flag = False
+
 
 if dev_flag:
     ABS_DIR = f"C:/Users/qiyuanxu/Documents/DataHub/datasets/{DATASET}/"
@@ -227,11 +229,11 @@ Logger = training.Logger(log_dir=log_save_path, model=autoencoder, dataset=DATAS
 Logger.save()
 
 
-
-
 # ============================
 # Delete dataset
 # ============================
-# utils.delete_folder(ABS_DIR[:-1])
+DB.close()  
+
+utils.delete_path(ABS_DIR[:-1])
 
 
