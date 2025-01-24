@@ -20,7 +20,7 @@ training.check_tensorflow_version()
 os.environ['TF_GPU_ALLOCATOR'] = 'cuda_malloc_async'
 current_date = datetime.now().strftime("%Y%m%d_%H%M")
 
-
+discribtion = "2024-08-15 dataset using only 15000 data sample for training."
 DATASET = "2024-08-15"
 dev_flag = False
 
@@ -160,7 +160,7 @@ sql = """
         mmf_dataset_metadata
     WHERE 
         is_calibration = 0 AND purpose = 'training' AND comments != 'temporal_shift_check'
-    LIMIT 20000
+    LIMIT 15000
 """
 
 df = DB.sql_select(sql)
@@ -171,7 +171,7 @@ datapipeline.datapipeline_conclusion(train_dataset, batch_size)
 
 # creating validation set
 sql = """
-    SELECT 
+    SELECT
         id, batch, purpose, image_path, comments
     FROM 
         mmf_dataset_metadata
@@ -225,7 +225,7 @@ print('model saved!')
 with open(log_save_path+'training_history.pkl', 'wb') as file:
     pickle.dump(history.history, file)
 # Save all the other information
-Logger = training.Logger(log_dir=log_save_path, model=autoencoder, dataset=DATASET, history=history)
+Logger = training.Logger(log_dir=log_save_path, model=autoencoder, dataset=DATASET, history=history, info=discribtion)
 Logger.save()
 
 
