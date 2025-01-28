@@ -20,7 +20,7 @@ training.check_tensorflow_version()
 os.environ['TF_GPU_ALLOCATOR'] = 'cuda_malloc_async'
 current_date = datetime.now().strftime("%Y%m%d_%H%M")
 
-discribtion = "2024-08-15 dataset using only 15000 data sample for training."
+discribtion = "2024-08-15 dataset using only 5000 data sample for training."
 DATASET = "2024-08-15"
 dev_flag = False
 
@@ -160,7 +160,7 @@ sql = """
         mmf_dataset_metadata
     WHERE 
         is_calibration = 0 AND purpose = 'training' AND comments != 'temporal_shift_check'
-    LIMIT 15000
+    LIMIT 5000
 """
 
 df = DB.sql_select(sql)
