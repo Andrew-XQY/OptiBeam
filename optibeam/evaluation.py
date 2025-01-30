@@ -175,7 +175,7 @@ def sum_dict_values(d):
     return sum(abs(value) for value in d.values())
 
 
-def batch_evaluation(test_dataset: Iterable, model: tf.keras.Model):
+def batch_evaluation(test_dataset: Iterable, model: tf.keras.Model, save_path: str=None) -> pd.DataFrame:
     """inference on the test dataset and return the results in a pandas DataFrame.
 
     Args:
@@ -193,7 +193,10 @@ def batch_evaluation(test_dataset: Iterable, model: tf.keras.Model):
         img = image_normalize(img)
         tar, inp = split_image(img)
         # apply the trained model to the testset and get results
-        reconstruction = model.predict(np.expand_dims(np.expand_dims(inp, axis=0), axis=-1), verbose=0)        
+        reconstruction = model.predict(np.expand_dims(np.expand_dims(inp, axis=0), axis=-1), verbose=0) 
+        if save_path:
+            os.makedirs(save_path, exist_ok=True)
+            plt.imsave(save_path+path.split('/')[-1], join_images([inp, tar, np.squeeze(reconstruction)]), cmap="viridis")  
         params_predict = get_transverse_beam_parameters(np.squeeze(reconstruction))  
         params_real = get_transverse_beam_parameters(np.squeeze(tar))  
         # calculate beam parameters on real and reconstructed images

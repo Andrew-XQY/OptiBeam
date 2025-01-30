@@ -296,9 +296,6 @@ def plot_prediction_comparison(real : np.array, predicted : np.array, param_name
     plt.tight_layout()
     # Save the file
     if directory:
-        # plt.xlim(-100, 100)  # Limiting x-axis to -100% to 100% for clearer visualization
-        timestamp = datetime.now().strftime("%M%S%f")[-5:]
-        filename = f'beam_parameter_estimation_results_{timestamp}.png'
-        full_path = os.path.join(directory, filename)
-        plt.savefig(full_path, transparent=True, format='png', dpi=300)
+        plt.xlim(-30, 30)  # Limiting x-axis to -100% to 100% for clearer visualization
+        plt.savefig(directory, transparent=True, format='png', dpi=300)
     plt.show()
