@@ -132,6 +132,37 @@ def analyze_image_pixel_values(image: np.array, comment='') -> dict:
     return {f'max_pixel_{comment}': max_pixel, f'average_pixel_{comment}': average_pixel, f'min_pixel_{comment}': min_pixel}
 
 
+def calculate_img_overlap_metrics(label_mask: np.array, prediction_mask: np.array) -> dict:
+    """
+    Calculate the Intersection over Union (IoU) and Dice coefficient between two binary masks.
+
+    Args:
+        label_mask (np.array): The ground truth binary mask.
+        prediction_mask (np.array): The predicted binary mask.
+
+    Returns:
+        dict: A dictionary containing the IoU and Dice scores.
+    """
+    # Calculate Intersection
+    intersection = np.logical_and(label_mask, prediction_mask)
+    # Calculate Union
+    union = np.logical_or(label_mask, prediction_mask)
+    
+    # Calculate IoU
+    if union.sum() == 0:
+        iou = 0.0
+    else:
+        iou = intersection.sum() / union.sum()
+
+    # Calculate Dice Coefficient
+    if (label_mask.sum() + prediction_mask.sum()) == 0:
+        dice = 0.0
+    else:
+        dice = 2 * intersection.sum() / (label_mask.sum() + prediction_mask.sum())
+
+    return {'IoU': iou, 'Dice': dice}
+
+
 
 
 # ------------------- generate final result (wide table) -------------------
