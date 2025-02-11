@@ -8,6 +8,7 @@ from skimage.metrics import structural_similarity
 from skimage.morphology import remove_small_objects
 from skimage import measure
 from abc import ABC, abstractmethod
+import math
 
 
 
@@ -271,6 +272,8 @@ def batch_evaluation(test_dataset: Iterable, model: tf.keras.Model, save_path: s
                     'check': False
                }
         temp.append(meta)
+        
+    # TODO: add RMSE columns
     
     # construct final table 
     df_result = pd.DataFrame(temp)
@@ -409,3 +412,26 @@ def calculate_rmse(actual: Iterable, predicted: Iterable) -> float:
     # Calculate RMSE
     mse = np.mean((actual_array - predicted_array) ** 2)
     return np.sqrt(mse) 
+
+
+def calculate_rmse_list(real_values, predicted_values):
+    """Calculate the Root Mean Square Error for each pair of real and predicted values, handling invalid inputs.
+    
+    Args:
+        real_values (list of float): The list of actual values.
+        predicted_values (list of float): The list of predicted values.
+    
+    Returns:
+        list of float: A list containing the RMSE of each pair of input values or None for invalid inputs.
+    """
+    if len(real_values) != len(predicted_values):
+        raise ValueError("Both lists must have the same length.")
+    
+    rmse_values = []
+    for real, pred in zip(real_values, predicted_values):
+        if real is None or pred is None or math.isnan(real) or math.isnan(pred):
+            rmse_values.append(None)
+        else:
+            rmse_values.append(abs(real - pred))
+    
+    return rmse_values
