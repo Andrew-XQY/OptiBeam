@@ -20,8 +20,8 @@ training.check_tensorflow_version()
 os.environ['TF_GPU_ALLOCATOR'] = 'cuda_malloc_async'
 current_date = datetime.now().strftime("%Y%m%d_%H%M")
 
-discribtion = "2024-08-22 dataset using only 25000 data sample for training."
-DATASET = "2024-08-22"
+discribtion = "2024-08-15 dataset, with bottle neck of 2x2 feature maps"
+DATASET = "2024-08-15"
 dev_flag = False
 
 
@@ -86,26 +86,30 @@ def upsample(filters, size, apply_dropout=False):
  
 
 def Autoencoder(input_shape): 
-    inputs = tf.keras.layers.Input(shape=input_shape) 
+    inputs = tf.keras.layers.Input(shape=input_shape)  # (input image: batch_size, 256, 256, 1)
     encoder = [ 
-    downsample(64, 4, apply_batchnorm=False),  # output (batch_size, 128, -) 
-    downsample(128, 4),  # output (batch_size, 64, -) 
-    downsample(256, 4),  # output (batch_size, 32, -) 
-    downsample(512, 4),  # output (batch_size, 16, -)
-    downsample(1024, 4),  # output (batch_size, 8, -) 
-    downsample(1024, 4),  # output (batch_size, 4, -) 
+    downsample(64, 4, apply_batchnorm=False),  # output batch_size, 128, 128, 64
+    downsample(128, 4),  # output batch_size, 64, 64, 128
+    downsample(256, 4),  # output batch_size, 32, 32, 256 
+    downsample(512, 4),  # output batch_size, 16, 16, 512
+    downsample(512, 4),  # output batch_size, 8, 8, 512
+    downsample(1024, 4),  # output batch_size, 4, 4, 1024
+    downsample(1024, 4),  # output batch_size, 2, 2, 1024
     ] 
 
     decoder = [ 
-    upsample(1024, 4, apply_dropout=True),  # output (batch_size, 8, -) 
-    upsample(1024, 4, apply_dropout=True),  # output (batch_size, 16, -) 
-    upsample(512, 4, apply_dropout=True),  # output (batch_size, 32, -) 
-    upsample(256, 4),  # output (batch_size, 64, -) 
-    upsample(128, 4),  # output (batch_size, 128, -) 
-    upsample(64, 4),  # output (batch_size, 256, -) 
-    ] 
+    upsample(1024, 4, apply_dropout=True),  # output batch_size, 4, 4, 1024
+    upsample(512, 4, apply_dropout=True),  # output batch_size, 8, 8, 512
+    upsample(512, 4, apply_dropout=True),  # output batch_size, 16, 16, 512
+    upsample(256, 4, apply_dropout=True),  # output batch_size, 32, 32, 256
+    upsample(128, 4),  # output batch_size, 64, 64, 128
+    upsample(64, 4),  # output batch_size, 128, 128, 64
+    ]
     
-    last = tf.keras.layers.Conv2D(input_shape[-1], kernel_size=4, activation='tanh', padding='same') 
+    initializer = tf.random_normal_initializer(0., 0.02)
+     # output batch_size, 256, 256, 1
+    last = tf.keras.layers.Conv2DTranspose(input_shape[-1], kernel_size=4, strides=2, 
+                                           kernel_initializer=initializer, activation='sigmoid', padding='same')   # activation='tanh'   activation='sigmoid'
     
     # initializer = tf.random_normal_initializer(0., 0.02)
     # last = tf.keras.layers.Conv2DTranspose(input_shape[-1], 
@@ -124,21 +128,28 @@ def Autoencoder(input_shape):
     x = last(x) 
     return tf.keras.Model(inputs=inputs, outputs=x) 
 
+
     # with skip connections
     # skips = []
     # x = inputs 
+    
     # for down in encoder:
     #     x = down(x)
+    #     # print(x.shape)
     #     skips.append(x)
-    # skips = reversed(skips[:-1])
+    # skips = reversed(skips[:-1])  # reversed(skips[:-1])
+    
+    # # x = decoder[0](x) # bottle neck layer direct connection, which is the last output from encoder to the first layer of decoder.
     # for up, skip in zip(decoder, skips):
+    #     # print(x.shape, skip.shape)
     #     x = up(x)
     #     x = tf.keras.layers.Concatenate()([x, skip])
+    #     # print(x.shape)
+        
     # x = last(x)
+    # # print(x.shape)
     # return tf.keras.Model(inputs=inputs, outputs=x)
     
-
-
 
 
 # ============================
@@ -153,14 +164,23 @@ DB = database.SQLiteDB(DATABASE_ROOT)
 # load_and_process_image = utils.preset_kwargs(processing_steps=steps)(datapipeline.load_and_process_image)
 
 # creating training set
+# sql = """
+#     SELECT 
+#         id, batch, purpose, image_path, comments
+#     FROM 
+#         mmf_dataset_metadata
+#     WHERE 
+#         is_calibration = 0 AND purpose = 'training' AND comments != 'temporal_shift_check'
+#     LIMIT 25000
+# """
+
 sql = """
     SELECT 
-        id, batch, purpose, image_path, comments
+        id, batch, image_path, purpose, comments
     FROM 
         mmf_dataset_metadata
     WHERE 
-        is_calibration = 0 AND purpose = 'training' AND comments != 'temporal_shift_check'
-    LIMIT 25000
+        is_calibration = 0 and purpose = 'training'
 """
 
 df = DB.sql_select(sql)
@@ -205,7 +225,7 @@ adam_optimizer = tf.keras.optimizers.Adam(learning_rate=0.0001)   # successful o
 autoencoder.compile(optimizer=adam_optimizer, 
                     loss=tf.keras.losses.MeanSquaredError())
 
-history = autoencoder.fit(
+history = autoencoder.fit(  
     train_dataset,  # Dataset already includes batching and shuffling
     epochs=80,
     validation_data=val_dataset,
