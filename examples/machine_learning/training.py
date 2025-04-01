@@ -95,9 +95,11 @@ def Autoencoder(input_shape):
     downsample(512, 4),  # output batch_size, 8, 8, 512
     downsample(1024, 4),  # output batch_size, 4, 4, 1024
     downsample(1024, 4),  # output batch_size, 2, 2, 1024
+    downsample(1024, 4),  # output batch_size, 1, 1, 1024
     ] 
 
     decoder = [ 
+    upsample(1024, 4, apply_dropout=True),  # output batch_size, 2, 2, 1024
     upsample(1024, 4, apply_dropout=True),  # output batch_size, 4, 4, 1024
     upsample(512, 4, apply_dropout=True),  # output batch_size, 8, 8, 512
     upsample(512, 4, apply_dropout=True),  # output batch_size, 16, 16, 512
