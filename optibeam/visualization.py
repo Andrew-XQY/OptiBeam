@@ -14,7 +14,7 @@ import imageio
 
 # ------------------- APS journal plot settings -------------------
 
-def set_aps_single_column():
+def set_aps_single_column(figsize=(3.25, 2.5), scale=1.0, legend_background=True):
     """
     Configure Matplotlib rcParams for APS single-column figures.
 
@@ -24,8 +24,6 @@ def set_aps_single_column():
     tick marks, axis lines, and savefig options to maintain consistency
     and clarity in the final publication.
     
-    Recommended figure dim: fig, ax = plt.subplots(figsize=(3.25, desired_height))
-    
     Usage:
         set_aps_single_column()
     """
@@ -33,24 +31,35 @@ def set_aps_single_column():
         # Font settings:
         "font.family": "sans-serif",                # APS standard font family
         "font.sans-serif": ["Arial", "Helvetica"],  # Preferred fonts: Arial, Helvetica
-        "font.size": 9.0,                            # Base font size for tick labels and general text
-        "axes.labelsize": 10.0,                      # Axis label font size
-        "axes.titlesize": 10.0,                      # Title font size
-        "legend.fontsize": 9.0,                      # Legend text font size (legend is optional but standard)
-        "xtick.labelsize": 9.0,                      # X-axis tick label size
-        "ytick.labelsize": 9.0,                      # Y-axis tick label size
+        "font.size": 9.0 * scale,                            # Base font size for tick labels and general text
+        "axes.labelsize": 10.0 * scale,                      # Axis label font size
+        "axes.titlesize": 10.0 * scale,                      # Title font size
+        "legend.fontsize": 8.0 * scale,                      # Legend text font size (legend is optional but standard)
+        "xtick.labelsize": 9.0 * scale,                      # X-axis tick label size
+        "ytick.labelsize": 9.0 * scale,                      # Y-axis tick label size
         
         # Tick marks and axis lines:
         "xtick.direction": "in",                     # Ticks inward
         "ytick.direction": "in",                     # Ticks inward
-        "xtick.major.size": 6.0,                     # Length of major ticks
-        "xtick.minor.size": 3.0,                     # Length of minor ticks
-        "ytick.major.size": 6.0,                     # Length of major ticks
-        "ytick.minor.size": 3.0,                     # Length of minor ticks
-        "xtick.major.width": 1.0,                    # Width of major ticks
-        "ytick.major.width": 1.0,                    # Width of major ticks
-        "axes.linewidth": 1.0,                       # Width of the axis lines
-        "legend.frameon": False,                     # Legend without border frame
+        "xtick.major.size": 6.0 * scale,                     # Length of major ticks
+        "xtick.minor.size": 3.0 * scale,                     # Length of minor ticks
+        "ytick.major.size": 6.0 * scale,                     # Length of major ticks
+        "ytick.minor.size": 3.0 * scale,                     # Length of minor ticks
+        "xtick.major.width": 1.0 * scale,                    # Width of major ticks
+        "ytick.major.width": 1.0 * scale,                    # Width of major ticks
+        "axes.linewidth": 1.0 * scale,                       # Width of the axis lines
+        "lines.linewidth": 0.75 * scale,                     # Line width for plots
+        'lines.markersize':6 * scale,                        # Adjust as needed for clarity
+        'image.cmap': 'viridis',                     # Default colormap for images
+        
+        # Legend settings based on argument
+        "legend.frameon": legend_background,
+        "legend.facecolor": "white" if legend_background else "none",
+        "legend.edgecolor": "black" if legend_background else "none",
+        "legend.framealpha": 0.8 if legend_background else 0.0,
+        
+        # Figure size:
+        "figure.figsize": figsize,
         
         # Savefig resolution and font embedding:
         "savefig.dpi": 600,                          # Resolution for figure saving
@@ -58,7 +67,7 @@ def set_aps_single_column():
         "ps.fonttype": 42                            # Embed fonts as TrueType
     })
 
-def set_aps_double_column():
+def set_aps_double_column(figsize=(7.0, 3.5), scale=1.0, legend_background=True):
     """
     Configure Matplotlib rcParams for APS double-column figures.
 
@@ -66,8 +75,6 @@ def set_aps_double_column():
     appropriately for double-column figures in APS journals. The settings
     adjust font sizes, tick marks, axis lines, and savefig options to
     maintain consistency and clarity in the final publication.
-    
-    Recommended figure dim: fig, ax = plt.subplots(figsize=(7.0, desired_height))
 
     Usage:
         set_aps_double_column()
@@ -76,24 +83,35 @@ def set_aps_double_column():
         # Font settings:
         "font.family": "sans-serif",                # APS standard font family
         "font.sans-serif": ["Arial", "Helvetica"],  # Preferred fonts: Arial, Helvetica
-        "font.size": 8.0,                            # Base font size for tick labels and general text
-        "axes.labelsize": 9.0,                       # Axis label font size
-        "axes.titlesize": 9.0,                       # Title font size
-        "legend.fontsize": 8.0,                      # Legend text font size (legend is optional but standard)
-        "xtick.labelsize": 8.0,                      # X-axis tick label size
-        "ytick.labelsize": 8.0,                      # Y-axis tick label size
+        "font.size": 8.0 * scale,                            # Base font size for tick labels and general text
+        "axes.labelsize": 9.0 * scale,                       # Axis label font size
+        "axes.titlesize": 9.0 * scale,                       # Title font size
+        "legend.fontsize": 8.0 * scale,                      # Legend text font size (legend is optional but standard)
+        "xtick.labelsize": 8.0 * scale,                      # X-axis tick label size
+        "ytick.labelsize": 8.0 * scale,                      # Y-axis tick label size
         
         # Tick marks and axis lines:
         "xtick.direction": "in",                     # Ticks inward
         "ytick.direction": "in",                     # Ticks inward
-        "xtick.major.size": 6.0,                     # Length of major ticks
-        "xtick.minor.size": 3.0,                     # Length of minor ticks
-        "ytick.major.size": 6.0,                     # Length of major ticks
-        "ytick.minor.size": 3.0,                     # Length of minor ticks
-        "xtick.major.width": 1.0,                    # Width of major ticks
-        "ytick.major.width": 1.0,                    # Width of major ticks
-        "axes.linewidth": 1.0,                       # Width of the axis lines
-        "legend.frameon": False,                     # Legend without border frame
+        "xtick.major.size": 6.0 * scale,                     # Length of major ticks
+        "xtick.minor.size": 3.0 * scale,                     # Length of minor ticks
+        "ytick.major.size": 6.0 * scale,                     # Length of major ticks
+        "ytick.minor.size": 3.0 * scale,                     # Length of minor ticks
+        "xtick.major.width": 1.0 * scale,                    # Width of major ticks
+        "ytick.major.width": 1.0 * scale,                    # Width of major ticks
+        "axes.linewidth": 1.0 * scale,                       # Width of the axis lines
+        "lines.linewidth": 0.75 * scale,                     # Line width for plots
+        'lines.markersize':6 * scale,                        # Adjust as needed for clarity
+        'image.cmap': 'viridis',                     # Default colormap for images
+        
+        # Legend settings based on argument
+        "legend.frameon": legend_background,
+        "legend.facecolor": "white" if legend_background else "none",
+        "legend.edgecolor": "black" if legend_background else "none",
+        "legend.framealpha": 0.8 if legend_background else 0.0,
+        
+        # Figure size:
+        "figure.figsize": figsize,
         
         # Savefig resolution and font embedding:
         "savefig.dpi": 600,                          # Resolution for figure saving
