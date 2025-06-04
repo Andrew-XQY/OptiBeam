@@ -284,20 +284,30 @@ def count_files_in_directory(directory: str, file_types: list = None, recursive:
     return total_files
 
 
-def get_all_file_paths(dirs, types=['']) -> list:
+def get_all_file_paths(
+    dirs: Union[str, List[str]],
+    types: Optional[List[str]] = None
+) -> List[str]:
     """
-    Get all file paths in the specified directories with the specified file types.
-    input: dirs (list of strings or string of the root of dataset folder), types (list of strings) 
+    If `types` is None or empty → return every file under `dirs`.
+    Otherwise → return only files whose filename contains at least one of the substrings in `types`.
     """
-    if isinstance(dirs, str): # Check if dirs is a single string and convert to list if necessary
+    if isinstance(dirs, str):
         dirs = [dirs]
-    file_paths = []  
-    for dir in dirs:
-        for root, _, files in os.walk(dir):
-            for file in files:
-                if any(type in file for type in types):
-                    file_path = os.path.join(root, file)
-                    file_paths.append(os.path.abspath(file_path))
+
+    # Ensure types is a list/tuple if provided. If it’s None or empty, we'll skip filtering.
+    if types is not None and not isinstance(types, (list, tuple)):
+        types = [types]
+
+    file_paths = []
+    for d in dirs:
+        for root, _, files in os.walk(d):
+            for fname in files:
+                # If types is None or an empty list → not types is True → accept everything.
+                # Otherwise → only accept if any(t in fname for t in types).
+                if not types or any(t in fname for t in types):
+                    file_paths.append(os.path.abspath(os.path.join(root, fname)))
+                    
     print(f"Found {len(file_paths)} files.")
     return file_paths
 

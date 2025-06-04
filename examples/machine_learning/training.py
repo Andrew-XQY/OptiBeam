@@ -12,6 +12,7 @@ from conf import *
 from datetime import datetime
 import tensorflow as tf
 import pickle
+import random
 
 
 print(os.getcwd())
@@ -20,14 +21,19 @@ training.check_tensorflow_version()
 os.environ['TF_GPU_ALLOCATOR'] = 'cuda_malloc_async'
 current_date = datetime.now().strftime("%Y%m%d_%H%M")
 
-discribtion = "2024-08-15 dataset, with bottle neck of 4x4 feature maps"
+discribtion = "CLEAR dataset for both training and evaluation, with best autoencoder model, round 1"
 DATASET = "2024-08-15"
 dev_flag = True
+which_dataset = "1"  # synthetic = 0 or CLEAR = 1, for training and validation set.
+CLEAR_data_dir = "C:/Users/qiyuanxu/Documents/DataHub/local_images/MMF"
 
 
+
+# ABS_DIR = f"C:/Users/xqiyuan/cernbox/Documents/DataHub/datasets/{DATASET}/"
+# SAVE_TO = f'C:/Users/xqiyuan/cernbox/Documents/DataHub/results/dev/{DATASET}_{current_date}/' 
 if dev_flag:
-    ABS_DIR = f"C:/Users/xqiyuan/cernbox/Documents/DataHub/datasets/{DATASET}/"
-    SAVE_TO = f'C:/Users/xqiyuan/cernbox/Documents/DataHub/results/dev/{DATASET}_{current_date}/' 
+    ABS_DIR = f"C:/Users/qiyuanxu/Documents/DataHub/datasets/{DATASET}/"
+    SAVE_TO = f'C:/Users/qiyuanxu/Documents/DataHub/results/dev/{DATASET}_{current_date}/' 
 else:
     ABS_DIR = f'../dataset/{DATASET}/'
     SAVE_TO = f'../results/{DATASET}_{current_date}/' 
@@ -117,61 +123,62 @@ def Autoencoder(input_shape):
     return tf.keras.Model(inputs=inputs, outputs=x) 
 
 
-
-
 # ============================
-# Data Preparation
+# Data Preparation 
 # ============================
-
-print(DATABASE_ROOT)
 batch_size = 4
-DB = database.SQLiteDB(DATABASE_ROOT)
 
-# gain_func = utils.preset_kwargs(**{"max_gain":5, "min_gain":1, "scale":10})(apply_intensity_gain)
-# steps = []
-# load_and_process_image = utils.preset_kwargs(processing_steps=steps)(datapipeline.load_and_process_image)
+if which_dataset == "0": # synthetic dataset
+    print("Using synthetic dataset for training.")
+    print(DATABASE_ROOT)
+    DB = database.SQLiteDB(DATABASE_ROOT)
+    sql = """
+        SELECT 
+            id, batch, image_path, purpose, comments
+        FROM 
+            mmf_dataset_metadata
+        WHERE 
+            is_calibration = 0 and purpose = 'training'
+    """
+    df = DB.sql_select(sql)
+    print('Total number of records in the table: ' + str(len(df)))
+    train_paths = [ABS_DIR+i for i in df["image_path"].to_list()]
+    train_dataset = datapipeline.tf_dataset_prep(train_paths, datapipeline.load_and_process_image, batch_size)
+    datapipeline.datapipeline_conclusion(train_dataset, batch_size)
 
-# creating training set
-# sql = """
-#     SELECT 
-#         id, batch, purpose, image_path, comments
-#     FROM 
-#         mmf_dataset_metadata
-#     WHERE 
-#         is_calibration = 0 AND purpose = 'training' AND comments != 'temporal_shift_check'
-#     LIMIT 25000
-# """
+    # creating validation set
+    sql = """
+        SELECT
+            id, batch, purpose, image_path, comments
+        FROM 
+            mmf_dataset_metadata
+        WHERE 
+            is_calibration = 0 AND purpose = 'testing' AND comments IS NULL
+    """
+    df = DB.sql_select(sql)
+    print('Total number of records in the table: ' + str(len(df)))
+    val_paths = [ABS_DIR+i for i in df["image_path"].to_list()]
+    val_paths = [val_paths[i] for i in range(0, len(val_paths), 5)]  # (take 20% of the data for validation, the rest will be used for testing, code for testing should corespond to this)
+    val_dataset = datapipeline.tf_dataset_prep(val_paths, datapipeline.load_and_process_image, batch_size, shuffle=False)
+    datapipeline.datapipeline_conclusion(val_dataset, batch_size)
 
-sql = """
-    SELECT 
-        id, batch, image_path, purpose, comments
-    FROM 
-        mmf_dataset_metadata
-    WHERE 
-        is_calibration = 0 and purpose = 'training'
-"""
+elif which_dataset == "1":  # CLEAR dataset
+    print("Using CLEAR dataset for training.")
+    CLEAR_data = utils.get_all_file_paths(CLEAR_data_dir)
+    random.seed(42)
+    random.shuffle(CLEAR_data)
+    n = len(CLEAR_data)
+    n_train = int(0.8 * n)
+    n_val = int(0.1 * n)
+    train_paths = CLEAR_data[:n_train]
+    val_paths   = CLEAR_data[n_train:n_train + n_val]
+    # test  = CLEAR_data[n_train + n_val:]
+    train_dataset = datapipeline.tf_dataset_prep(train_paths, datapipeline.load_and_process_image, batch_size)
+    datapipeline.datapipeline_conclusion(train_dataset, batch_size)
+    val_dataset = datapipeline.tf_dataset_prep(val_paths, datapipeline.load_and_process_image, batch_size, shuffle=False)
+    datapipeline.datapipeline_conclusion(val_dataset, batch_size)
 
-df = DB.sql_select(sql)
-print('Total number of records in the table: ' + str(len(df)))
-train_paths = [ABS_DIR+i for i in df["image_path"].to_list()]
-train_dataset = datapipeline.tf_dataset_prep(train_paths, datapipeline.load_and_process_image, batch_size)
-datapipeline.datapipeline_conclusion(train_dataset, batch_size)
 
-# creating validation set
-sql = """
-    SELECT
-        id, batch, purpose, image_path, comments
-    FROM 
-        mmf_dataset_metadata
-    WHERE 
-        is_calibration = 0 AND purpose = 'testing' AND comments IS NULL
-"""
-df = DB.sql_select(sql)
-print('Total number of records in the table: ' + str(len(df)))
-val_paths = [ABS_DIR+i for i in df["image_path"].to_list()]
-val_paths = [val_paths[i] for i in range(0, len(val_paths), 5)]  # (take 20% of the data for validation, the rest will be used for testing, code for testing should corespond to this)
-val_dataset = datapipeline.tf_dataset_prep(val_paths, datapipeline.load_and_process_image, batch_size, shuffle=False)
-datapipeline.datapipeline_conclusion(val_dataset, batch_size)
 
 
 
