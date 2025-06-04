@@ -20,14 +20,14 @@ training.check_tensorflow_version()
 os.environ['TF_GPU_ALLOCATOR'] = 'cuda_malloc_async'
 current_date = datetime.now().strftime("%Y%m%d_%H%M")
 
-discribtion = "2024-08-15 dataset, with bottle neck of 2x2 feature maps"
+discribtion = "2024-08-15 dataset, with bottle neck of 4x4 feature maps"
 DATASET = "2024-08-15"
-dev_flag = False
+dev_flag = True
 
 
 if dev_flag:
-    ABS_DIR = f"C:/Users/qiyuanxu/Documents/DataHub/datasets/{DATASET}/"
-    SAVE_TO = f'C:/Users/qiyuanxu/Documents/DataHub/results/dev/{DATASET}_{current_date}/' 
+    ABS_DIR = f"C:/Users/xqiyuan/cernbox/Documents/DataHub/datasets/{DATASET}/"
+    SAVE_TO = f'C:/Users/xqiyuan/cernbox/Documents/DataHub/results/dev/{DATASET}_{current_date}/' 
 else:
     ABS_DIR = f'../dataset/{DATASET}/'
     SAVE_TO = f'../results/{DATASET}_{current_date}/' 
@@ -92,34 +92,20 @@ def Autoencoder(input_shape):
     downsample(128, 4),  # output batch_size, 64, 64, 128
     downsample(256, 4),  # output batch_size, 32, 32, 256 
     downsample(512, 4),  # output batch_size, 16, 16, 512
-    downsample(512, 4),  # output batch_size, 8, 8, 512
+    downsample(1024, 4),  # output batch_size, 8, 8, 1024
     downsample(1024, 4),  # output batch_size, 4, 4, 1024
-    downsample(1024, 4),  # output batch_size, 2, 2, 1024
-    downsample(1024, 4),  # output batch_size, 1, 1, 1024
     ] 
 
     decoder = [ 
-    upsample(1024, 4, apply_dropout=True),  # output batch_size, 2, 2, 1024
-    upsample(1024, 4, apply_dropout=True),  # output batch_size, 4, 4, 1024
-    upsample(512, 4, apply_dropout=True),  # output batch_size, 8, 8, 512
-    upsample(512, 4, apply_dropout=True),  # output batch_size, 16, 16, 512
-    upsample(256, 4, apply_dropout=True),  # output batch_size, 32, 32, 256
-    upsample(128, 4),  # output batch_size, 64, 64, 128
-    upsample(64, 4),  # output batch_size, 128, 128, 64
+    upsample(1024, 4, apply_dropout=True),  # output batch_size, 8, 8, 1024
+    upsample(1024, 4, apply_dropout=True),  # output batch_size, 16, 16, 1024
+    upsample(512, 4, apply_dropout=True),  # output batch_size, 32, 32, 512
+    upsample(256, 4),  # output batch_size, 64, 64, 256
+    upsample(128, 4),  # output batch_size, 128, 128, 128
+    upsample(64, 4),  # output batch_size, 256, -)  extra layer, actually can be merged with the 'Conv2D' below
     ]
     
-    initializer = tf.random_normal_initializer(0., 0.02)
-     # output batch_size, 256, 256, 1
-    last = tf.keras.layers.Conv2DTranspose(input_shape[-1], kernel_size=4, strides=2, 
-                                           kernel_initializer=initializer, activation='sigmoid', padding='same')   # activation='tanh'   activation='sigmoid'
-    
-    # initializer = tf.random_normal_initializer(0., 0.02)
-    # last = tf.keras.layers.Conv2DTranspose(input_shape[-1], 
-    #                                        kernel_size =4,
-    #                                        strides=2,
-    #                                        padding='same',
-    #                                        kernel_initializer=initializer,
-    #                                        activation='tanh')  # (batch_size, 256, 256, 1)
+    last = tf.keras.layers.Conv2D(input_shape[-1], kernel_size=4, activation='sigmoid', padding='same')   # activation='tanh'   activation='sigmoid'
     
     # without skip connections
     x = inputs 
@@ -131,33 +117,13 @@ def Autoencoder(input_shape):
     return tf.keras.Model(inputs=inputs, outputs=x) 
 
 
-    # with skip connections
-    # skips = []
-    # x = inputs 
-    
-    # for down in encoder:
-    #     x = down(x)
-    #     # print(x.shape)
-    #     skips.append(x)
-    # skips = reversed(skips[:-1])  # reversed(skips[:-1])
-    
-    # # x = decoder[0](x) # bottle neck layer direct connection, which is the last output from encoder to the first layer of decoder.
-    # for up, skip in zip(decoder, skips):
-    #     # print(x.shape, skip.shape)
-    #     x = up(x)
-    #     x = tf.keras.layers.Concatenate()([x, skip])
-    #     # print(x.shape)
-        
-    # x = last(x)
-    # # print(x.shape)
-    # return tf.keras.Model(inputs=inputs, outputs=x)
-    
 
 
 # ============================
 # Data Preparation
 # ============================
 
+print(DATABASE_ROOT)
 batch_size = 4
 DB = database.SQLiteDB(DATABASE_ROOT)
 
