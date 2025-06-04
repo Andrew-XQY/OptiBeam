@@ -27,7 +27,7 @@ dev_flag = False
 
 if dev_flag:
     ABS_DIR = f"C:/Users/qiyuanxu/Documents/DataHub/datasets/{DATASET}/"
-    SAVE_TO = f'C:/Users/qiyuanxu/Documents/DataHub/result/dev/{DATASET}_{current_date}/' 
+    SAVE_TO = f'C:/Users/qiyuanxu/Documents/DataHub/results/dev/{DATASET}_{current_date}/' 
 else:
     ABS_DIR = f'../dataset/{DATASET}/'
     SAVE_TO = f'../results/{DATASET}_{current_date}/' 
