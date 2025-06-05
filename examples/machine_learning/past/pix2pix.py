@@ -13,10 +13,19 @@ import numpy as np
 import datetime, time
 
 print(os.getcwd())
-
-DATASET = "2024-07-11"
-SAVE_TO = '../results/'
+current_date = datetime.datetime.now().strftime("%Y%m%d_%H%M")
+DATASET = "2024-08-15"
+# SAVE_TO = '../results/'
+# ABS_DIR = f"C:/Users/qiyuanxu/Documents/DataHub/datasets/{DATASET}/"
+SAVE_TO = f'C:/Users/xqiyuan/cernbox/Documents/DataHub/results/dev/{DATASET}_{current_date}/' 
 IMAGE_SHAPE = (256, 256, 1)
+
+log_save_path=SAVE_TO + "logs/"
+utils.check_and_create_folder(SAVE_TO)
+utils.check_and_create_folder(SAVE_TO+'models')
+utils.check_and_create_folder(log_save_path)
+
+
 
 # training.check_tensorflow_gpu() # check if the GPU is available
 training.check_tensorflow_gpu()
@@ -41,8 +50,8 @@ def image_generator(images):
         yield r.astype('float32') / 255.0, l.astype('float32') / 255.0
 
 
-train_images = read_images_as_grayscale(f'../dataset/{DATASET}/training')
-test_images = read_images_as_grayscale(f'../dataset/{DATASET}/test')
+train_images = read_images_as_grayscale(f'C:/Users/xqiyuan/cernbox/Documents/DataHub/datasets/2024-08-15/dataset/1')
+test_images = read_images_as_grayscale(f'C:/Users/xqiyuan/cernbox/Documents/DataHub/datasets/2024-08-15/dataset/2')
 
 # Create datasets using the from_generator method
 shape = [1, *IMAGE_SHAPE]
@@ -136,7 +145,7 @@ def fit(train_ds, test_ds, steps):
             if step != 0:
                 print(f'Time taken for 1000 steps: {time.time()-start:.2f} sec\n')
             start = time.time()
-            model.generate_images(generator, example_input, example_target, save_path=SAVE_TO + "evaluations/")
+            model.generate_images(generator, example_input, example_target, save_path=SAVE_TO + "logs/")
             print(f"Step: {step//1000}k")
         train_step(input_image, target, step)
         # Training step
