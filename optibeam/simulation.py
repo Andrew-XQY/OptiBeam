@@ -7,7 +7,11 @@ from abc import ABC, abstractmethod
 from scipy.stats import beta
 from PIL import Image
 from collections import deque
-from collections.abc import Iterable
+# from collections.abc import Iterable
+
+from typing import Iterable, Callable, Generator
+import numpy as np
+
 
 class DynamicPatterns:
     """
