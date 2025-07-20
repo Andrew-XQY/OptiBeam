@@ -207,7 +207,7 @@ def sum_dict_values(d):
     return sum(abs(value) for value in d.values())
 
 
-def batch_evaluation(test_dataset: Iterable, model: tf.keras.Model, save_path: str=None) -> pd.DataFrame:
+def batch_evaluation(test_dataset: Iterable, model: tf.keras.Model, save_path: str=None, flip_order=False) -> pd.DataFrame:
     """inference on the test dataset and return the results in a pandas DataFrame.
 
     Args:
@@ -222,8 +222,12 @@ def batch_evaluation(test_dataset: Iterable, model: tf.keras.Model, save_path: s
     for path in tqdm(test_dataset):
         # preprocess the image
         img = load_image_as_narray(path)
+        img = rgb_to_grayscale(img)
         img = image_normalize(img)
-        tar, inp = split_image(img)
+        if flip_order:
+            inp, tar = split_image(img)
+        else:
+            tar, inp = split_image(img)
         # apply the trained model to the testset and get results
         reconstruction = model.predict(np.expand_dims(np.expand_dims(inp, axis=0), axis=-1), verbose=0) 
         if save_path:

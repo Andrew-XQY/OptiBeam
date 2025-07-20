@@ -624,26 +624,51 @@ def rgb_to_grayscale(narray_img: np.array) -> np.array:
         raise ValueError("Input array must be either a 2D grayscale or a 3D color image array")
 
 
-def crop_images(image: np.array, regions: list[tuple]) -> list[np.array]:
+# def crop_images(image: np.array, regions: list[tuple]) -> list[np.array]:
+#     """
+#     Crop multiple regions from an image.
+
+#     Args:
+#     image (np.array): The input image as a NumPy array.
+#     regions (list of tuples): Each tuple contains two tuples, 
+#                               defining the top-left and bottom-right 
+#                               corners of the rectangle to crop (e.g., ((0,0), (66,66))).
+
+#     Returns:
+#     list: A list of np.array, each being a cropped region from the input image.
+#     """
+#     cropped_images = []
+#     for region in regions:
+#         top_left, bottom_right = region
+#         # Crop the image using array slicing
+#         cropped_image = image[top_left[1]:bottom_right[1], top_left[0]:bottom_right[0]]
+#         cropped_images.append(cropped_image)
+    
+#     return cropped_images
+
+def crop_images(
+    image: np.ndarray,
+    regions: List[Tuple[Tuple[int, int], Tuple[int, int]]],
+) -> List[np.ndarray]:
     """
     Crop multiple regions from an image.
 
     Args:
-    image (np.array): The input image as a NumPy array.
-    regions (list of tuples): Each tuple contains two tuples, 
-                              defining the top-left and bottom-right 
-                              corners of the rectangle to crop (e.g., ((0,0), (66,66))).
+      image (np.ndarray): The input image as a NumPy array.
+      regions (List[Tuple[Tuple[int, int], Tuple[int, int]]]):
+          Each tuple contains two tuples, defining the top-left and
+          bottom-right corners of the rectangle to crop (e.g., ((0,0), (66,66))).
 
     Returns:
-    list: A list of np.array, each being a cropped region from the input image.
+      List[np.ndarray]: A list of np.ndarray, each being a cropped region.
     """
     cropped_images = []
-    for region in regions:
-        top_left, bottom_right = region
-        # Crop the image using array slicing
-        cropped_image = image[top_left[1]:bottom_right[1], top_left[0]:bottom_right[0]]
+    for top_left, bottom_right in regions:
+        cropped_image = image[
+            top_left[1] : bottom_right[1],
+            top_left[0] : bottom_right[0]
+        ]
         cropped_images.append(cropped_image)
-    
     return cropped_images
 
 
