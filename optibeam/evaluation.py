@@ -222,6 +222,7 @@ def batch_evaluation(test_dataset: Iterable, model: tf.keras.Model, save_path: s
     for path in tqdm(test_dataset):
         # preprocess the image
         img = load_image_as_narray(path)
+        img = rgb_to_grayscale(img)
         img = image_normalize(img)
         tar, inp = split_image(img)
         # apply the trained model to the testset and get results
