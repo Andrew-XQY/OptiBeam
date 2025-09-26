@@ -1,8 +1,10 @@
+from typing import TYPE_CHECKING
 from .utils import *
 from .evaluation import *
 import matplotlib.pyplot as plt
 import matplotlib.patches
-import tensorflow as tf
+if TYPE_CHECKING:
+    import tensorflow as tf
 import json
 from datetime import datetime
 from sklearn.model_selection import train_test_split

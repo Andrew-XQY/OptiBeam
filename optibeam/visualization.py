@@ -1,9 +1,11 @@
+from typing import TYPE_CHECKING
 from .utils import *
 from io import BytesIO
 from sklearn.decomposition import PCA
 # from moviepy.editor import ImageSequenceClip
 # from moviepy import ImageSequenceClip
-from moviepy.editor import ImageSequenceClip
+if TYPE_CHECKING:
+    from moviepy.editor import ImageSequenceClip
 
 from scipy.stats import norm
 from datetime import datetime

@@ -1,7 +1,9 @@
+from typing import TYPE_CHECKING
 from .utils import *
 import matplotlib.pyplot as plt
 import pandas as pd
-import tensorflow as tf
+if TYPE_CHECKING:
+    import tensorflow as tf
 from scipy.optimize import curve_fit
 from scipy.stats import pearsonr
 from skimage.metrics import structural_similarity 
@@ -207,7 +209,7 @@ def sum_dict_values(d):
     return sum(abs(value) for value in d.values())
 
 
-def batch_evaluation(test_dataset: Iterable, model: tf.keras.Model, save_path: str=None, flip_order=False) -> pd.DataFrame:
+def batch_evaluation(test_dataset: Iterable, model, save_path: str=None, flip_order=False) -> pd.DataFrame:
     """inference on the test dataset and return the results in a pandas DataFrame.
 
     Args:

@@ -21,8 +21,8 @@ def ptp_sync(cameras):
     plt.title('PTP Time sychronization between Cameras')
     plt.xlabel('Time')
     plt.ylabel('Offset from Master')
-    # Displaying the plot
-    plt.savefig('../../ResultsCenter/sync/timeshift.png')
+    # Displaying the plot4
+    plt.savefig('../../Temp/sync/timeshift.png')
 
 def print_cam_status(cameras):
     for cam in cameras:

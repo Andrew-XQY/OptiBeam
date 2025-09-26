@@ -38,6 +38,8 @@ conf = {
 
 # [((871, 432), (1031, 592)), ((2867, 446), (3059, 638))]
 
+
+
 # ============================
 # Hardware/Software Initialization
 # ============================
@@ -123,19 +125,19 @@ queue = []
 #               'other_notes':{key: value for key, value in conf.items() if 'sim' in key},
 #               'data':simulation.temporal_shift(conf['temporal_shift_freq'])(simulation.canvas_generator)(CANVAS, conf),
 #               'len':conf['number_of_images'] + utils.ceil_int_div(conf['number_of_images'], conf['temporal_shift_freq'])}) 
-queue.append({'experiment_description':'local real beam image for evaluation',
-              'purpose':'testing',
-              'images_per_sample':2,
-              'image_source':'e-beam',
-              'is_params':True,
-              'data':simulation.temporal_shift(conf['temporal_shift_freq'])(simulation.read_local_generator)(paths, process_funcs),
-              'len':len(paths) + utils.ceil_int_div(len(paths), conf['temporal_shift_freq'])}) 
-# queue.append({'experiment_description':'MINST for fun',
-#               'purpose':'fun',
+# queue.append({'experiment_description':'local real beam image for evaluation',
+#               'purpose':'testing',
 #               'images_per_sample':2,
-#               'image_source':'MINST',
-#               'data':simulation.temporal_shift(conf['temporal_shift_freq'])(utils.identity)(imgs_array),
-#               'len':minst_len + utils.ceil_int_div(minst_len, conf['temporal_shift_freq'])}) 
+#               'image_source':'e-beam',
+#               'is_params':True,
+#               'data':simulation.temporal_shift(conf['temporal_shift_freq'])(simulation.read_local_generator)(paths, process_funcs),
+#               'len':len(paths) + utils.ceil_int_div(len(paths), conf['temporal_shift_freq'])}) 
+queue.append({'experiment_description':'MINST for fun',
+              'purpose':'fun',
+              'images_per_sample':2,
+              'image_source':'MINST',
+              'data':simulation.temporal_shift(conf['temporal_shift_freq'])(utils.identity)(imgs_array),
+              'len':minst_len + utils.ceil_int_div(minst_len, conf['temporal_shift_freq'])}) 
 
 
 # ============================
