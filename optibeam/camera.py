@@ -230,6 +230,8 @@ class MultiBaslerCameraManager:
         for i in range(len(devices)):  
             camera = pylon.InstantCamera(self.tlFactory.CreateDevice(devices[i]))
             camera.Open()
+            camera.ExposureAuto.SetValue('Off')  # Disable auto exposure for manual control
+            camera.GainAuto.SetValue('Off')      # Disable auto gain for manual control
             camera.AcquisitionFrameRateEnable.Value = True
             camera.AcquisitionFrameRateAbs.Value = 20.0  # set an initial frame rate
             self.cameras.append(camera)        

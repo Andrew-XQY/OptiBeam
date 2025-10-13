@@ -20,8 +20,9 @@ class CameraCapture:
         print(''.join(['-']*50))
     
     
-    def __init__(self):
+    def __init__(self, camera_index=0):
         self.camera = None
+        self.camera_index = camera_index
         self.open_camera()
         self.converter = pylon.ImageFormatConverter()
         # Setting the converter to output mono8 images for simplicity
@@ -46,7 +47,12 @@ class CameraCapture:
                 self.camera.Close()
             except Exception:
                 pass
-        self.camera = pylon.InstantCamera(pylon.TlFactory.GetInstance().CreateFirstDevice())
+        tl_factory = pylon.TlFactory.GetInstance()
+        devices = tl_factory.EnumerateDevices()
+        if self.camera_index < len(devices):
+            self.camera = pylon.InstantCamera(tl_factory.CreateDevice(devices[self.camera_index]))
+        else:
+            raise ValueError(f"Camera index {self.camera_index} not found. Available cameras: {len(devices)}")
         self.camera.Open()
     
     def capture(self):
@@ -109,12 +115,12 @@ def mouse_callback(event, x, y, flags, param):
 
 
 # Display the image with the red box and magnified area
-def display_image(save_to='', scale_factor=0.65, intensity_monitor=False):
+def display_image(save_to='', scale_factor=0.65, intensity_monitor=False, camera_index=0):
     
     coupling = processing.IntensityMonitor()
     
     parent_directory = os.path.dirname(os.path.realpath(__file__))
-    camera_capture = CameraCapture()
+    camera_capture = CameraCapture(camera_index=camera_index)
     cv2.namedWindow('Camera Output')
     cv2.setMouseCallback('Camera Output', mouse_callback)
     
@@ -177,12 +183,13 @@ DMD_DIM = 1024
 if __name__ == "__main__":
     DMD = dmd.ViALUXDMD(ALP4(version = '4.3'))
     # calibration_img = simulation.generate_radial_gradient()
-    calibration_img = np.ones((256, 256)) * 255
+    calibration_img = np.ones((256, 256)) * 100  # 0-255 grayscale
+    # calibration_img = simulation.generate_upward_arrow()
     # calibration_img = simulation.dmd_calibration_pattern_generation()
     calibration_img = simulation.macro_pixel(calibration_img, size=int(DMD_DIM/calibration_img.shape[0])) 
     DMD.display_image(dmd.dmd_img_adjustment(calibration_img, DMD_DIM)) # preload one image for camera calibration
 
     click_position = None
-    display_image('results')
+    display_image('results', camera_index=0)  # Use camera_index=0 for first camera, camera_index=1 for second camera
 
 

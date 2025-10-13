@@ -23,11 +23,11 @@ conf = {
     'number_of_minst': 100,
     'temporal_shift_freq': 50,  # simulation: temporal shift frequency   
     'dmd_dim': 1024,  # DMD working square area resolution
-    'dmd_rotation': 47+90,  # DMD rotation angle for image orientation correction
+    'dmd_rotation': 44+270,  # DMD rotation angle for image orientation correction
     'dmd_bitDepth': 8,  # DMD bit depth
     'dmd_picture_time': 20000,  # DMD picture time in microseconds, corresponds to 50 Hz -> 20000, 10 Hz -> 100000
     'dmd_alp_version': '4.3',  # DMD ALP version
-    'crop_areas': [((868, 433), (1028, 593)), ((2762, 343), (3216, 797))],  # crop areas for the camera images
+    'crop_areas': [((861, 452), (1159, 750)), ((2327, 97), (3019, 789))],  # crop areas for the camera images
     'sim_pattern_max_num': 100,  # simulation: maximum number of distributions in the simulation
     'sim_fade_rate': 0.96,  # simulation: the probability of a distribution to disappear
     'sim_std_1': 0.02, # simulation: lower indication of std   0.03
@@ -37,7 +37,7 @@ conf = {
 }
 
 # [((871, 432), (1031, 592)), ((2867, 446), (3059, 638))]
-
+# [((836, 512), (1024, 700)), ((2315, 97), (3035, 817))] 
 
 
 # ============================
@@ -48,7 +48,8 @@ DMD = dmd.ViALUXDMD(ALP4(version = conf['dmd_alp_version']))
 DMD.set_pictureTime(conf['dmd_picture_time'])
 # generate_upward_arrow(), dmd_calibration_pattern_generation()   generate_circle_fiber_coupling_pattern(line_width=20)
 # calibration_img = np.ones((256, 256)) * 100
-calibration_img = simulation.generate_radial_gradient()
+calibration_img = simulation.generate_upward_arrow()
+# calibration_img = simulation.dmd_calibration_pattern_generation()
 calibration_img = simulation.macro_pixel(calibration_img, size=int(conf['dmd_dim']/calibration_img.shape[0])) 
 DMD.display_image(dmd.dmd_img_adjustment(calibration_img, conf['dmd_dim'], angle=conf['dmd_rotation'])) # preload for calibration
 # Cameras Initialization
@@ -68,7 +69,7 @@ if conf['config_crop_area']:
     DMD.display_image(dmd.dmd_img_adjustment(calibration_img, conf['dmd_dim'], angle=conf['dmd_rotation'])) # preload for calibration
     test_img = MANAGER.schedule_action_command(conf['cam_schedule_time']) # schedule for milliseconds later
     test_img = processing.add_grid(test_img, partitions=50)
-    crop_areas = processing.select_crop_areas_corner(test_img, num=2, scale_factor=0.6) 
+    crop_areas = processing.select_crop_areas_corner(test_img, num=2, scale_factor=0.4) 
     sys.exit(f"Crop areas selected: {crop_areas} \nProcedure completed.")
 
 
@@ -125,19 +126,19 @@ queue = []
 #               'other_notes':{key: value for key, value in conf.items() if 'sim' in key},
 #               'data':simulation.temporal_shift(conf['temporal_shift_freq'])(simulation.canvas_generator)(CANVAS, conf),
 #               'len':conf['number_of_images'] + utils.ceil_int_div(conf['number_of_images'], conf['temporal_shift_freq'])}) 
-# queue.append({'experiment_description':'local real beam image for evaluation',
-#               'purpose':'testing',
-#               'images_per_sample':2,
-#               'image_source':'e-beam',
-#               'is_params':True,
-#               'data':simulation.temporal_shift(conf['temporal_shift_freq'])(simulation.read_local_generator)(paths, process_funcs),
-#               'len':len(paths) + utils.ceil_int_div(len(paths), conf['temporal_shift_freq'])}) 
-queue.append({'experiment_description':'MINST for fun',
-              'purpose':'fun',
+queue.append({'experiment_description':'local real beam image for evaluation',
+              'purpose':'testing',
               'images_per_sample':2,
-              'image_source':'MINST',
-              'data':simulation.temporal_shift(conf['temporal_shift_freq'])(utils.identity)(imgs_array),
-              'len':minst_len + utils.ceil_int_div(minst_len, conf['temporal_shift_freq'])}) 
+              'image_source':'e-beam',
+              'is_params':True,
+              'data':simulation.temporal_shift(conf['temporal_shift_freq'])(simulation.read_local_generator)(paths, process_funcs),
+              'len':len(paths) + utils.ceil_int_div(len(paths), conf['temporal_shift_freq'])}) 
+# queue.append({'experiment_description':'MINST for fun',
+#               'purpose':'fun',
+#               'images_per_sample':2,
+#               'image_source':'MINST',
+#               'data':simulation.temporal_shift(conf['temporal_shift_freq'])(utils.identity)(imgs_array),
+#               'len':minst_len + utils.ceil_int_div(minst_len, conf['temporal_shift_freq'])}) 
 
 
 # ============================

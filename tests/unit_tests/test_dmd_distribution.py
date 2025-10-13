@@ -10,9 +10,12 @@ canvas = simulation.DynamicPatterns(*(dim, dim))
 canvas._distributions = [simulation.GaussianDistribution(canvas) for _ in range(10)]
 
 for i in range(1000000):
-    canvas.update()
-    img = canvas.get_image()
-    img = simulation.pixel_value_remap(img)
+    # canvas.update()
+    # img = canvas.get_image()
+    # img = simulation.pixel_value_remap(img)
+    # img = simulation.macro_pixel(img, size=int(1024/dim))
+    
+    img = np.ones((256, 256)) * 100
     img = simulation.macro_pixel(img, size=int(1024/dim))
     # img = np.tile(np.linspace(0, 255, 1024, dtype=np.uint8), (1024, 1))
     scale = 1 / np.sqrt(2)
@@ -23,7 +26,7 @@ for i in range(1000000):
                                    borderValue=(0, 0, 0))
 
     DMD.display_image(img)
-    # time.sleep(0.1)
+    time.sleep(0.5)
     
 DMD.end()
 
