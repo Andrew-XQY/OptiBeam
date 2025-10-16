@@ -230,8 +230,15 @@ class MultiBaslerCameraManager:
         for i in range(len(devices)):  
             camera = pylon.InstantCamera(self.tlFactory.CreateDevice(devices[i]))
             camera.Open()
-            camera.ExposureAuto.SetValue('Off')  # Disable auto exposure for manual control
-            camera.GainAuto.SetValue('Off')      # Disable auto gain for manual control
+            
+            # Disable auto exposure for manual control
+            camera.ExposureAuto.Value = 'Off'
+            print(f"Camera {i}: ExposureAuto current value: {camera.ExposureAuto.Value}")
+            
+            # Disable auto gain for manual control
+            camera.GainAuto.Value = 'Off'
+            print(f"Camera {i}: GainAuto current value: {camera.GainAuto.Value}")
+            
             camera.AcquisitionFrameRateEnable.Value = True
             camera.AcquisitionFrameRateAbs.Value = 20.0  # set an initial frame rate
             self.cameras.append(camera)        
@@ -271,6 +278,8 @@ class MultiBaslerCameraManager:
         for cam in self.cameras:
             info = cam.GetDeviceInfo()
             print("Using %s @ %s @ %s" % (info.GetModelName(), info.GetSerialNumber(), info.GetIpAddress()))
+            print("ExposureAuto:", cam.ExposureAuto.Value)
+            print("GainAuto:", cam.GainAuto.Value)
             print("ActionGroupKey:", hex(cam.ActionGroupKey.Value))
             print("ActionGroupMask:", hex(cam.ActionGroupMask.Value))
             print("TriggerSource:", cam.TriggerSource.Value)
