@@ -101,9 +101,69 @@ def calculate_image_sharpness(image):
     return focus_measure
 
 
-def calculate_maximum_intensity(image):
-    # Return the maximum intensity of the image
-    return np.max(image)
+def get_camera_parameters(camera):
+    """
+    Get camera core parameters that affect the image
+    
+    Args:
+        camera: pylon.InstantCamera
+        
+    Returns:
+        dict: camera parameters
+    """
+    return {
+        'Exposure (ms)': f'{camera.ExposureTimeRaw.Value / 1000:.2f}',
+        'Gain': f'{camera.GainRaw.Value}',
+        'Gamma': f'{camera.Gamma.Value:.2f}'
+    }
+
+
+def analyze_frame_properties(image, normalize_range=(0, 100), peak_buffer=None):
+    """
+    Analyze frame properties and normalize them to a specified range
+    
+    Args:
+        image: np.ndarray
+        normalize_range: tuple, default (0, 100)
+        peak_buffer: dict, optional buffer to track maximum values ever reached
+    
+    Returns:
+        dict: frame properties with normalized values
+    """
+    max_pixel = np.max(image)
+    total_sum = np.sum(image, dtype=np.float64)
+    
+    # Normalize to the specified range
+    min_val, max_val = normalize_range
+    
+    # Normalize max pixel value (assuming 8-bit or 16-bit images)
+    max_possible = 255 if image.dtype == np.uint8 else 65535
+    normalized_max = min_val + (max_pixel / max_possible) * (max_val - min_val)
+    
+    # Normalize total sum (based on theoretical maximum)
+    max_possible_sum = image.size * max_possible
+    normalized_sum = min_val + (total_sum / max_possible_sum) * (max_val - min_val)
+    
+    properties = {
+        'Max Pixel Value': f'{normalized_max:.2f}',
+        'Total Sum': f'{normalized_sum:.2f}'
+    }
+    
+    # Track peak values if buffer is provided
+    if peak_buffer is not None:
+        # Update peak max pixel value
+        if 'peak_max_pixel' not in peak_buffer or normalized_max > peak_buffer['peak_max_pixel']:
+            peak_buffer['peak_max_pixel'] = normalized_max
+        
+        # Update peak total sum
+        if 'peak_total_sum' not in peak_buffer or normalized_sum > peak_buffer['peak_total_sum']:
+            peak_buffer['peak_total_sum'] = normalized_sum
+        
+        # Add peak values to properties
+        properties['Peak Max Pixel'] = f'{peak_buffer["peak_max_pixel"]:.2f}'
+        properties['Peak Total Sum'] = f'{peak_buffer["peak_total_sum"]:.2f}'
+    
+    return properties
 
 
 # Mouse callback function
@@ -115,7 +175,7 @@ def mouse_callback(event, x, y, flags, param):
 
 
 # Display the image with the red box and magnified area
-def display_image(save_to='', scale_factor=0.65, intensity_monitor=False, camera_index=0):
+def display_image(save_to='', scale_factor=0.5, intensity_monitor=False, camera_index=0, text_scale=1.0):
     
     coupling = processing.IntensityMonitor()
     
@@ -127,10 +187,17 @@ def display_image(save_to='', scale_factor=0.65, intensity_monitor=False, camera
     cv2.createTrackbar('Exposure time (ms)', 'Camera Output', 50, 500, 
                        lambda x: camera_capture.camera.ExposureTimeRaw.SetValue(x*1000))  # miniseconds
     
+    # Initialize peak buffer to track maximum values
+    peak_buffer = {}
+    frame_count = 0
+    warmup_frames = 50  # Skip first 100 frames before tracking peaks
+    
     try:
         for img in camera_capture.capture():
             resized_img = image_resize(img, scale_factor)  # only for display, not for saving
-            sharpness = calculate_maximum_intensity(resized_img)
+            frame_count += 1
+            # Only pass peak_buffer after warmup period
+            properties = analyze_frame_properties(resized_img, peak_buffer=peak_buffer if frame_count > warmup_frames else None)
             if click_position:
                 # Parameters for the red box and magnified area
                 box_size = 170  # Size of the red box
@@ -153,12 +220,27 @@ def display_image(save_to='', scale_factor=0.65, intensity_monitor=False, camera
                 # Overlay the magnified image on the top left corner of the original image
                 resized_img[0:magnified_img.shape[0], 0:magnified_img.shape[1]] = magnified_img
                 
-                sharpness = calculate_maximum_intensity(magnified_img)
+                properties = analyze_frame_properties(magnified_img, peak_buffer=peak_buffer if frame_count > warmup_frames else None)
             
-            sharpness_text = f"Intensity: {sharpness:.2f}"
+            # Display the properties on the image (top left, white)
+            y_position = int(30 * text_scale)
+            line_spacing = int(35 * text_scale)
+            thickness = max(1, int(2 * text_scale))
+            for key, value in properties.items():
+                text = f'{key}: {value}'
+                cv2.putText(resized_img, text, (10, y_position), cv2.FONT_HERSHEY_SIMPLEX, text_scale, (255, 255, 255), thickness)
+                y_position += line_spacing
             
-            # Display the text on the image
-            cv2.putText(resized_img, sharpness_text, (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
+            # Display camera parameters on the image (bottom right, blue)
+            camera_params = get_camera_parameters(camera_capture.camera)
+            y_position = resized_img.shape[0] - int(20 * text_scale)  # Start from bottom
+            for key, value in reversed(list(camera_params.items())):
+                text = f'{key}: {value}'
+                text_size = cv2.getTextSize(text, cv2.FONT_HERSHEY_SIMPLEX, text_scale, thickness)[0]
+                x_position = resized_img.shape[1] - text_size[0] - 10  # Right aligned
+                cv2.putText(resized_img, text, (x_position, y_position), cv2.FONT_HERSHEY_SIMPLEX, text_scale, (255, 0, 0), thickness)
+                y_position -= line_spacing
+            
             if intensity_monitor:
                     intensity = coupling.add_image(resized_img)
                     resized_img = utils.join_images([resized_img,intensity])
@@ -183,13 +265,13 @@ DMD_DIM = 1024
 if __name__ == "__main__":
     DMD = dmd.ViALUXDMD(ALP4(version = '4.3'))
     # calibration_img = simulation.generate_radial_gradient()
-    calibration_img = np.ones((256, 256)) * 100  # 0-255 grayscale
+    calibration_img = np.ones((256, 256)) * 255  # 0-255 grayscale
     # calibration_img = simulation.generate_upward_arrow()
     # calibration_img = simulation.dmd_calibration_pattern_generation()
     calibration_img = simulation.macro_pixel(calibration_img, size=int(DMD_DIM/calibration_img.shape[0])) 
-    DMD.display_image(dmd.dmd_img_adjustment(calibration_img, DMD_DIM)) # preload one image for camera calibration
+    DMD.display_image(dmd.dmd_img_adjustment(calibration_img, DMD_DIM, angle=38)) # preload one image for camera calibration
 
     click_position = None
-    display_image('results', camera_index=0)  # Use camera_index=0 for first camera, camera_index=1 for second camera
+    display_image('results', camera_index=0, text_scale=1, scale_factor=0.6)  # Use camera_index=0 for first camera, camera_index=1 for second camera
 
 

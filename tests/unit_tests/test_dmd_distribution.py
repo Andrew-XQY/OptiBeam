@@ -20,7 +20,7 @@ for i in range(1000000):
     # img = np.tile(np.linspace(0, 255, 1024, dtype=np.uint8), (1024, 1))
     scale = 1 / np.sqrt(2)
     center = (1024 // 2, 1024 // 2)
-    M = cv2.getRotationMatrix2D(center, 45, scale)
+    M = cv2.getRotationMatrix2D(center, 42, scale)
     img = cv2.warpAffine(img, M, (1024, 1024), 
                                    borderMode=cv2.BORDER_CONSTANT, 
                                    borderValue=(0, 0, 0))

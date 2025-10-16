@@ -77,10 +77,10 @@ if __name__ == "__main__":
     # ============================
     conf = {
         'dmd_dim': 1024,  # DMD working square area resolution
-        'dmd_rotation': 47+90,  # DMD rotation angle for image orientation correction
+        'dmd_rotation': 38,  # DMD rotation angle for image orientation correction
         'dmd_bitDepth': 8,  # DMD bit depth
         'dmd_picture_time': 20000,  # DMD picture time in microseconds, corresponds to 50 Hz
-        'crop_areas': [((889, 537), (1013, 661)), ((2327, 92), (3025, 790))]   # crop areas for the camera images
+        'crop_areas': [((869, 612), (1003, 746)), ((2295, 2), (3487, 1194))]    # crop areas for the camera images
     }
 
     # Create a stop event for graceful termination

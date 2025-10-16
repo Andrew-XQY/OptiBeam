@@ -144,19 +144,55 @@ class MultiBaslerCameraManager:
         font = cv2.FONT_HERSHEY_SIMPLEX
         cv2.putText(img, str(label), (10, 50), font, 2, (255, 255, 255), 2)
         
-    def _plot_max_pixel(self, img: np.ndarray) -> None:
+    def _img_analyze(self, img: np.ndarray, normalize_range: tuple = (0, 100)) -> dict:
         """
-        Get the max pixel value of the image and plot on the image
+        Analyze frame properties and normalize them to a specified range
         
         Args:
             img: np.ndarray
+            normalize_range: tuple, default (0, 100)
+        
+        Returns:
+            dict: frame properties with normalized values
+        """
+        max_pixel = np.max(img)
+        total_sum = np.sum(img, dtype=np.float64)
+        
+        # Normalize to the specified range
+        min_val, max_val = normalize_range
+        
+        # Normalize max pixel value (assuming 8-bit or 16-bit images)
+        max_possible = 255 if img.dtype == np.uint8 else 65535
+        normalized_max = min_val + (max_pixel / max_possible) * (max_val - min_val)
+        
+        # Normalize total sum (based on theoretical maximum)
+        max_possible_sum = img.size * max_possible
+        normalized_sum = min_val + (total_sum / max_possible_sum) * (max_val - min_val)
+        
+        return {
+            'Max Pixel Value': f'{normalized_max:.2f}',
+            'Total Sum': f'{normalized_sum:.2f}'
+        }
+        
+    def _plot_frame_properties(self, img: np.ndarray, properties: dict) -> None:
+        """
+        Plot frame properties on the image based on a dictionary
+        
+        Args:
+            img: np.ndarray
+            properties: dict, key-value pairs of properties to display
         
         Returns:
             None
         """
         font = cv2.FONT_HERSHEY_SIMPLEX
-        max_pixel = 'Max pixel value: ' + str(np.max(img))
-        cv2.putText(img, max_pixel, (10, 100), font, 2, (255, 255, 255), 2)
+        y_position = 100  # Starting y position
+        line_spacing = 50  # Spacing between lines
+        
+        for key, value in properties.items():
+            text = f'{key}: {value}'
+            cv2.putText(img, text, (10, y_position), font, 2, (255, 255, 255), 2)
+            y_position += line_spacing
     
     def _set_config(self) -> None:
         """
@@ -183,9 +219,11 @@ class MultiBaslerCameraManager:
             imgs = [grabResult.GetArray() for grabResult in grabResults]
             if len(grabResults) > 1:
                 combined_image = imgs[0]
-                self._plot_max_pixel(combined_image)
+                properties = self._img_analyze(combined_image)
+                self._plot_frame_properties(combined_image, properties)
                 for img in imgs[1:]:
-                    self._plot_max_pixel(img)
+                    properties = self._img_analyze(img)
+                    self._plot_frame_properties(img, properties)
                     combined_image = self._combine_images(combined_image, img) 
                     self._plot_image_label(combined_image, 'Ground Truth')
                 cv2.imshow('Acquisition', combined_image)

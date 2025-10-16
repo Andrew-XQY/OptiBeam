@@ -14,7 +14,7 @@ import traceback
 # Dataset Parameters
 # ============================
 conf = {
-    'config_crop_area': False, 
+    'config_crop_area': True, 
     'camera_order_flip': True,  # camera order flip
     'cam_schedule_time': int(300 * 1e6),  # camera schedule time in milliseconds
     'base_resolution': (256, 256),  # base resolution for all images
@@ -23,11 +23,11 @@ conf = {
     'number_of_minst': 100,
     'temporal_shift_freq': 50,  # simulation: temporal shift frequency   
     'dmd_dim': 1024,  # DMD working square area resolution
-    'dmd_rotation': 44+270,  # DMD rotation angle for image orientation correction
+    'dmd_rotation': 38 +270,  # DMD rotation angle for image orientation correction
     'dmd_bitDepth': 8,  # DMD bit depth
     'dmd_picture_time': 20000,  # DMD picture time in microseconds, corresponds to 50 Hz -> 20000, 10 Hz -> 100000
     'dmd_alp_version': '4.3',  # DMD ALP version
-    'crop_areas': [((732, 425), (954, 647)), ((2615, 228), (3397, 1010))],  # crop areas for the camera images
+    'crop_areas': [((869, 612), (1003, 746)), ((2295, 2), (3487, 1194))],  # crop areas for the camera images
     'sim_pattern_max_num': 100,  # simulation: maximum number of distributions in the simulation
     'sim_fade_rate': 0.96,  # simulation: the probability of a distribution to disappear
     'sim_std_1': 0.02, # simulation: lower indication of std   0.03
@@ -35,9 +35,6 @@ conf = {
     'sim_max_intensity': 100, # simulation: peak pixel intensity in a single distribution
     'sim_dim': 512,   # simulation: simulated image resolution
 }
-
-# [((871, 432), (1031, 592)), ((2867, 446), (3059, 638))]
-# [((836, 512), (1024, 700)), ((2315, 97), (3035, 817))] 
 
 
 # ============================
