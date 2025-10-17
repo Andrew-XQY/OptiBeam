@@ -23,7 +23,7 @@ conf = {
     'number_of_minst': 100,
     'temporal_shift_freq': 50,  # simulation: temporal shift frequency   
     'dmd_dim': 1024,  # DMD working square area resolution
-    'dmd_rotation': 38 +270,  # DMD rotation angle for image orientation correction
+    'dmd_rotation': DMD_ROTATION_ANGLE,  # DMD rotation angle for image orientation correction
     'dmd_bitDepth': 8,  # DMD bit depth
     'dmd_picture_time': 20000,  # DMD picture time in microseconds, corresponds to 50 Hz -> 20000, 10 Hz -> 100000
     'dmd_alp_version': '4.3',  # DMD ALP version

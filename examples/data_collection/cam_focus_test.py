@@ -269,7 +269,7 @@ if __name__ == "__main__":
     # calibration_img = simulation.generate_upward_arrow()
     # calibration_img = simulation.dmd_calibration_pattern_generation()
     calibration_img = simulation.macro_pixel(calibration_img, size=int(DMD_DIM/calibration_img.shape[0])) 
-    DMD.display_image(dmd.dmd_img_adjustment(calibration_img, DMD_DIM, angle=38)) # preload one image for camera calibration
+    DMD.display_image(dmd.dmd_img_adjustment(calibration_img, DMD_DIM, angle=DMD_ROTATION_ANGLE)) # preload one image for camera calibration
 
     click_position = None
     display_image('results', camera_index=0, text_scale=1, scale_factor=0.6)  # Use camera_index=0 for first camera, camera_index=1 for second camera

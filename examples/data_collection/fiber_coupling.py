@@ -7,8 +7,86 @@ from pypylon import pylon
 import numpy as np
 
 # ----------------------------
-# Helpers (display-safe resizes)
+# Helpers (analysis and display)
 # ----------------------------
+def get_camera_parameters(camera):
+    """
+    Get camera core parameters that affect the image
+    
+    Args:
+        camera: pylon.InstantCamera
+        
+    Returns:
+        dict: camera parameters
+    """
+    params = {}
+    try:
+        if hasattr(camera, "ExposureTimeRaw"):
+            params['Exposure (ms)'] = f'{camera.ExposureTimeRaw.Value / 1000:.2f}'
+        elif hasattr(camera, "ExposureTime"):
+            params['Exposure (ms)'] = f'{camera.ExposureTime.Value / 1000:.2f}'
+        
+        if hasattr(camera, "GainRaw"):
+            params['Gain'] = f'{camera.GainRaw.Value}'
+        elif hasattr(camera, "Gain"):
+            params['Gain'] = f'{camera.Gain.Value:.2f}'
+        
+        if hasattr(camera, "Gamma"):
+            params['Gamma'] = f'{camera.Gamma.Value:.2f}'
+    except Exception as e:
+        print(f"Error getting camera parameters: {e}")
+    
+    return params
+
+
+def analyze_frame_properties(image, normalize_range=(0, 100), peak_buffer=None):
+    """
+    Analyze frame properties and normalize them to a specified range
+    
+    Args:
+        image: np.ndarray
+        normalize_range: tuple, default (0, 100)
+        peak_buffer: dict, optional buffer to track maximum values ever reached
+    
+    Returns:
+        dict: frame properties with normalized values
+    """
+    max_pixel = np.max(image)
+    total_sum = np.sum(image, dtype=np.float64)
+    
+    # Normalize to the specified range
+    min_val, max_val = normalize_range
+    
+    # Normalize max pixel value (assuming 8-bit or 16-bit images)
+    max_possible = 255 if image.dtype == np.uint8 else 65535
+    normalized_max = min_val + (max_pixel / max_possible) * (max_val - min_val)
+    
+    # Normalize total sum (based on theoretical maximum)
+    max_possible_sum = image.size * max_possible
+    normalized_sum = min_val + (total_sum / max_possible_sum) * (max_val - min_val)
+    
+    properties = {
+        'Max Pixel': f'{normalized_max:.2f}',
+        'Total Sum': f'{normalized_sum:.2f}'
+    }
+    
+    # Track peak values if buffer is provided
+    if peak_buffer is not None:
+        # Update peak max pixel value
+        if 'peak_max_pixel' not in peak_buffer or normalized_max > peak_buffer['peak_max_pixel']:
+            peak_buffer['peak_max_pixel'] = normalized_max
+        
+        # Update peak total sum
+        if 'peak_total_sum' not in peak_buffer or normalized_sum > peak_buffer['peak_total_sum']:
+            peak_buffer['peak_total_sum'] = normalized_sum
+        
+        # Add peak values to properties
+        properties['Peak Max'] = f'{peak_buffer["peak_max_pixel"]:.2f}'
+        properties['Peak Sum'] = f'{peak_buffer["peak_total_sum"]:.2f}'
+    
+    return properties
+
+
 def scale_for_display(img, scale=None, max_side=1200):
     """
     Uniformly resize the combined image for preview only (keeps aspect).
@@ -147,7 +225,7 @@ def camera_generator(stop_event, camera_index=0):
         for frame in cam_capture.capture():
             if stop_event.is_set():
                 break
-            yield frame
+            yield frame, cam_capture.camera  # Also return camera object for parameter access
     finally:
         cam_capture.close()
 
@@ -164,7 +242,7 @@ def dmd_process(stop_event, dmd_img_queue, trackbar_queue, conf=None):
         calibrator.generate_blocks()
         img = calibrator.canvas
         img = simulation.macro_pixel(img, size=int(conf['dmd_dim'] / img.shape[0]))
-        adjusted_img = dmd.dmd_img_adjustment(img, conf['dmd_dim'], angle=conf['dmd_rotation'])
+        adjusted_img = dmd.dmd_img_adjustment(img, conf['dmd_dim'], angle=DMD_ROTATION_ANGLE)
         DMD.display_image(adjusted_img)
 
         # Non-blocking handoff (drop backlog)
@@ -173,7 +251,7 @@ def dmd_process(stop_event, dmd_img_queue, trackbar_queue, conf=None):
                 _ = dmd_img_queue.get_nowait()
         except Exception:
             pass
-        dmd_img_queue.put(adjusted_img)
+        dmd_img_queue.put(img)  # Send the image before adjustment for display
 
         time.sleep(0.5)
 
@@ -182,9 +260,31 @@ def dmd_process(stop_event, dmd_img_queue, trackbar_queue, conf=None):
 # ============================
 # Camera process
 # ============================
-def camera_process(stop_event, dmd_img_queue, trackbar_queue, conf=None, camera_index=0, display_scale=None):
+def camera_process(stop_event, dmd_img_queue, trackbar_queue, conf=None, camera_index=0, display_scale=None, text_scale=0.5):
     def on_trackbar(val):
         trackbar_queue.put(val)
+    
+    def on_exposure_trackbar(val):
+        # Set exposure time in microseconds (trackbar value is in milliseconds)
+        if camera_obj is not None:
+            try:
+                if hasattr(camera_obj, "ExposureTimeRaw"):
+                    camera_obj.ExposureTimeRaw.SetValue(val * 1000)
+                elif hasattr(camera_obj, "ExposureTime"):
+                    camera_obj.ExposureTime.SetValue(val * 1000.0)
+            except Exception as e:
+                print(f"Error setting exposure: {e}")
+    
+    def on_gain_trackbar(val):
+        # Set gain value
+        if camera_obj is not None:
+            try:
+                if hasattr(camera_obj, "GainRaw"):
+                    camera_obj.GainRaw.SetValue(val)
+                elif hasattr(camera_obj, "Gain"):
+                    camera_obj.Gain.SetValue(float(val))
+            except Exception as e:
+                print(f"Error setting gain: {e}")
 
     # Keep window aspect ratio, allow resizing
     cv2.namedWindow("Fiber Coupling", cv2.WINDOW_NORMAL | cv2.WINDOW_KEEPRATIO)
@@ -194,14 +294,30 @@ def camera_process(stop_event, dmd_img_queue, trackbar_queue, conf=None, camera_
         # Older OpenCV may not support setting this property; WINDOW_KEEPRATIO flag is enough.
         pass
     cv2.resizeWindow("Fiber Coupling", 800, 600)
+    
+    # Create trackbars
     cv2.createTrackbar("Special", "Fiber Coupling", 0, 4, on_trackbar)
+    cv2.createTrackbar("Exposure (ms)", "Fiber Coupling", 80, 500, on_exposure_trackbar)  # 0-500ms
+    cv2.createTrackbar("Gain", "Fiber Coupling", 0, 20, on_gain_trackbar)  # 0-20 gain
 
     gen = camera_generator(stop_event, camera_index=camera_index)
     current_dmd_img = None
+    camera_obj = None
+    
+    # Peak tracking
+    peak_buffer = {}
+    frame_count = 0
+    warmup_frames = 50  # Skip first 50 frames before tracking peaks
+    
+    # Text display parameters (controlled by text_scale)
+    thickness = max(1, int(text_scale * 2))
+    line_spacing = int(text_scale * 40)
 
-    for frame in gen:
+    for frame, camera_obj in gen:
         if stop_event.is_set():
             break
+        
+        frame_count += 1
 
         # Pull latest DMD image (drain queue)
         while not dmd_img_queue.empty():
@@ -209,14 +325,47 @@ def camera_process(stop_event, dmd_img_queue, trackbar_queue, conf=None, camera_
 
         # Base: camera frame (keep its aspect unchanged)
         cam_bgr = cv2.cvtColor(frame, cv2.COLOR_GRAY2BGR) if frame.ndim == 2 else frame
+        
+        # Analyze frame properties (use original grayscale frame for analysis - ONLY camera frame)
+        properties = analyze_frame_properties(
+            frame, 
+            peak_buffer=peak_buffer if frame_count > warmup_frames else None
+        )
+        
+        # Get camera parameters
+        camera_params = get_camera_parameters(camera_obj) if camera_obj else {}
 
         # Left panel: DMD scaled *proportionally* to camera height
         if current_dmd_img is not None:
             target_h = cam_bgr.shape[0]
             dmd_display = prepare_dmd_display(current_dmd_img, target_height=target_h)
             combined = np.hstack([dmd_display, cam_bgr])
+            # Calculate where the camera image starts in the combined view
+            cam_x_offset = dmd_display.shape[1]
         else:
             combined = cam_bgr
+            cam_x_offset = 0
+
+        # Add text overlays on the CAMERA portion only (before scaling)
+        # Display frame properties on top-right of camera image (white text)
+        y_position = int(25 * text_scale) + 5
+        for key, value in properties.items():
+            text = f'{key}: {value}'
+            text_size = cv2.getTextSize(text, cv2.FONT_HERSHEY_SIMPLEX, text_scale, thickness)[0]
+            x_position = combined.shape[1] - text_size[0] - 10  # Right aligned
+            cv2.putText(combined, text, (x_position, y_position), 
+                       cv2.FONT_HERSHEY_SIMPLEX, text_scale, (255, 255, 255), thickness)
+            y_position += line_spacing
+        
+        # Display camera parameters on bottom-right of camera image (blue text)
+        y_position = combined.shape[0] - int(10 * text_scale)
+        for key, value in reversed(list(camera_params.items())):
+            text = f'{key}: {value}'
+            text_size = cv2.getTextSize(text, cv2.FONT_HERSHEY_SIMPLEX, text_scale, thickness)[0]
+            x_position = combined.shape[1] - text_size[0] - 10  # Right aligned
+            cv2.putText(combined, text, (x_position, y_position), 
+                       cv2.FONT_HERSHEY_SIMPLEX, text_scale, (255, 0, 0), thickness)
+            y_position -= line_spacing
 
         # Optional uniform downscale for preview (does not distort camera ratio)
         preview = scale_for_display(combined, scale=display_scale, max_side=1200)
@@ -244,8 +393,9 @@ if __name__ == "__main__":
     }
 
     # Use None to auto-fit, or a fraction like 0.5. Avoid >1 with full frames.
-    DISPLAY_SCALE = None
+    DISPLAY_SCALE = 0.5
     CAMERA_INDEX = 0
+    TEXT_SCALE = 1  # Control text size: 0.3=small, 0.5=medium, 0.8=large, 1.0=very large
 
     stop_event = Event()
     dmd_img_queue = Queue()
@@ -253,7 +403,7 @@ if __name__ == "__main__":
 
     camera_proc = Process(
         target=camera_process,
-        args=(stop_event, dmd_img_queue, trackbar_queue, conf, CAMERA_INDEX, DISPLAY_SCALE)
+        args=(stop_event, dmd_img_queue, trackbar_queue, conf, CAMERA_INDEX, DISPLAY_SCALE, TEXT_SCALE)
     )
     dmd_proc = Process(
         target=dmd_process,
