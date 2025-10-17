@@ -873,6 +873,45 @@ def generate_upward_arrow(size=256):
         canvas[head_start_y + i:head_start_y + i + 1, int(start_x):int(end_x)] = 255
     return canvas
 
+def generate_up_left_arrow(size=256, boundary_width=5):
+    canvas = np.zeros((size, size), dtype=np.uint8)
+    center_x = size // 2
+    center_y = size // 2
+    # Arrow dimensions
+    arrow_width = size // 10
+    arrow_height = size // 2
+    head_height = size // 6
+    head_width = size // 6
+    
+    # Draw the UPWARD arrow shaft (vertical)
+    shaft_start_y = center_y + arrow_height // 2
+    shaft_end_y = center_y - arrow_height // 2
+    canvas[shaft_end_y:shaft_start_y, center_x - arrow_width // 2:center_x + arrow_width // 2] = 255
+    # Draw the UPWARD arrow head
+    head_start_y = shaft_end_y - size // 6
+    for i in range(head_height):
+        start_x = center_x - (head_width // 2) * (i / head_height)
+        end_x = center_x + (head_width // 2) * (i / head_height)
+        canvas[head_start_y + i:head_start_y + i + 1, int(start_x):int(end_x)] = 255
+    
+    # Draw the LEFT arrow shaft (horizontal)
+    shaft_start_x = center_x + arrow_height // 2
+    shaft_end_x = center_x - arrow_height // 2
+    canvas[center_y - arrow_width // 2:center_y + arrow_width // 2, shaft_end_x:shaft_start_x] = 255
+    # Draw the LEFT arrow head (pointing left)
+    head_start_x = shaft_end_x - size // 6
+    for i in range(head_height):
+        start_y = center_y - (head_width // 2) * (i / head_height)
+        end_y = center_y + (head_width // 2) * (i / head_height)
+        canvas[int(start_y):int(end_y), head_start_x + i:head_start_x + i + 1] = 255
+    
+    # Draw boundaries
+    canvas[:boundary_width, :] = 255  # Top boundary
+    canvas[-boundary_width:, :] = 255  # Bottom boundary
+    canvas[:, :boundary_width] = 255  # Left boundary
+    canvas[:, -boundary_width:] = 255  # Right boundary
+    return canvas
+
 def generate_solid_circle(size=256):
     image = np.zeros((size, size), dtype=np.uint8)
     center = (size // 2, size // 2)

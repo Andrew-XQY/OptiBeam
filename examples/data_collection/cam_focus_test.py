@@ -184,7 +184,7 @@ def display_image(save_to='', scale_factor=0.5, intensity_monitor=False, camera_
     cv2.namedWindow('Camera Output')
     cv2.setMouseCallback('Camera Output', mouse_callback)
     
-    cv2.createTrackbar('Exposure time (ms)', 'Camera Output', 50, 500, 
+    cv2.createTrackbar('Exposure time (ms)', 'Camera Output', 40, 500, 
                        lambda x: camera_capture.camera.ExposureTimeRaw.SetValue(x*1000))  # miniseconds
     
     # Initialize peak buffer to track maximum values
@@ -265,7 +265,7 @@ DMD_DIM = 1024
 if __name__ == "__main__":
     DMD = dmd.ViALUXDMD(ALP4(version = '4.3'))
     # calibration_img = simulation.generate_radial_gradient()
-    calibration_img = np.ones((256, 256)) * 255  # 0-255 grayscale
+    calibration_img = np.ones((256, 256)) * 100  # 0-255 grayscale
     # calibration_img = simulation.generate_upward_arrow()
     # calibration_img = simulation.dmd_calibration_pattern_generation()
     calibration_img = simulation.macro_pixel(calibration_img, size=int(DMD_DIM/calibration_img.shape[0])) 

@@ -16,18 +16,21 @@ import traceback
 conf = {
     'config_crop_area': False, 
     'camera_order_flip': True,  # camera order flip
-    'cam_schedule_time': int(300 * 1e6),  # camera schedule time in milliseconds
-    'base_resolution': (256, 256),  # base resolution for all images
-    'number_of_images': 25000,  # simulation: number of images to generate in this batch
+    'cam_schedule_time': int(200 * 1e6),  # camera schedule time in milliseconds 300 * 1e6
+    'base_resolution': (512, 512),  # base resolution for all images (256, 256)
+    'number_of_images': 20000,  # simulation: number of images to generate in this batch
     'number_of_test': 2000,  # left none for all images
     'number_of_minst': 100,
-    'temporal_shift_freq': 50,  # simulation: temporal shift frequency   
+    'temporal_shift_freq': 50,  # simulation: temporal shift frequency
+    'temporal_shift_intensity': 30,  # simulation: temporal shift check intensity
     'dmd_dim': 1024,  # DMD working square area resolution
     'dmd_rotation': DMD_ROTATION_ANGLE,  # DMD rotation angle for image orientation correction
+    'horizontal_flip': True,  # horizontal flip for all images
+    'vertical_flip': False,   # vertical flip for all images
     'dmd_bitDepth': 8,  # DMD bit depth
     'dmd_picture_time': 20000,  # DMD picture time in microseconds, corresponds to 50 Hz -> 20000, 10 Hz -> 100000
     'dmd_alp_version': '4.3',  # DMD ALP version
-    'crop_areas': [((878, 617), (996, 735)), ((2277, 5), (3467, 1195))] ,  # crop areas for the camera images
+    'crop_areas': [((878, 617), (996, 740)), ((2277, 5), (3467, 1195))] ,  # crop areas for the camera images
     'sim_pattern_max_num': 100,  # simulation: maximum number of distributions in the simulation
     'sim_fade_rate': 0.96,  # simulation: the probability of a distribution to disappear
     'sim_std_1': 0.02, # simulation: lower indication of std   0.03
@@ -45,10 +48,11 @@ DMD = dmd.ViALUXDMD(ALP4(version = conf['dmd_alp_version']))
 DMD.set_pictureTime(conf['dmd_picture_time'])
 # generate_upward_arrow(), dmd_calibration_pattern_generation()   generate_circle_fiber_coupling_pattern(line_width=20)
 # calibration_img = np.ones((256, 256)) * 100
-calibration_img = simulation.generate_upward_arrow()
+# calibration_img = simulation.generate_upward_arrow()
+calibration_img = simulation.generate_up_left_arrow()
 # calibration_img = simulation.dmd_calibration_pattern_generation()
 calibration_img = simulation.macro_pixel(calibration_img, size=int(conf['dmd_dim']/calibration_img.shape[0])) 
-DMD.display_image(dmd.dmd_img_adjustment(calibration_img, conf['dmd_dim'], angle=conf['dmd_rotation'])) # preload for calibration
+DMD.display_image(dmd.dmd_img_adjustment(calibration_img, conf['dmd_dim'], angle=conf['dmd_rotation'], horizontal_flip=conf['horizontal_flip'], vertical_flip=conf['vertical_flip']))
 # Cameras Initialization
 MANAGER = camera.MultiBaslerCameraManager()
 if conf['camera_order_flip']: MANAGER.flip = True
@@ -63,7 +67,7 @@ if conf['config_crop_area']:
     # take a sample image to (later manually) select crop areas for automatic resizing
     calibration_img = simulation.dmd_calibration_pattern_generation()
     calibration_img = simulation.macro_pixel(calibration_img, size=int(conf['dmd_dim']/calibration_img.shape[0])) 
-    DMD.display_image(dmd.dmd_img_adjustment(calibration_img, conf['dmd_dim'], angle=conf['dmd_rotation'])) # preload for calibration
+    DMD.display_image(dmd.dmd_img_adjustment(calibration_img, conf['dmd_dim'], angle=conf['dmd_rotation'], horizontal_flip=conf['horizontal_flip'], vertical_flip=conf['vertical_flip']))
     test_img = MANAGER.schedule_action_command(conf['cam_schedule_time']) # schedule for milliseconds later
     test_img = processing.add_grid(test_img, partitions=50)
     crop_areas = processing.select_crop_areas_corner(test_img, num=2, scale_factor=0.4) 
@@ -96,45 +100,45 @@ if conf['number_of_minst']:
 # create a queue of image sources
 # simulation_config, other_notes, experiment_description, image_source, purpose, images_per_sample, is_params, is_calibration
 queue = []
-# queue.append({'experiment_description':'calibration image', 
-#               'purpose':'calibration',
-#               'image_source':'simulation',
-#               'images_per_sample':2,
-#               'is_calibration':True,
-#               'data':[simulation.dmd_calibration_pattern_generation()],
-#               'len':1}) 
+queue.append({'experiment_description':'calibration image', 
+              'purpose':'calibration',
+              'image_source':'simulation',
+              'images_per_sample':2,
+              'is_calibration':True,
+              'data':[simulation.dmd_calibration_pattern_generation()],
+              'len':1}) 
 # queue.append({'experiment_description': 'full screen image',
 #               'purpose':'intensity_full',
 #               'image_source':'simulation',
 #               'images_per_sample':2,
 #               'data': [np.ones(conf['base_resolution']) * 100],
 #               'len':1}) 
-# queue.append({'experiment_description':'position based coupling intensity',
-#               'purpose':'intensity_position',
-#               'image_source':'simulation',
-#               'images_per_sample':2,
-#               'data':simulation.moving_blocks_generator(size=conf['base_resolution'][0], block_size=32, intensity=255),
-#               'len':64}) 
-# queue.append({'experiment_description':'2d multi-gaussian distributions simulation',
-#               'purpose':'training',
-#               'image_source':'simulation',
-#               'images_per_sample':2,
-#               'simulation_config':CANVAS.get_metadata(),
-#               'other_notes':{key: value for key, value in conf.items() if 'sim' in key},
-#               'data':simulation.temporal_shift(conf['temporal_shift_freq'])(simulation.canvas_generator)(CANVAS, conf),
-#               'len':conf['number_of_images'] + utils.ceil_int_div(conf['number_of_images'], conf['temporal_shift_freq'])}) 
+queue.append({'experiment_description':'position based coupling intensity',
+              'purpose':'intensity_position',
+              'image_source':'simulation',
+              'images_per_sample':2,
+              'data':simulation.moving_blocks_generator(size=conf['base_resolution'][0], block_size=32, intensity=255),
+              'len':64}) 
+queue.append({'experiment_description':'2d multi-gaussian distributions simulation',
+              'purpose':'training',
+              'image_source':'simulation',
+              'images_per_sample':2,
+              'simulation_config':CANVAS.get_metadata(),
+              'other_notes':{key: value for key, value in conf.items() if 'sim' in key},
+              'data':simulation.temporal_shift(conf['temporal_shift_freq'], conf['temporal_shift_intensity'])(simulation.canvas_generator)(CANVAS, conf),
+              'len':conf['number_of_images'] + utils.ceil_int_div(conf['number_of_images'], conf['temporal_shift_freq'])}) 
 queue.append({'experiment_description':'local real beam image for evaluation',
               'purpose':'testing',
               'images_per_sample':2,
               'image_source':'e-beam',
               'is_params':True,
-              'data':simulation.temporal_shift(conf['temporal_shift_freq'])(simulation.read_local_generator)(paths, process_funcs),
+              'data':simulation.temporal_shift(conf['temporal_shift_freq'], conf['temporal_shift_intensity'])(simulation.read_local_generator)(paths, process_funcs),
               'len':len(paths) + utils.ceil_int_div(len(paths), conf['temporal_shift_freq'])}) 
 # queue.append({'experiment_description':'MINST for fun',
 #               'purpose':'fun',
 #               'images_per_sample':2,
 #               'image_source':'MINST',
-#               'data':simulation.temporal_shift(conf['temporal_shift_freq'])(utils.identity)(imgs_array),
+#               'data':simulation.temporal_shift(conf['temporal_shift_freq'], conf['temporal_shift_intensity'])(utils.identity)(imgs_array),
 #               'len':minst_len + utils.ceil_int_div(minst_len, conf['temporal_shift_freq'])}) 
 
 
@@ -188,7 +192,7 @@ try:
                 img, comment = img
             display = img.copy()
             display = simulation.macro_pixel(display, size=int(conf['dmd_dim']/display.shape[0])) 
-            display = dmd.dmd_img_adjustment(display, conf['dmd_dim'], angle=conf['dmd_rotation'])
+            display = dmd.dmd_img_adjustment(display, conf['dmd_dim'], angle=conf['dmd_rotation'], horizontal_flip=conf['horizontal_flip'], vertical_flip=conf['vertical_flip'])
             DMD.display_image(display)  # if loading too fast, the DMD might report memory error
             
             # capture the image from the cameras (Scheduled action command)
