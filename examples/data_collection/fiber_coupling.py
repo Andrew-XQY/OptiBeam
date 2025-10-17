@@ -148,7 +148,7 @@ class SingleCameraCapture:
         self.camera.ExposureAuto.SetValue('Off')
         self.camera.GainAuto.SetValue('Off')
         if hasattr(self.camera, "GammaEnable"):
-            self.camera.GammaEnable.SetValue(True)
+            self.camera.GammaEnable.SetValue(False)
 
         # Adjust settings (adapt names if your model differs)
         if hasattr(self.camera, "ExposureTimeRaw"):
@@ -296,9 +296,9 @@ def camera_process(stop_event, dmd_img_queue, trackbar_queue, conf=None, camera_
     cv2.resizeWindow("Fiber Coupling", 800, 600)
     
     # Create trackbars
-    cv2.createTrackbar("Special", "Fiber Coupling", 0, 4, on_trackbar)
-    cv2.createTrackbar("Exposure (ms)", "Fiber Coupling", 80, 500, on_exposure_trackbar)  # 0-500ms
-    cv2.createTrackbar("Gain", "Fiber Coupling", 0, 20, on_gain_trackbar)  # 0-20 gain
+    cv2.createTrackbar("Pattern", "Fiber Coupling", 0, 4, on_trackbar)
+    cv2.createTrackbar("Exposure(ms)", "Fiber Coupling", 80, 500, on_exposure_trackbar)  # 0-500ms
+    cv2.createTrackbar("Gain", "Fiber Coupling", 0, 300, on_gain_trackbar)  # 0-300 gain
 
     gen = camera_generator(stop_event, camera_index=camera_index)
     current_dmd_img = None
@@ -339,36 +339,46 @@ def camera_process(stop_event, dmd_img_queue, trackbar_queue, conf=None, camera_
         if current_dmd_img is not None:
             target_h = cam_bgr.shape[0]
             dmd_display = prepare_dmd_display(current_dmd_img, target_height=target_h)
-            combined = np.hstack([dmd_display, cam_bgr])
-            # Calculate where the camera image starts in the combined view
-            cam_x_offset = dmd_display.shape[1]
+            # Create a green separator line
+            separator = np.zeros((target_h, 3, 3), dtype=np.uint8)
+            separator[:] = (0, 255, 0)  # Green color in BGR
+            combined = np.hstack([dmd_display, separator, cam_bgr])
         else:
             combined = cam_bgr
-            cam_x_offset = 0
-
-        # Add text overlays on the CAMERA portion only (before scaling)
-        # Display frame properties on top-right of camera image (white text)
-        y_position = int(25 * text_scale) + 5
-        for key, value in properties.items():
-            text = f'{key}: {value}'
-            text_size = cv2.getTextSize(text, cv2.FONT_HERSHEY_SIMPLEX, text_scale, thickness)[0]
-            x_position = combined.shape[1] - text_size[0] - 10  # Right aligned
-            cv2.putText(combined, text, (x_position, y_position), 
-                       cv2.FONT_HERSHEY_SIMPLEX, text_scale, (255, 255, 255), thickness)
-            y_position += line_spacing
-        
-        # Display camera parameters on bottom-right of camera image (blue text)
-        y_position = combined.shape[0] - int(10 * text_scale)
-        for key, value in reversed(list(camera_params.items())):
-            text = f'{key}: {value}'
-            text_size = cv2.getTextSize(text, cv2.FONT_HERSHEY_SIMPLEX, text_scale, thickness)[0]
-            x_position = combined.shape[1] - text_size[0] - 10  # Right aligned
-            cv2.putText(combined, text, (x_position, y_position), 
-                       cv2.FONT_HERSHEY_SIMPLEX, text_scale, (255, 0, 0), thickness)
-            y_position -= line_spacing
 
         # Optional uniform downscale for preview (does not distort camera ratio)
         preview = scale_for_display(combined, scale=display_scale, max_side=1200)
+        
+        # Create status bar at the bottom with text information
+        status_height = max(80, int(100 * text_scale))  # Height of status bar
+        status_bar = np.zeros((status_height, preview.shape[1], 3), dtype=np.uint8)
+        status_bar[:] = (40, 40, 40)  # Dark gray background
+        
+        # Combine all info into one line or two lines
+        # Line 1: Frame properties (white text, left side)
+        info_texts = []
+        for key, value in properties.items():
+            info_texts.append(f'{key}: {value}')
+        
+        # Line 2: Camera parameters (blue text, left side)
+        camera_texts = []
+        for key, value in camera_params.items():
+            camera_texts.append(f'{key}: {value}')
+        
+        # Draw frame properties on first line
+        properties_line = '  |  '.join(info_texts)
+        y_pos = int(30 * text_scale)
+        cv2.putText(status_bar, properties_line, (10, y_pos), 
+                   cv2.FONT_HERSHEY_SIMPLEX, text_scale * 0.8, (255, 255, 255), thickness)
+        
+        # Draw camera parameters on second line
+        camera_line = '  |  '.join(camera_texts)
+        y_pos = int(30 * text_scale) + line_spacing
+        cv2.putText(status_bar, camera_line, (10, y_pos), 
+                   cv2.FONT_HERSHEY_SIMPLEX, text_scale * 0.8, (100, 150, 255), thickness)
+        
+        # Stack the preview image with status bar
+        preview = np.vstack([preview, status_bar])
 
         # Match window size to image size (prevents GUI squeezing)
         h, w = preview.shape[:2]
@@ -393,7 +403,7 @@ if __name__ == "__main__":
     }
 
     # Use None to auto-fit, or a fraction like 0.5. Avoid >1 with full frames.
-    DISPLAY_SCALE = 0.5
+    DISPLAY_SCALE = 0.45
     CAMERA_INDEX = 0
     TEXT_SCALE = 1  # Control text size: 0.3=small, 0.5=medium, 0.8=large, 1.0=very large
 

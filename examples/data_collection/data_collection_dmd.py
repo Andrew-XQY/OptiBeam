@@ -14,7 +14,7 @@ import traceback
 # Dataset Parameters
 # ============================
 conf = {
-    'config_crop_area': True, 
+    'config_crop_area': False, 
     'camera_order_flip': True,  # camera order flip
     'cam_schedule_time': int(300 * 1e6),  # camera schedule time in milliseconds
     'base_resolution': (256, 256),  # base resolution for all images
@@ -27,7 +27,7 @@ conf = {
     'dmd_bitDepth': 8,  # DMD bit depth
     'dmd_picture_time': 20000,  # DMD picture time in microseconds, corresponds to 50 Hz -> 20000, 10 Hz -> 100000
     'dmd_alp_version': '4.3',  # DMD ALP version
-    'crop_areas': [((869, 612), (1003, 746)), ((2295, 2), (3487, 1194))],  # crop areas for the camera images
+    'crop_areas': [((878, 617), (996, 735)), ((2277, 5), (3467, 1195))] ,  # crop areas for the camera images
     'sim_pattern_max_num': 100,  # simulation: maximum number of distributions in the simulation
     'sim_fade_rate': 0.96,  # simulation: the probability of a distribution to disappear
     'sim_std_1': 0.02, # simulation: lower indication of std   0.03
@@ -146,11 +146,11 @@ try:
         # Setting up experiment metadata
         batch = (DB.get_max("mmf_dataset_metadata", "batch") or 0) + 1  # get the current batch number
         experiment_metadata = {
-            "experiment_location": "DITALab, Cockcroft Institute, UK",
+            "experiment_location": "Optical Lab, CERN, Geneva, Switzerland",
             "experiment_date": datetime.datetime.now().strftime('%Y-%m-%d'),
             "image_device": "dmd",  # scintillation-screen, dmd, slm, led, OTR.
             "fiber_config": {
-                "fiber_length": "5 m",
+                "fiber_length": "1 m",
                 "fiber_name": "1500 micrometer Core-diameter Step-Index Multimode Fiber Patch Cable",
                 "fiber_url": "FP1500ERT",  # FP1500ERT  FT600UMT
             },
@@ -158,7 +158,7 @@ try:
             "other_config": {
                 "dmd_config": DMD.get_metadata(), 
                 "simulation_config": experiment.get("simulation_config", None),
-                "light_source": "CPS532-C2",
+                "light_source": "Broadband LED with 694nm +- 10nm bandpass filter",  # e-beam, proton-beam, LED, laser
                 'other_notes': experiment.get("other_notes", None)},  # Additional simulation parameters
             "purtubations": experiment.get("purtubations", None),
             "radiation" : experiment.get("radiation", None),
