@@ -5,6 +5,8 @@ import cv2
 from multiprocessing import Process, Event, Queue
 from pypylon import pylon
 import numpy as np
+import csv
+import os
 
 # ----------------------------
 # Helpers (analysis and display)
@@ -49,7 +51,7 @@ def analyze_frame_properties(image, normalize_range=(0, 100), peak_buffer=None):
         peak_buffer: dict, optional buffer to track maximum values ever reached
     
     Returns:
-        dict: frame properties with normalized values
+        dict: frame properties with normalized values and raw values
     """
     max_pixel = np.max(image)
     total_sum = np.sum(image, dtype=np.float64)
@@ -67,7 +69,9 @@ def analyze_frame_properties(image, normalize_range=(0, 100), peak_buffer=None):
     
     properties = {
         'Max Pixel': f'{normalized_max:.2f}',
-        'Total Sum': f'{normalized_sum:.2f}'
+        'Total Sum': f'{normalized_sum:.2f}',
+        'raw_max_pixel': max_pixel,  # Add raw values
+        'raw_total_sum': total_sum
     }
     
     # Track peak values if buffer is provided
@@ -232,7 +236,7 @@ def camera_generator(stop_event, camera_index=0):
 # ============================
 # DMD process
 # ============================
-def dmd_process(stop_event, dmd_img_queue, trackbar_queue, conf=None):
+def dmd_process(stop_event, dmd_img_queue, trackbar_queue, dmd_state_queue, conf=None):
     DMD = dmd.ViALUXDMD(ALP4(version='4.3'))
     calibrator = simulation.CornerBlocksCalibrator(block_size=32)
 
@@ -252,6 +256,14 @@ def dmd_process(stop_event, dmd_img_queue, trackbar_queue, conf=None):
         except Exception:
             pass
         dmd_img_queue.put(img)  # Send the image before adjustment for display
+        
+        # Share the current state_index
+        try:
+            while dmd_state_queue.qsize() > 1:
+                _ = dmd_state_queue.get_nowait()
+        except Exception:
+            pass
+        dmd_state_queue.put((calibrator.special, calibrator.state_index))
 
         time.sleep(0.5)
 
@@ -260,7 +272,7 @@ def dmd_process(stop_event, dmd_img_queue, trackbar_queue, conf=None):
 # ============================
 # Camera process
 # ============================
-def camera_process(stop_event, dmd_img_queue, trackbar_queue, conf=None, camera_index=0, display_scale=None, text_scale=0.5):
+def camera_process(stop_event, dmd_img_queue, trackbar_queue, dmd_state_queue, conf=None, camera_index=0, display_scale=None, text_scale=0.5):
     def on_trackbar(val):
         trackbar_queue.put(val)
     
@@ -309,6 +321,13 @@ def camera_process(stop_event, dmd_img_queue, trackbar_queue, conf=None, camera_
     frame_count = 0
     warmup_frames = 50  # Skip first 50 frames before tracking peaks
     
+    # Data recording list
+    frame_data_list = []
+    
+    # DMD state tracking
+    current_dmd_special = 0
+    current_dmd_state_index = 0
+    
     # Text display parameters (controlled by text_scale)
     thickness = max(1, int(text_scale * 2))
     line_spacing = int(text_scale * 40)
@@ -322,6 +341,10 @@ def camera_process(stop_event, dmd_img_queue, trackbar_queue, conf=None, camera_
         # Pull latest DMD image (drain queue)
         while not dmd_img_queue.empty():
             current_dmd_img = dmd_img_queue.get()
+        
+        # Pull latest DMD state (drain queue)
+        while not dmd_state_queue.empty():
+            current_dmd_special, current_dmd_state_index = dmd_state_queue.get()
 
         # Base: camera frame (keep its aspect unchanged)
         cam_bgr = cv2.cvtColor(frame, cv2.COLOR_GRAY2BGR) if frame.ndim == 2 else frame
@@ -334,6 +357,37 @@ def camera_process(stop_event, dmd_img_queue, trackbar_queue, conf=None, camera_
         
         # Get camera parameters
         camera_params = get_camera_parameters(camera_obj) if camera_obj else {}
+        
+        # Record data after warmup frames
+        if frame_count >= warmup_frames and camera_obj is not None:
+            try:
+                # Get camera exposure
+                if hasattr(camera_obj, "ExposureTimeRaw"):
+                    exposure = camera_obj.ExposureTimeRaw.Value / 1000  # Convert to ms
+                elif hasattr(camera_obj, "ExposureTime"):
+                    exposure = camera_obj.ExposureTime.Value / 1000  # Convert to ms
+                else:
+                    exposure = 0
+                
+                # Get camera gain
+                if hasattr(camera_obj, "GainRaw"):
+                    gain = camera_obj.GainRaw.Value
+                elif hasattr(camera_obj, "Gain"):
+                    gain = camera_obj.Gain.Value
+                else:
+                    gain = 0
+                
+                # Get block position index from DMD calibrator state
+                block_position = current_dmd_state_index
+                
+                # Get max intensity and total intensity from analyze_frame_properties (use raw values)
+                max_intensity = properties['raw_max_pixel']
+                total_intensity = properties['raw_total_sum']
+                
+                # Store as tuple: (exposure, gain, block_position, max_intensity, total_intensity)
+                frame_data_list.append((exposure, gain, block_position, max_intensity, total_intensity))
+            except Exception as e:
+                print(f"Error recording frame data: {e}")
 
         # Left panel: DMD scaled *proportionally* to camera height
         if current_dmd_img is not None:
@@ -358,7 +412,9 @@ def camera_process(stop_event, dmd_img_queue, trackbar_queue, conf=None, camera_
         # Line 1: Frame properties (white text, left side)
         info_texts = []
         for key, value in properties.items():
-            info_texts.append(f'{key}: {value}')
+            # Skip raw values from display (they're only for CSV recording)
+            if key not in ['raw_max_pixel', 'raw_total_sum']:
+                info_texts.append(f'{key}: {value}')
         
         # Line 2: Camera parameters (blue text, left side)
         camera_texts = []
@@ -389,6 +445,28 @@ def camera_process(stop_event, dmd_img_queue, trackbar_queue, conf=None, camera_
             stop_event.set()
             break
 
+    # Save recorded data to CSV
+    if frame_data_list and conf.get('csv_save_dir'):
+        try:
+            save_dir = conf['csv_save_dir']
+            if save_dir and os.path.exists(save_dir):
+                # Generate timestamp filename
+                timestamp = datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
+                csv_filename = f"{timestamp}.csv"
+                csv_path = os.path.join(save_dir, csv_filename)
+                
+                # Write to CSV with header
+                with open(csv_path, 'w', newline='') as csvfile:
+                    writer = csv.writer(csvfile)
+                    writer.writerow(['camera_exposure_ms', 'camera_gain', 'block_position_index', 'max_intensity', 'total_intensity'])
+                    writer.writerows(frame_data_list)
+                
+                print(f"Data saved to: {csv_path}")
+            else:
+                print(f"CSV save directory does not exist or is not configured: {save_dir}")
+        except Exception as e:
+            print(f"Error saving CSV file: {e}")
+
     cv2.destroyAllWindows()
 
 # ============================
@@ -399,7 +477,8 @@ if __name__ == "__main__":
         'dmd_dim': 1024,
         'dmd_rotation': 0,   # DMD rotation angle for image orientation correction
         'dmd_bitDepth': 8,
-        'dmd_picture_time': 20000
+        'dmd_picture_time': 20000,
+        'csv_save_dir': 'C:\\Users\\qiyuanxu\\Desktop\\fiber_coupling_experiments_2025\\' 
     }
 
     # Use None to auto-fit, or a fraction like 0.5. Avoid >1 with full frames.
@@ -410,14 +489,15 @@ if __name__ == "__main__":
     stop_event = Event()
     dmd_img_queue = Queue()
     trackbar_queue = Queue()
+    dmd_state_queue = Queue()  # New queue for DMD state sharing
 
     camera_proc = Process(
         target=camera_process,
-        args=(stop_event, dmd_img_queue, trackbar_queue, conf, CAMERA_INDEX, DISPLAY_SCALE, TEXT_SCALE)
+        args=(stop_event, dmd_img_queue, trackbar_queue, dmd_state_queue, conf, CAMERA_INDEX, DISPLAY_SCALE, TEXT_SCALE)
     )
     dmd_proc = Process(
         target=dmd_process,
-        args=(stop_event, dmd_img_queue, trackbar_queue, conf)
+        args=(stop_event, dmd_img_queue, trackbar_queue, dmd_state_queue, conf)
     )
 
     camera_proc.start()
