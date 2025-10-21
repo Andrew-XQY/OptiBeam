@@ -160,9 +160,9 @@ class SingleCameraCapture:
         else:
             self.camera.ExposureTime.SetValue(80000.0)
         if hasattr(self.camera, "GainRaw"):
-            self.camera.GainRaw.SetValue(0)
+            self.camera.GainRaw.SetValue(200)
         else:
-            self.camera.Gain.SetValue(0.0)
+            self.camera.Gain.SetValue(200.0)
         if hasattr(self.camera, "Gamma"):
             self.camera.Gamma.SetValue(1.0)
 
@@ -310,7 +310,7 @@ def camera_process(stop_event, dmd_img_queue, trackbar_queue, dmd_state_queue, c
     # Create trackbars
     cv2.createTrackbar("Pattern", "Fiber Coupling", 0, 4, on_trackbar)
     cv2.createTrackbar("Exposure(ms)", "Fiber Coupling", 80, 500, on_exposure_trackbar)  # 0-500ms
-    cv2.createTrackbar("Gain", "Fiber Coupling", 0, 300, on_gain_trackbar)  # 0-300 gain
+    cv2.createTrackbar("Gain", "Fiber Coupling", 200, 300, on_gain_trackbar)  # 0-300 gain
 
     gen = camera_generator(stop_event, camera_index=camera_index)
     current_dmd_img = None
