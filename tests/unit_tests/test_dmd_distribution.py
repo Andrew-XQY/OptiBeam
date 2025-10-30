@@ -5,7 +5,7 @@ import cv2
 
 conf = {
     'dmd_dim': 1024,  # DMD working square area resolution
-    'dmd_rotation': 38 +270,  # DMD rotation angle for image orientation correction
+    'dmd_rotation': -45,  # DMD rotation angle for image orientation correction
 }
 
 # Load the Vialux .dll
@@ -32,7 +32,8 @@ for i in range(1000000):
 
     # DMD.display_image(img)
     
-    img = np.ones((256, 256)) * 100
+    img = np.ones((256, 256)) * 255
+    # img = simulation.generate_upward_arrow()
     img = simulation.macro_pixel(img, size=int(conf['dmd_dim']/img.shape[0])) 
     DMD.display_image(dmd.dmd_img_adjustment(img, conf['dmd_dim'], angle=conf['dmd_rotation'])) 
 
