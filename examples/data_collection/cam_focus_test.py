@@ -272,6 +272,6 @@ if __name__ == "__main__":
     DMD.display_image(dmd.dmd_img_adjustment(calibration_img, DMD_DIM, angle=DMD_ROTATION_ANGLE)) # preload one image for camera calibration
 
     click_position = None
-    display_image('results', camera_index=1, text_scale=1, scale_factor=0.6)  # Use camera_index=0 for first camera, camera_index=1 for second camera
+    display_image('results', camera_index=0, text_scale=1, scale_factor=0.6)  # Use camera_index=0 for first camera, camera_index=1 for second camera
 
 

@@ -16,7 +16,7 @@ import traceback
 conf = {
     'config_crop_area': False, 
     'camera_order_flip': True,  # camera order flip
-    'cam_schedule_time': int(200 * 1e6),  # camera schedule time in milliseconds 300 * 1e6
+    'cam_schedule_time': int(300 * 1e6),  # camera schedule time in milliseconds 300 * 1e6
     'base_resolution': (512, 512),  # base resolution for all images (256, 256)
     'number_of_images': 25000,  # simulation: number of images to generate in this batch
     'number_of_test': None,  # left none for all images
@@ -30,7 +30,7 @@ conf = {
     'dmd_bitDepth': 8,  # DMD bit depth
     'dmd_picture_time': 20000,  # DMD picture time in microseconds, corresponds to 50 Hz -> 20000, 10 Hz -> 100000
     'dmd_alp_version': '4.3',  # DMD ALP version
-    'crop_areas': [((821, 435), (1217, 831)), ((2280, 22), (3410, 1152))],  # crop areas for the camera images
+    'crop_areas': [((807, 440), (1207, 840)), ((2285, 5), (3469, 1189))],  # crop areas for the camera images, need to be square
     'sim_pattern_max_num': 100,  # simulation: maximum number of distributions in the simulation
     'sim_fade_rate': 0.96,  # simulation: the probability of a distribution to disappear
     'sim_std_1': 0.02, # simulation: lower indication of std   0.03
@@ -48,8 +48,9 @@ DMD = dmd.ViALUXDMD(ALP4(version = conf['dmd_alp_version']))
 DMD.set_pictureTime(conf['dmd_picture_time'])
 # generate_upward_arrow(), dmd_calibration_pattern_generation()   generate_circle_fiber_coupling_pattern(line_width=20)
 # calibration_img = np.ones((256, 256)) * 100
+calibration_img = simulation.generate_radial_gradient()
 # calibration_img = simulation.generate_upward_arrow()
-calibration_img = simulation.generate_up_left_arrow()
+# calibration_img = simulation.generate_up_left_arrow()
 # calibration_img = simulation.dmd_calibration_pattern_generation()
 calibration_img = simulation.macro_pixel(calibration_img, size=int(conf['dmd_dim']/calibration_img.shape[0])) 
 DMD.display_image(dmd.dmd_img_adjustment(calibration_img, conf['dmd_dim'], angle=conf['dmd_rotation'], horizontal_flip=conf['horizontal_flip'], vertical_flip=conf['vertical_flip']))
@@ -100,13 +101,13 @@ if conf['number_of_minst']:
 # create a queue of image sources
 # simulation_config, other_notes, experiment_description, image_source, purpose, images_per_sample, is_params, is_calibration
 queue = []
-queue.append({'experiment_description':'calibration image', 
-              'purpose':'calibration',
-              'image_source':'simulation',
-              'images_per_sample':2,
-              'is_calibration':True,
-              'data':[simulation.dmd_calibration_pattern_generation()],
-              'len':1}) 
+# queue.append({'experiment_description':'calibration image', 
+#               'purpose':'calibration',
+#               'image_source':'simulation',
+#               'images_per_sample':2,
+#               'is_calibration':True,
+#               'data':[simulation.dmd_calibration_pattern_generation()],
+#               'len':1}) 
 # queue.append({'experiment_description': 'full screen image',
 #               'purpose':'intensity_full',
 #               'image_source':'simulation',
@@ -119,12 +120,12 @@ queue.append({'experiment_description':'position based coupling intensity',
               'images_per_sample':2,
               'data':simulation.moving_blocks_generator(size=conf['base_resolution'][0], block_size=32, intensity=255),
               'len':64}) 
-queue.append({'experiment_description':'MINST for fun',
-              'purpose':'fun',
-              'images_per_sample':2,
-              'image_source':'MINST',
-              'data':simulation.temporal_shift(conf['temporal_shift_freq'], conf['temporal_shift_intensity'])(utils.identity)(imgs_array),
-              'len':minst_len + utils.ceil_int_div(minst_len, conf['temporal_shift_freq'])}) 
+# queue.append({'experiment_description':'MINST for fun',
+#               'purpose':'fun',
+#               'images_per_sample':2,
+#               'image_source':'MINST',
+#               'data':simulation.temporal_shift(conf['temporal_shift_freq'], conf['temporal_shift_intensity'])(utils.identity)(imgs_array),
+#               'len':minst_len + utils.ceil_int_div(minst_len, conf['temporal_shift_freq'])}) 
 queue.append({'experiment_description':'local real beam image for evaluation',
               'purpose':'testing',
               'images_per_sample':2,
