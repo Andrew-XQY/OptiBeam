@@ -18,8 +18,8 @@ conf = {
     'camera_order_flip': True,  # camera order flip
     'cam_schedule_time': int(200 * 1e6),  # camera schedule time in milliseconds 300 * 1e6
     'base_resolution': (512, 512),  # base resolution for all images (256, 256)
-    'number_of_images': 20000,  # simulation: number of images to generate in this batch
-    'number_of_test': 2000,  # left none for all images
+    'number_of_images': 25000,  # simulation: number of images to generate in this batch
+    'number_of_test': None,  # left none for all images
     'number_of_minst': 100,
     'temporal_shift_freq': 50,  # simulation: temporal shift frequency
     'temporal_shift_intensity': 30,  # simulation: temporal shift check intensity
@@ -30,7 +30,7 @@ conf = {
     'dmd_bitDepth': 8,  # DMD bit depth
     'dmd_picture_time': 20000,  # DMD picture time in microseconds, corresponds to 50 Hz -> 20000, 10 Hz -> 100000
     'dmd_alp_version': '4.3',  # DMD ALP version
-    'crop_areas': [((813, 432), (1221, 840)), ((2305, 0), (3501, 1196))],  # crop areas for the camera images
+    'crop_areas': [((821, 435), (1217, 831)), ((2280, 22), (3410, 1152))],  # crop areas for the camera images
     'sim_pattern_max_num': 100,  # simulation: maximum number of distributions in the simulation
     'sim_fade_rate': 0.96,  # simulation: the probability of a distribution to disappear
     'sim_std_1': 0.02, # simulation: lower indication of std   0.03
@@ -119,6 +119,19 @@ queue.append({'experiment_description':'position based coupling intensity',
               'images_per_sample':2,
               'data':simulation.moving_blocks_generator(size=conf['base_resolution'][0], block_size=32, intensity=255),
               'len':64}) 
+queue.append({'experiment_description':'MINST for fun',
+              'purpose':'fun',
+              'images_per_sample':2,
+              'image_source':'MINST',
+              'data':simulation.temporal_shift(conf['temporal_shift_freq'], conf['temporal_shift_intensity'])(utils.identity)(imgs_array),
+              'len':minst_len + utils.ceil_int_div(minst_len, conf['temporal_shift_freq'])}) 
+queue.append({'experiment_description':'local real beam image for evaluation',
+              'purpose':'testing',
+              'images_per_sample':2,
+              'image_source':'e-beam',
+              'is_params':True,
+              'data':simulation.temporal_shift(conf['temporal_shift_freq'], conf['temporal_shift_intensity'])(simulation.read_local_generator)(paths, process_funcs),
+              'len':len(paths) + utils.ceil_int_div(len(paths), conf['temporal_shift_freq'])}) 
 queue.append({'experiment_description':'2d multi-gaussian distributions simulation',
               'purpose':'training',
               'image_source':'simulation',
@@ -127,19 +140,8 @@ queue.append({'experiment_description':'2d multi-gaussian distributions simulati
               'other_notes':{key: value for key, value in conf.items() if 'sim' in key},
               'data':simulation.temporal_shift(conf['temporal_shift_freq'], conf['temporal_shift_intensity'])(simulation.canvas_generator)(CANVAS, conf),
               'len':conf['number_of_images'] + utils.ceil_int_div(conf['number_of_images'], conf['temporal_shift_freq'])}) 
-queue.append({'experiment_description':'local real beam image for evaluation',
-              'purpose':'testing',
-              'images_per_sample':2,
-              'image_source':'e-beam',
-              'is_params':True,
-              'data':simulation.temporal_shift(conf['temporal_shift_freq'], conf['temporal_shift_intensity'])(simulation.read_local_generator)(paths, process_funcs),
-              'len':len(paths) + utils.ceil_int_div(len(paths), conf['temporal_shift_freq'])}) 
-# queue.append({'experiment_description':'MINST for fun',
-#               'purpose':'fun',
-#               'images_per_sample':2,
-#               'image_source':'MINST',
-#               'data':simulation.temporal_shift(conf['temporal_shift_freq'], conf['temporal_shift_intensity'])(utils.identity)(imgs_array),
-#               'len':minst_len + utils.ceil_int_div(minst_len, conf['temporal_shift_freq'])}) 
+
+
 
 
 # ============================

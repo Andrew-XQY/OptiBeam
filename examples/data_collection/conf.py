@@ -11,7 +11,7 @@ from contextlib import ContextDecorator
 
 
 name = datetime.datetime.now().strftime('%Y-%m-%d')
-DMD_ROTATION_ANGLE = 38 + 270 # DMD rotation angle for image orientation correction
+DMD_ROTATION_ANGLE = -45 # DMD rotation angle for image orientation correction
 DATABASE_ROOT = f"../../DataHub/datasets/{name}/db/dataset_meta.db"
 DATASET_ROOT = f"../../DataHub/datasets/{name}/dataset/"
 # path_to_images = ["../../DataHub/local_images/MMF/procIMGs/processed",
