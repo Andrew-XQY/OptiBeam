@@ -30,7 +30,7 @@ conf = {
     'dmd_bitDepth': 8,  # DMD bit depth
     'dmd_picture_time': 20000,  # DMD picture time in microseconds, corresponds to 50 Hz -> 20000, 10 Hz -> 100000
     'dmd_alp_version': '4.3',  # DMD ALP version
-    'crop_areas': [((807, 440), (1207, 840)), ((2285, 5), (3469, 1189))],  # crop areas for the camera images, need to be square
+    'crop_areas': [((781, 432), (1191, 842)), ((2305, 5), (3495, 1195))],  # crop areas for the camera images, need to be square
     'sim_pattern_max_num': 100,  # simulation: maximum number of distributions in the simulation
     'sim_fade_rate': 0.96,  # simulation: the probability of a distribution to disappear
     'sim_std_1': 0.02, # simulation: lower indication of std   0.03
@@ -119,6 +119,12 @@ queue.append({'experiment_description':'position based coupling intensity',
               'image_source':'simulation',
               'images_per_sample':2,
               'data':simulation.moving_blocks_generator(size=conf['base_resolution'][0], block_size=32, intensity=255),
+              'len':64}) 
+queue.append({'experiment_description':'position based coupling intensity',
+              'purpose':'intensity_position',
+              'image_source':'simulation',
+              'images_per_sample':2,
+              'data':simulation.moving_blocks_generator(size=conf['base_resolution'][0], block_size=16, intensity=255),
               'len':64}) 
 # queue.append({'experiment_description':'MINST for fun',
 #               'purpose':'fun',

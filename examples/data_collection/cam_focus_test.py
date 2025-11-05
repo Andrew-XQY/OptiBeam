@@ -262,19 +262,28 @@ def display_image(save_to='', scale_factor=0.5, intensity_monitor=False, camera_
 from ALP4 import *
 DMD_DIM = 1024
 
+# Using real image load on the DMD for testing
+# def read_gray_square(path):
+#     import numpy as np
+#     from PIL import Image
+#     """Read image, return single-channel square numpy array."""
+#     img = Image.open(path).convert('L')
+#     s = min(img.size)  # no upscaling
+#     return np.array(img.resize((s, s), Image.LANCZOS))
+
+# calibration_img = read_gray_square("C:\\Users\\qiyuanxu\\Downloads\\gradient.png")
+
+
 if __name__ == "__main__":
     DMD = dmd.ViALUXDMD(ALP4(version = '4.3'))
-    calibration_img = simulation.generate_radial_gradient(size=DMD_DIM)
+    # calibration_img = simulation.generate_radial_gradient(size=DMD_DIM)
     # calibration_img = np.ones((256, 256)) * 255  # 0-255 grayscale
-    # calibration_img = simulation.generate_upward_arrow()
+    calibration_img = simulation.generate_upward_arrow()
     # calibration_img = simulation.dmd_calibration_pattern_generation()
     
-    
-    # calibration_img = simulation.macro_pixel(calibration_img, size=int(DMD_DIM/calibration_img.shape[0])) 
+    calibration_img = simulation.macro_pixel(calibration_img, size=int(DMD_DIM/calibration_img.shape[0])) 
+    calibration_img = dmd.dmd_img_adjustment(calibration_img, DMD_DIM, angle=DMD_ROTATION_ANGLE)
 
-    print(f"Max pixel value: {np.max(calibration_img)}")
-    print(f"Min pixel value: {np.min(calibration_img)}")
-    # calibration_img = dmd.dmd_img_adjustment(calibration_img, DMD_DIM, angle=DMD_ROTATION_ANGLE)
     DMD.display_image(calibration_img) # preload one image for camera calibration
 
     click_position = None
