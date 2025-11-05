@@ -108,7 +108,9 @@ class ViALUXDMD(DMD):
         # Initialize the device
         self.dmd = dmd
         self.dmd.Initialize()
-        self.pictureTime = 20000  #  in microseconds. 50 Hz = 20000 us
+        self.pictureTime = 40000  #  in microseconds. 50 Hz = 20000 us, 20ms pictureTime doesn't give the PWM engine enough time to smoothly display 8-bit grayscale!, use 40000 for 25Hz
+        # also set the illumination time explicitly
+        self.illuminationTime = 38000  # in microseconds
         self.bitDepth = 8  # 8-bit grayscale 256 levels
         self.hight = self.dmd.nSizeY
         self.width = self.dmd.nSizeX
@@ -139,7 +141,7 @@ class ViALUXDMD(DMD):
         # Send the image sequence as a 1D list/array/numpy array
         self.dmd.SeqPut(imgData = imgSeq)
         # Set image rate to 50 Hz
-        self.dmd.SetTiming(pictureTime = self.pictureTime) # in microseconds. 50 Hz = 20000 us
+        self.dmd.SetTiming(pictureTime = self.pictureTime, illuminationTime = self.illuminationTime) # in microseconds. 50 Hz = 20000 us
         # Run the sequence in a loop
         self.dmd.Run()
         # time.sleep(0.01)
