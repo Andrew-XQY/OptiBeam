@@ -49,9 +49,9 @@ DMD.set_pictureTime(conf['dmd_picture_time'])
 # generate_upward_arrow(), dmd_calibration_pattern_generation()   generate_circle_fiber_coupling_pattern(line_width=20)
 # calibration_img = np.ones((256, 256)) * 100
 # calibration_img = simulation.generate_radial_gradient()
-# calibration_img = simulation.generate_upward_arrow()
+calibration_img = simulation.generate_upward_arrow()
 # calibration_img = simulation.generate_up_left_arrow()
-calibration_img = simulation.dmd_calibration_pattern_generation()
+# calibration_img = simulation.dmd_calibration_pattern_generation()/
 calibration_img = simulation.macro_pixel(calibration_img, size=int(conf['dmd_dim']/calibration_img.shape[0])) 
 DMD.display_image(dmd.dmd_img_adjustment(calibration_img, conf['dmd_dim'], angle=conf['dmd_rotation'], horizontal_flip=conf['horizontal_flip'], vertical_flip=conf['vertical_flip']))
 # Cameras Initialization
@@ -132,7 +132,7 @@ queue.append({'experiment_description':'position based coupling intensity',
               'image_source':'simulation',
               'images_per_sample':2,
               'data':simulation.moving_blocks_generator(size=conf['base_resolution'][0], block_size=16, intensity=255),
-              'len':256}) 
+              'len':1024}) 
 # queue.append({'experiment_description':'MINST for fun',
 #               'purpose':'fun',
 #               'images_per_sample':2,
