@@ -173,6 +173,63 @@ def mouse_callback(event, x, y, flags, param):
         click_position = (x, y)
 
 
+def draw_crosshair_with_ticks(image, major_tick_spacing=50, color=(0, 255, 0), thickness=1):
+    """
+    Draw a crosshair with major and minor ticks on the image
+    
+    Args:
+        image: np.ndarray - input image
+        major_tick_spacing: int - pixel spacing between major ticks
+        color: tuple - BGR color for the crosshair and ticks
+        thickness: int - line thickness
+    
+    Returns:
+        np.ndarray - image with crosshair drawn
+    """
+    height, width = image.shape[:2]
+    center_x = width // 2
+    center_y = height // 2
+    
+    # Calculate minor tick spacing (5 subdivisions between major ticks)
+    minor_tick_spacing = major_tick_spacing // 5
+    
+    # Define tick lengths
+    major_tick_length = 15
+    minor_tick_length = 8
+    
+    # Draw vertical center line
+    cv2.line(image, (center_x, 0), (center_x, height), color, thickness)
+    
+    # Draw horizontal center line
+    cv2.line(image, (0, center_y), (width, center_y), color, thickness)
+    
+    # Draw vertical ticks along the horizontal center line
+    for x in range(0, width, minor_tick_spacing):
+        # Check if this is a major tick (at major_tick_spacing intervals from start)
+        if x % major_tick_spacing == 0:
+            tick_length = major_tick_length
+        else:
+            tick_length = minor_tick_length
+        
+        # Draw tick extending from center line
+        cv2.line(image, (x, center_y - tick_length // 2), 
+                (x, center_y + tick_length // 2), color, thickness)
+    
+    # Draw horizontal ticks along the vertical center line
+    for y in range(0, height, minor_tick_spacing):
+        # Check if this is a major tick (at major_tick_spacing intervals from start)
+        if y % major_tick_spacing == 0:
+            tick_length = major_tick_length
+        else:
+            tick_length = minor_tick_length
+        
+        # Draw tick extending from center line
+        cv2.line(image, (center_x - tick_length // 2, y), 
+                (center_x + tick_length // 2, y), color, thickness)
+    
+    return image
+
+
 
 # Display the image with the red box and magnified area
 def display_image(save_to='', scale_factor=0.5, intensity_monitor=False, camera_index=0, text_scale=1.0):
@@ -244,6 +301,15 @@ def display_image(save_to='', scale_factor=0.5, intensity_monitor=False, camera_
             if intensity_monitor:
                     intensity = coupling.add_image(resized_img)
                     resized_img = utils.join_images([resized_img,intensity])
+            
+            # Convert grayscale to BGR so we can draw colored crosshair
+            if len(resized_img.shape) == 2:  # If grayscale
+                resized_img = cv2.cvtColor(resized_img, cv2.COLOR_GRAY2BGR)
+            
+            # Add crosshair with major and minor ticks
+            resized_img = draw_crosshair_with_ticks(resized_img, major_tick_spacing=50, 
+                                                    color=(0, 255, 0), thickness=1)
+            
             cv2.imshow('Camera Output', resized_img)
             
             key = cv2.waitKey(1)
@@ -277,7 +343,7 @@ DMD_DIM = 1024
 if __name__ == "__main__":
     DMD = dmd.ViALUXDMD(ALP4(version = '4.3'))
     # calibration_img = simulation.generate_radial_gradient(size=DMD_DIM)
-    calibration_img = np.ones((256, 256)) * 100  # 0-255 grayscale
+    calibration_img = np.ones((256, 256)) * 255  # 0-255 grayscale
     # calibration_img = simulation.generate_upward_arrow()
     # calibration_img = simulation.dmd_calibration_pattern_generation()
     
