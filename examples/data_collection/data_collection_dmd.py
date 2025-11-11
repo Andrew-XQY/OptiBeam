@@ -9,7 +9,6 @@ import cv2, json
 import subprocess
 import traceback
 
-
 # ============================
 # Dataset Parameters
 # ============================
@@ -37,6 +36,9 @@ conf = {
     'sim_std_2': 0.25, # simulation: higher indication of std   0.2
     'sim_max_intensity': 100, # simulation: peak pixel intensity in a single distribution
     'sim_dim': 512,   # simulation: simulated image resolution
+    
+    'dct_dim': (32, 32),  # DCT basis dimension
+    'dct_value_range': (0.0, 255.0),  # remap DCT basis values to [0, 255]
 }
 
 
@@ -108,6 +110,13 @@ queue.append({'experiment_description':'empty (only black) image',
               'is_calibration':True,
               'data':[np.ones((256, 256)) * 0],
               'len':1}) 
+queue.append({'experiment_description':'DCT basis patterns',
+              'purpose':'Orthogonal_basis',
+              'image_source':'simulation',
+              'images_per_sample':2,
+              'data':basis.make_dct(shape = conf['dct_dim'], value_range=conf['dct_value_range']).generator(),
+              'len':conf['dct_dim'][0] * conf['dct_dim'][1]}) 
+
 # queue.append({'experiment_description':'calibration image', 
 #               'purpose':'calibration',
 #               'image_source':'simulation',
@@ -121,6 +130,7 @@ queue.append({'experiment_description':'empty (only black) image',
 #               'images_per_sample':2,
 #               'data': [np.ones(conf['base_resolution']) * 100],
 #               'len':1}) 
+
 # queue.append({'experiment_description':'position based coupling intensity',
 #               'purpose':'intensity_position',
 #               'image_source':'simulation',
@@ -133,18 +143,20 @@ queue.append({'experiment_description':'empty (only black) image',
 #               'images_per_sample':2,
 #               'data':simulation.moving_blocks_generator(size=conf['base_resolution'][0], block_size=32, intensity=255),
 #               'len':256}) 
-queue.append({'experiment_description':'position based coupling intensity',
-              'purpose':'intensity_position',
-              'image_source':'simulation',
-              'images_per_sample':2,
-              'data':simulation.moving_blocks_generator(size=conf['base_resolution'][0], block_size=16, intensity=255),
-              'len':1024}) 
+# queue.append({'experiment_description':'position based coupling intensity',
+#               'purpose':'intensity_position',
+#               'image_source':'simulation',
+#               'images_per_sample':2,
+#               'data':simulation.moving_blocks_generator(size=conf['base_resolution'][0], block_size=16, intensity=255),
+#               'len':1024}) 
+
 # queue.append({'experiment_description':'MINST for fun',
 #               'purpose':'fun',
 #               'images_per_sample':2,
 #               'image_source':'MINST',
 #               'data':simulation.temporal_shift(conf['temporal_shift_freq'], conf['temporal_shift_intensity'])(utils.identity)(imgs_array),
 #               'len':minst_len + utils.ceil_int_div(minst_len, conf['temporal_shift_freq'])}) 
+
 queue.append({'experiment_description':'local real beam image for evaluation',
               'purpose':'testing',
               'images_per_sample':2,

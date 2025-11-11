@@ -46,6 +46,7 @@ with ChangeDirToFileLocation():
     import optibeam.evaluation as evaluation
     import optibeam.visualization as visualization
     import optibeam.analysis as analysis
+    import optibeam.basis as basis
     
 
 def read_MNIST_images(filepath):
