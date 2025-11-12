@@ -170,7 +170,12 @@ def analyze_frame_properties(image, normalize_range=(0, 100), peak_buffer=None):
 def mouse_callback(event, x, y, flags, param):
     global click_position 
     if event == cv2.EVENT_LBUTTONDOWN:
-        click_position = (x, y)
+        if click_position is None:
+            # First click: enable magnify mode
+            click_position = (x, y)
+        else:
+            # Second click: reset to original view
+            click_position = None
 
 
 def draw_crosshair_with_ticks(image, major_tick_spacing=50, color=(0, 255, 0), thickness=1):
@@ -243,6 +248,8 @@ def display_image(save_to='', scale_factor=0.5, intensity_monitor=False, camera_
     
     cv2.createTrackbar('Exposure time (ms)', 'Camera Output', 40, 500, 
                        lambda x: camera_capture.camera.ExposureTimeRaw.SetValue(x*1000))  # miniseconds
+    cv2.createTrackbar('Gain', 'Camera Output', 0, 300, 
+                       lambda x: camera_capture.camera.GainRaw.SetValue(x))
     
     # Initialize peak buffer to track maximum values
     peak_buffer = {}
@@ -266,9 +273,6 @@ def display_image(save_to='', scale_factor=0.5, intensity_monitor=False, camera_
                 y1 = max(click_position[1] - box_size // 2, 0)
                 x2 = min(click_position[0] + box_size // 2, resized_img.shape[1] - 1)
                 y2 = min(click_position[1] + box_size // 2, resized_img.shape[0] - 1)
-                
-                # Draw the red box
-                cv2.rectangle(resized_img, (x1, y1), (x2, y2), (0, 0, 255), 2)
                 
                 # Crop and magnify the area within the red box
                 cropped_img = resized_img[y1:y2, x1:x2]
@@ -353,6 +357,6 @@ if __name__ == "__main__":
     DMD.display_image(calibration_img) # preload one image for camera calibration
 
     click_position = None
-    display_image('results', camera_index=0, text_scale=1, scale_factor=0.6)  # Use camera_index=0 for first camera, camera_index=1 for second camera
+    display_image('results', camera_index=1, text_scale=1, scale_factor=0.6)  # Use camera_index=0 for first camera, camera_index=1 for second camera
 
 
