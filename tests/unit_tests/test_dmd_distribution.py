@@ -14,6 +14,8 @@ dim = 512
 canvas = simulation.DynamicPatterns(*(dim, dim))
 canvas._distributions = [simulation.GaussianDistribution(canvas) for _ in range(10)]
 
+
+
 for i in range(1000000):
     # canvas.update()
     # img = canvas.get_image()
@@ -41,8 +43,8 @@ for i in range(1000000):
         img[mask] = intensity
         return img
     
-    # img = np.ones((256, 256)) * 255
-    img = create_solid_circle(256, 255)
+    img = np.ones((256, 256)) * 255
+    # img = create_solid_circle(256, 255)
     # img = simulation.generate_upward_arrow()
     img = simulation.macro_pixel(img, size=int(conf['dmd_dim']/img.shape[0])) 
     DMD.display_image(dmd.dmd_img_adjustment(img, conf['dmd_dim'], angle=conf['dmd_rotation'])) 

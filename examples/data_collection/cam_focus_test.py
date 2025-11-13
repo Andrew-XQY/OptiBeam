@@ -347,9 +347,9 @@ DMD_DIM = 1024
 if __name__ == "__main__":
     DMD = dmd.ViALUXDMD(ALP4(version = '4.3'))
     # calibration_img = simulation.generate_radial_gradient(size=DMD_DIM)
-    # calibration_img = np.ones((256, 256)) * 255  # 0-255 grayscale
-    calibration_img = simulation.generate_inverted_upward_arrow()
-    # calibration_img = simulation.generate_upward_arrow()
+    calibration_img = np.ones((256, 256)) * 255  # 0-255 grayscale
+    # calibration_img = simulation.generate_inverted_upward_arrow()
+    
     # calibration_img = simulation.dmd_calibration_pattern_generation()
     
     calibration_img = simulation.macro_pixel(calibration_img, size=int(DMD_DIM/calibration_img.shape[0])) 
@@ -358,6 +358,6 @@ if __name__ == "__main__":
     DMD.display_image(calibration_img) # preload one image for camera calibration
 
     click_position = None
-    display_image('results', camera_index=1, text_scale=1, scale_factor=0.6)  # Use camera_index=0 for first camera, camera_index=1 for second camera
+    display_image('results', camera_index=0, text_scale=1, scale_factor=0.6)  # Use camera_index=0 for first camera, camera_index=1 for second camera
 
 
