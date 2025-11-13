@@ -873,6 +873,58 @@ def generate_upward_arrow(size=256):
         canvas[head_start_y + i:head_start_y + i + 1, int(start_x):int(end_x)] = 255
     return canvas
 
+def generate_inverted_upward_arrow(size=256, intesity: int=255) -> np.ndarray:
+    """
+    Generates a white background (255) with a black upward arrow (0).
+    The arrow shape is cut out from the white background and is precisely centered
+    both horizontally and vertically in the canvas.
+    
+    Args:
+        size (int): The size of the square image (size x size).
+        intesity (int): The background intensity (default 255 for white).
+    
+    Returns:
+        np.ndarray: A 2D NumPy array with white background and black arrow.
+    """
+    # Start with a white canvas
+    canvas = np.ones((size, size), dtype=np.uint8) * intesity
+    center_x = size // 2
+    center_y = size // 2
+    
+    # Arrow dimensions
+    arrow_width = size // 10
+    arrow_height = size // 2  # shaft height
+    head_height = size // 6
+    head_width = size // 6
+    
+    # Total arrow height (shaft + head)
+    total_arrow_height = arrow_height + head_height
+    
+    # Calculate positions to center the entire arrow (shaft + head) at canvas center
+    # The arrow's geometric center should be at center_y
+    arrow_top = center_y - total_arrow_height // 2  # top of arrow head
+    arrow_bottom = center_y + total_arrow_height // 2  # bottom of shaft
+    
+    # Arrow head goes from arrow_top to arrow_top + head_height
+    # Arrow shaft goes from arrow_top + head_height to arrow_bottom
+    shaft_start_y = arrow_top + head_height  # where shaft begins (top of shaft)
+    shaft_end_y = arrow_bottom  # where shaft ends (bottom of shaft)
+    
+    # Draw the arrow shaft (set to 0 for black)
+    canvas[shaft_start_y:shaft_end_y, center_x - arrow_width // 2:center_x + arrow_width // 2] = 0
+    
+    # Draw the arrow head (set to 0 for black) - flipped so it points upward
+    for i in range(head_height):
+        # Triangle widens as we go down (i increases from 0 to head_height)
+        # At i=0 (tip at top), width should be near 0
+        # At i=head_height-1 (base), width should be head_width
+        width_ratio = i / head_height
+        start_x = center_x - (head_width // 2) * width_ratio
+        end_x = center_x + (head_width // 2) * width_ratio
+        canvas[arrow_top + i:arrow_top + i + 1, int(start_x):int(end_x)] = 0
+    
+    return canvas
+
 def generate_up_left_arrow(size=256, boundary_width=5):
     canvas = np.zeros((size, size), dtype=np.uint8)
     center_x = size // 2
