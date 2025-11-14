@@ -15,7 +15,7 @@ import traceback
 conf = {
     'config_crop_area': False,  # set to True to select crop areas and stop the process
     'camera_order_flip': True,  # camera order flip
-    'cam_schedule_time': int(400 * 1e6),  # camera schedule time in milliseconds 400
+    'cam_schedule_time': int(500 * 1e6),  # camera schedule time in milliseconds 500
     'base_resolution': (512, 512),  # base resolution for all images (256, 256)
     'number_of_images': 25000,  # simulation: number of images to generate in this batch
     'number_of_test': None,  # left none for all images
@@ -29,7 +29,7 @@ conf = {
     'dmd_bitDepth': 8,  # DMD bit depth
     'dmd_picture_time': 20000,  # DMD picture time in microseconds, corresponds to 50 Hz -> 20000, 10 Hz -> 100000
     'dmd_alp_version': '4.3',  # DMD ALP version
-    'crop_areas': [((756, 350), (1200, 794)), ((2317, 37), (3417, 1137))],  # crop areas for the camera images, need to be square
+    'crop_areas': [((773, 342), (1221, 790)), ((2350, 52), (3396, 1098))],  # crop areas for the camera images, need to be square
     'sim_pattern_max_num': 100,  # simulation: maximum number of distributions in the simulation
     'sim_fade_rate': 0.96,  # simulation: the probability of a distribution to disappear
     'sim_std_1': 0.02, # simulation: lower indication of std   0.03
@@ -38,7 +38,7 @@ conf = {
     'sim_dim': 512,   # simulation: simulated image resolution
     
     'dct_dim': (16, 16),  # DCT basis dimension
-    'dct_value_range': (0.0, 255.0),  # remap DCT basis values to [0, 255]
+    'dct_value_range': (0.0, 100.0),  # remap DCT basis values to [0, 255]
 }
 
 
@@ -125,12 +125,12 @@ queue.append({'experiment_description':'empty (only black) image',
 #               'data': [np.ones(conf['base_resolution']) * 100],
 #               'len':1}) 
 
-queue.append({'experiment_description':'position based coupling intensity',
-              'purpose':'intensity_position',
-              'image_source':'simulation',
-              'images_per_sample':2,
-              'data':simulation.moving_blocks_generator(size=conf['base_resolution'][0], block_size=64, intensity=255),
-              'len':64}) 
+# queue.append({'experiment_description':'position based coupling intensity',
+#               'purpose':'intensity_position',
+#               'image_source':'simulation',
+#               'images_per_sample':2,
+#               'data':simulation.moving_blocks_generator(size=conf['base_resolution'][0], block_size=64, intensity=255),
+#               'len':64}) 
 # queue.append({'experiment_description':'position based coupling intensity',
 #               'purpose':'intensity_position',
 #               'image_source':'simulation',
@@ -151,12 +151,12 @@ queue.append({'experiment_description':'position based coupling intensity',
 #               'data':simulation.temporal_shift(conf['temporal_shift_freq'], conf['temporal_shift_intensity'])(utils.identity)(imgs_array),
 #               'len':minst_len + utils.ceil_int_div(minst_len, conf['temporal_shift_freq'])}) 
 
-queue.append({'experiment_description':'DCT basis patterns',
-              'purpose':'Orthogonal_basis',
-              'image_source':'simulation',
-              'images_per_sample':2,
-              'data':basis.make_dct(shape = conf['dct_dim'], value_range=conf['dct_value_range']).generator(),
-              'len':conf['dct_dim'][0] * conf['dct_dim'][1]}) 
+# queue.append({'experiment_description':'DCT basis patterns',
+#               'purpose':'Orthogonal_basis',
+#               'image_source':'simulation',
+#               'images_per_sample':2,
+#               'data':basis.make_dct(shape = conf['dct_dim'], value_range=conf['dct_value_range']).generator(),
+#               'len':conf['dct_dim'][0] * conf['dct_dim'][1]}) 
 
 queue.append({'experiment_description':'local real beam image for evaluation',
               'purpose':'testing',
@@ -243,9 +243,18 @@ try:
                 # crop the image to regions of interest
                 image = processing.crop_image_from_coordinates(image, conf['crop_areas'])
                 # image statistics info
-                ground_truth, speckle = utils.split_image(image)
+                ground_truth, fiber_output = utils.split_image(image)
                 ground_truth_stats = analysis.analyze_image(ground_truth)
-                fiber_output_stats = analysis.analyze_image(speckle)
+                fiber_output_stats = analysis.analyze_image(fiber_output)
+                
+                # calculate saturation status
+                is_saturated_ground_truth = 1 if ground_truth_stats.get("max_intensity", 0) >= 255 else 0
+                is_saturated_fiber_output = 1 if fiber_output_stats.get("max_intensity", 0) >= 255 else 0
+                
+                # calculate coupling efficiency
+                coupling_efficiency = None
+                if ground_truth_stats.get("total_intensity", 0) > 0:
+                    coupling_efficiency = fiber_output_stats.get("total_intensity", 0) / ground_truth_stats.get("total_intensity", 1)
                 
                 # update and save the corresponding metadata of the image
                 meta = {
@@ -255,6 +264,9 @@ try:
                         "images_per_sample":experiment.get("images_per_sample", None),  
                         "is_params":experiment.get("is_params", False), 
                         "is_calibration":experiment.get("is_calibration", False), 
+                        "is_saturated_ground_truth":is_saturated_ground_truth,
+                        "is_saturated_fiber_output":is_saturated_fiber_output,
+                        "coupling_efficiency":coupling_efficiency,
                         "ground_truth_img_stat":ground_truth_stats,
                         "fiber_output_img_stats":fiber_output_stats,
                         "image_descriptions":json.dumps({**({"simulation_img": img_size} if experiment.get("include_simulation", False) else {}),

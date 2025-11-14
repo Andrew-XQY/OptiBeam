@@ -92,8 +92,8 @@ class MultiBaslerCameraManager:
         Returns:
             None
         """
-        # Current maximum for exposure time is 2000000 microseconds, gain is 360
-        type = {'Exposure':200, 'Gain':36} # 'Exposure':200 exposure time in milliseconds
+        # Current maximum for exposure time is  up to 5000000 microseconds, gain is 360
+        type = {'Exposure':500, 'Gain':36} # 'Exposure':500 exposure time in milliseconds
         scale = {'Exposure':1000, 'Gain':10}
         for i in range(len(self.cameras)):
             params = create_camera_control_functions(self.cameras[i], scale)
