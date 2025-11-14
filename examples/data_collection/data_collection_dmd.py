@@ -15,7 +15,7 @@ import traceback
 conf = {
     'config_crop_area': False,  # set to True to select crop areas and stop the process
     'camera_order_flip': True,  # camera order flip
-    'cam_schedule_time': int(300 * 1e6),  # camera schedule time in milliseconds 300 * 1e6
+    'cam_schedule_time': int(400 * 1e6),  # camera schedule time in milliseconds 400
     'base_resolution': (512, 512),  # base resolution for all images (256, 256)
     'number_of_images': 25000,  # simulation: number of images to generate in this batch
     'number_of_test': None,  # left none for all images
@@ -29,7 +29,7 @@ conf = {
     'dmd_bitDepth': 8,  # DMD bit depth
     'dmd_picture_time': 20000,  # DMD picture time in microseconds, corresponds to 50 Hz -> 20000, 10 Hz -> 100000
     'dmd_alp_version': '4.3',  # DMD ALP version
-    'crop_areas': [((780, 417), (1120, 757)), ((2300, 5), (3482, 1187))],  # crop areas for the camera images, need to be square
+    'crop_areas': [((756, 350), (1200, 794)), ((2317, 37), (3417, 1137))],  # crop areas for the camera images, need to be square
     'sim_pattern_max_num': 100,  # simulation: maximum number of distributions in the simulation
     'sim_fade_rate': 0.96,  # simulation: the probability of a distribution to disappear
     'sim_std_1': 0.02, # simulation: lower indication of std   0.03
@@ -37,7 +37,7 @@ conf = {
     'sim_max_intensity': 100, # simulation: peak pixel intensity in a single distribution
     'sim_dim': 512,   # simulation: simulated image resolution
     
-    'dct_dim': (32, 32),  # DCT basis dimension
+    'dct_dim': (16, 16),  # DCT basis dimension
     'dct_value_range': (0.0, 255.0),  # remap DCT basis values to [0, 255]
 }
 
@@ -110,12 +110,6 @@ queue.append({'experiment_description':'empty (only black) image',
               'is_calibration':True,
               'data':[np.ones((256, 256)) * 0],
               'len':1}) 
-queue.append({'experiment_description':'DCT basis patterns',
-              'purpose':'Orthogonal_basis',
-              'image_source':'simulation',
-              'images_per_sample':2,
-              'data':basis.make_dct(shape = conf['dct_dim'], value_range=conf['dct_value_range']).generator(),
-              'len':conf['dct_dim'][0] * conf['dct_dim'][1]}) 
 
 # queue.append({'experiment_description':'calibration image', 
 #               'purpose':'calibration',
@@ -131,12 +125,12 @@ queue.append({'experiment_description':'DCT basis patterns',
 #               'data': [np.ones(conf['base_resolution']) * 100],
 #               'len':1}) 
 
-# queue.append({'experiment_description':'position based coupling intensity',
-#               'purpose':'intensity_position',
-#               'image_source':'simulation',
-#               'images_per_sample':2,
-#               'data':simulation.moving_blocks_generator(size=conf['base_resolution'][0], block_size=64, intensity=255),
-#               'len':64}) 
+queue.append({'experiment_description':'position based coupling intensity',
+              'purpose':'intensity_position',
+              'image_source':'simulation',
+              'images_per_sample':2,
+              'data':simulation.moving_blocks_generator(size=conf['base_resolution'][0], block_size=64, intensity=255),
+              'len':64}) 
 # queue.append({'experiment_description':'position based coupling intensity',
 #               'purpose':'intensity_position',
 #               'image_source':'simulation',
@@ -156,6 +150,13 @@ queue.append({'experiment_description':'DCT basis patterns',
 #               'image_source':'MINST',
 #               'data':simulation.temporal_shift(conf['temporal_shift_freq'], conf['temporal_shift_intensity'])(utils.identity)(imgs_array),
 #               'len':minst_len + utils.ceil_int_div(minst_len, conf['temporal_shift_freq'])}) 
+
+queue.append({'experiment_description':'DCT basis patterns',
+              'purpose':'Orthogonal_basis',
+              'image_source':'simulation',
+              'images_per_sample':2,
+              'data':basis.make_dct(shape = conf['dct_dim'], value_range=conf['dct_value_range']).generator(),
+              'len':conf['dct_dim'][0] * conf['dct_dim'][1]}) 
 
 queue.append({'experiment_description':'local real beam image for evaluation',
               'purpose':'testing',
@@ -243,8 +244,8 @@ try:
                 image = processing.crop_image_from_coordinates(image, conf['crop_areas'])
                 # image statistics info
                 ground_truth, speckle = utils.split_image(image)
-                stats = {'ground_truth_img':analysis.analyze_image(ground_truth),
-                         'fiber_output_img':analysis.analyze_image(speckle)}
+                ground_truth_stats = analysis.analyze_image(ground_truth)
+                fiber_output_stats = analysis.analyze_image(speckle)
                 
                 # update and save the corresponding metadata of the image
                 meta = {
@@ -254,7 +255,8 @@ try:
                         "images_per_sample":experiment.get("images_per_sample", None),  
                         "is_params":experiment.get("is_params", False), 
                         "is_calibration":experiment.get("is_calibration", False), 
-                        "img_stats":stats,
+                        "ground_truth_img_stat":ground_truth_stats,
+                        "fiber_output_img_stats":fiber_output_stats,
                         "image_descriptions":json.dumps({**({"simulation_img": img_size} if experiment.get("include_simulation", False) else {}),
                                                          "ground_truth_img": img_size, "fiber_output_img": img_size}),
                         "image_path":relative_path,  

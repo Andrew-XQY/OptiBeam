@@ -238,7 +238,7 @@ def camera_generator(stop_event, camera_index=0):
 # ============================
 def dmd_process(stop_event, dmd_img_queue, trackbar_queue, dmd_state_queue, conf=None):
     DMD = dmd.ViALUXDMD(ALP4(version='4.3'))
-    calibrator = simulation.CornerBlocksCalibrator(block_size=32)
+    calibrator = simulation.CornerBlocksCalibrator(block_size=16)
 
     while not stop_event.is_set():
         if not trackbar_queue.empty():

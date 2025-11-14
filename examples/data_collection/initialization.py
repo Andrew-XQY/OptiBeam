@@ -20,7 +20,11 @@ schema = {
             "speckle_crop_pos":"TEXT",  # two points for cropping the image
             "is_params":"BOOLEAN",  # whether the beam parameters are calculable
             "is_calibration":"BOOLEAN",  # whether the image is used for calibration
-            "img_stats":"TEXT",  # including like pixel min, max, mean, std and noise level etc.
+            "is_saturated":"BOOLEAN",  
+            # "img_stats":"TEXT",  # including like pixel min, max, mean, std and noise level etc.
+            "ground_truth_img_stat":"TEXT",  # including like pixel min, max, mean, std and noise level etc. for ground truth image
+            "fiber_output_img_stats":"TEXT",  # including like pixel min, max, mean, std and noise level etc. for fiber output image
+            "coupling_efficiency":"TEXT",  # coupling efficiency if calculable
             "beam_parameters":"TEXT",  # beam parameters used in the experiment (JSON or dict) if calculable
             "images_per_sample":"INTEGER",  # number of individual images in the data sample
             "image_descriptions":"TEXT",  # JSON or dict, description of each image
