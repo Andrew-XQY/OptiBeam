@@ -44,8 +44,8 @@ conf = {
     # Camera-only periodic experiment (new)
     # ----------------------------
     'camera_only_enable': True,  # set to True to enable camera-only periodic acquisition experiment
-    'camera_only_samples': 1000,  # number of images to capture in camera-only experiment
-    'camera_only_schedule_time': int(1000 * 1e6),  # schedule time for camera-only experiment (same units as cam_schedule_time)
+    'camera_only_samples': 5,  # number of images to capture in camera-only experiment
+    'camera_only_schedule_time': int(500 * 1e6),  # schedule time for camera-only experiment (same units as cam_schedule_time)
 }
 
 
@@ -207,7 +207,7 @@ queue.append({'experiment_description':'local real beam image for evaluation',
 
 
 # ============================
-# Camera-only periodic experiment (new, appended to queue)
+# Camera-only periodic experiment queue (No DMD needed)
 # ============================
 if conf.get('camera_only_enable', False):
     queue = []
@@ -223,9 +223,9 @@ if conf.get('camera_only_enable', False):
 
     queue.append({
         'experiment_description': 'camera-only periodic acquisition',
-        'purpose': 'camera_only',
-        'image_source': 'camera',
-        'image_device': 'camera-only',  # used in metadata
+        'purpose': 'testset',
+        'image_source': 'CLEAR e-beam',  
+        'image_device': 'Chromox scintillator', 
         'images_per_sample': 2,  # still two cameras
         'data': camera_only_generator(conf['camera_only_samples'], conf['base_resolution']),
         'len': conf['camera_only_samples'],
@@ -234,7 +234,23 @@ if conf.get('camera_only_enable', False):
         # no simulation added into the saved image
         'include_simulation': False,
         'is_calibration': False,
-        'is_params': False,
+        'is_params': True,
+    })
+    
+    queue.append({
+        'experiment_description': 'CLEAR random beam with parameters: ...',
+        'purpose': 'testset',
+        'image_source': 'CLEAR e-beam',  
+        'image_device': 'Chromox scintillator', 
+        'images_per_sample': 2,  # still two cameras
+        'data': camera_only_generator(conf['camera_only_samples'], conf['base_resolution']),
+        'len': conf['camera_only_samples'],
+        # per-experiment schedule time (period), same units as conf['cam_schedule_time']
+        'cam_schedule_time': conf.get('camera_only_schedule_time', conf['cam_schedule_time']),
+        # no simulation added into the saved image
+        'include_simulation': False,
+        'is_calibration': False,
+        'is_params': True,
     })
 
 
@@ -247,7 +263,7 @@ try:
         batch = (DB.get_max("mmf_dataset_metadata", "batch") or 0) + 1  # get the current batch number
         experiment_metadata = {
             "experiment_location": "Optical Lab, CERN, Geneva, Switzerland",
-            "experiment_date": datetime.datetime.now().strftime('%Y-%m-%d'),
+            "experiment_date": datetime.datetime.now().strftime('%Y-%m-%d_%H:%M:%S'),
             "image_device": experiment.get("image_device", "dmd"),  # scintillation-screen, dmd, slm, led, OTR.
             "fiber_config": {
                 "fiber_length": "1 m",
@@ -276,9 +292,26 @@ try:
         if not DB.record_exists("mmf_experiment_config", "hash", ConfMeta.get_hash()):
             DB.sql_execute(ConfMeta.to_sql_insert("mmf_experiment_config")) # save the experiment metadata to the database
         else:
-            print("Notice: The experiment metadata already exists in the database.")
-            #raise ValueError("The experiment metadata already exists in the database.")
-        config_id = DB.get_max("mmf_experiment_config", "id")
+            # Append the new batch number to the existing batch list
+            print("Notice: The experiment metadata already exists in the database. Appending batch number.")
+            existing_batch_sql = f"SELECT batch FROM mmf_experiment_config WHERE hash = '{ConfMeta.get_hash()}'"
+            existing_batch_df = DB.sql_select(existing_batch_sql)
+            existing_batch = existing_batch_df.iloc[0]['batch'] if not existing_batch_df.empty else ""
+            
+            # Append new batch to existing batch list
+            if existing_batch:
+                new_batch_list = f"{existing_batch}, {batch}"
+            else:
+                new_batch_list = str(batch)
+            
+            # Update the batch field with the appended list
+            update_batch_sql = f"UPDATE mmf_experiment_config SET batch = '{new_batch_list}' WHERE hash = '{ConfMeta.get_hash()}'"
+            DB.sql_execute(update_batch_sql)
+        
+        # Get the config_id for the current experiment configuration by hash
+        config_id_sql = f"SELECT id FROM mmf_experiment_config WHERE hash = '{ConfMeta.get_hash()}'"
+        config_id_df = DB.sql_select(config_id_sql)
+        config_id = config_id_df.iloc[0]['id'] if not config_id_df.empty else None
 
         # print to indicate the current experiment name
         print(f"---> Starting experiment: {experiment['experiment_description']}")
@@ -353,7 +386,7 @@ except Exception as e:
 # update actual number of images captured, excluding the temporal shift check images
 sql = """
     SELECT 
-        meta.batch AS batch, 
+        conf.id AS id,
         COUNT(meta.id) - SUM(CASE WHEN meta.comments = 'temporal_shift_check' THEN 1 ELSE 0 END) AS total_images
     FROM 
         mmf_dataset_metadata AS meta
@@ -362,10 +395,10 @@ sql = """
     ON 
         meta.config_id = conf.id
     GROUP BY 
-        meta.batch
+        meta.config_id
 """
 df = DB.sql_select(sql)
-sql = DB.batch_update("mmf_experiment_config", "batch", df)
+sql = DB.batch_update("mmf_experiment_config", "id", df)
 DB.sql_execute(sql, multiple=True)
 
 # ============================

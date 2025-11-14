@@ -209,28 +209,40 @@ def draw_crosshair_with_ticks(image, major_tick_spacing=50, color=(0, 255, 0), t
     cv2.line(image, (0, center_y), (width, center_y), color, thickness)
     
     # Draw vertical ticks along the horizontal center line
-    for x in range(0, width, minor_tick_spacing):
-        # Check if this is a major tick (at major_tick_spacing intervals from start)
-        if x % major_tick_spacing == 0:
-            tick_length = major_tick_length
-        else:
-            tick_length = minor_tick_length
-        
-        # Draw tick extending from center line
-        cv2.line(image, (x, center_y - tick_length // 2), 
-                (x, center_y + tick_length // 2), color, thickness)
+    # Calculate how many ticks fit on each side of center
+    num_ticks_left = center_x // minor_tick_spacing
+    num_ticks_right = (width - center_x) // minor_tick_spacing
+    
+    for i in range(-num_ticks_left, num_ticks_right + 1):
+        x = center_x + i * minor_tick_spacing
+        if 0 <= x < width:
+            # Check if this is a major tick (at major_tick_spacing intervals from center)
+            if i % (major_tick_spacing // minor_tick_spacing) == 0:
+                tick_length = major_tick_length
+            else:
+                tick_length = minor_tick_length
+            
+            # Draw tick extending from center line
+            cv2.line(image, (x, center_y - tick_length // 2), 
+                    (x, center_y + tick_length // 2), color, thickness)
     
     # Draw horizontal ticks along the vertical center line
-    for y in range(0, height, minor_tick_spacing):
-        # Check if this is a major tick (at major_tick_spacing intervals from start)
-        if y % major_tick_spacing == 0:
-            tick_length = major_tick_length
-        else:
-            tick_length = minor_tick_length
-        
-        # Draw tick extending from center line
-        cv2.line(image, (center_x - tick_length // 2, y), 
-                (center_x + tick_length // 2, y), color, thickness)
+    # Calculate how many ticks fit on each side of center
+    num_ticks_top = center_y // minor_tick_spacing
+    num_ticks_bottom = (height - center_y) // minor_tick_spacing
+    
+    for i in range(-num_ticks_top, num_ticks_bottom + 1):
+        y = center_y + i * minor_tick_spacing
+        if 0 <= y < height:
+            # Check if this is a major tick (at major_tick_spacing intervals from center)
+            if i % (major_tick_spacing // minor_tick_spacing) == 0:
+                tick_length = major_tick_length
+            else:
+                tick_length = minor_tick_length
+            
+            # Draw tick extending from center line
+            cv2.line(image, (center_x - tick_length // 2, y), 
+                    (center_x + tick_length // 2, y), color, thickness)
     
     return image
 
@@ -345,19 +357,22 @@ DMD_DIM = 1024
 
 
 if __name__ == "__main__":
-    DMD = dmd.ViALUXDMD(ALP4(version = '4.3'))
-    # calibration_img = simulation.generate_radial_gradient(size=DMD_DIM)
-    calibration_img = np.ones((256, 256)) * 255  # 0-255 grayscale
-    # calibration_img = simulation.generate_inverted_upward_arrow()
-    
-    # calibration_img = simulation.dmd_calibration_pattern_generation()
-    
-    calibration_img = simulation.macro_pixel(calibration_img, size=int(DMD_DIM/calibration_img.shape[0])) 
-    calibration_img = dmd.dmd_img_adjustment(calibration_img, DMD_DIM, angle=DMD_ROTATION_ANGLE)
+    # Try to initialize and use the DMD; if it fails, continue in camera-only mode.
+    try:
+        DMD = dmd.ViALUXDMD(ALP4(version='4.3'))
+        # calibration_img = simulation.generate_radial_gradient(size=DMD_DIM)
+        calibration_img = np.ones((256, 256)) * 255  # 0-255 grayscale
+        # calibration_img = simulation.generate_inverted_upward_arrow()
+        
+        # calibration_img = simulation.dmd_calibration_pattern_generation()
+        
+        calibration_img = simulation.macro_pixel(calibration_img, size=int(DMD_DIM/calibration_img.shape[0])) 
+        calibration_img = dmd.dmd_img_adjustment(calibration_img, DMD_DIM, angle=DMD_ROTATION_ANGLE)
 
-    DMD.display_image(calibration_img) # preload one image for camera calibration
+        DMD.display_image(calibration_img)  # preload one image for camera calibration
+    except Exception as e:
+        print(f"Warning: DMD initialization or display failed ({e}). Running in camera-only mode.")
 
     click_position = None
-    display_image('results', camera_index=0, text_scale=1, scale_factor=0.6)  # Use camera_index=0 for first camera, camera_index=1 for second camera
-
-
+    # Use camera_index=0 for first camera, camera_index=1 for second camera
+    display_image('results', camera_index=1, text_scale=1, scale_factor=0.6)
