@@ -143,6 +143,41 @@ class MultiBaslerCameraManager:
         """
         font = cv2.FONT_HERSHEY_SIMPLEX
         cv2.putText(img, str(label), (10, 50), font, 2, (255, 255, 255), 2)
+    
+    def _plot_camera_settings(self, img: np.ndarray, cam_idx: int) -> None:
+        """
+        Plot current exposure and gain settings on bottom right of the image
+        
+        Args:
+            img: np.ndarray
+            cam_idx: int, camera index
+        
+        Returns:
+            None
+        """
+        font = cv2.FONT_HERSHEY_SIMPLEX
+        font_scale = 2
+        color = (255, 255, 255)  # White in BGR (255, 255, 255)
+        thickness = 2
+        
+        exposure = self.cameras[cam_idx].ExposureTimeAbs.Value
+        gain = self.cameras[cam_idx].GainRaw.Value
+        
+        # Position text at bottom right
+        height, width = img.shape[:2]
+        exposure_text = f'Exposure: {exposure/1000:.2f} ms'
+        gain_text = f'Gain: {gain}'
+        
+        # Calculate text size to position from bottom right
+        (exp_w, exp_h), _ = cv2.getTextSize(exposure_text, font, font_scale, thickness)
+        (gain_w, gain_h), _ = cv2.getTextSize(gain_text, font, font_scale, thickness)
+        
+        # Draw gain (first line from bottom)
+        cv2.putText(img, gain_text, (width - gain_w - 10, height - exp_h - 15), 
+                    font, font_scale, color, thickness)
+        # Draw exposure (second line from bottom)
+        cv2.putText(img, exposure_text, (width - exp_w - 10, height - 10), 
+                    font, font_scale, color, thickness)
         
     def _img_analyze(self, img: np.ndarray, normalize_range: tuple = (0, 100)) -> dict:
         """
@@ -218,14 +253,18 @@ class MultiBaslerCameraManager:
             grabResults = self._grab_results()
             imgs = [grabResult.GetArray() for grabResult in grabResults]
             if len(grabResults) > 1:
-                combined_image = imgs[0]
-                properties = self._img_analyze(combined_image)
-                self._plot_frame_properties(combined_image, properties)
-                for img in imgs[1:]:
+                # Add properties and settings to each individual image before combining
+                for idx, img in enumerate(imgs):
                     properties = self._img_analyze(img)
                     self._plot_frame_properties(img, properties)
-                    combined_image = self._combine_images(combined_image, img) 
-                    self._plot_image_label(combined_image, 'Ground Truth')
+                    self._plot_camera_settings(img, idx)
+                
+                # Combine images
+                combined_image = imgs[0]
+                for img in imgs[1:]:
+                    combined_image = self._combine_images(combined_image, img)
+                
+                self._plot_image_label(combined_image, 'Ground Truth')
                 cv2.imshow('Acquisition', combined_image)
                 key = cv2.waitKey(1)
                 if key == ord('f'):  # 'f' key to flip

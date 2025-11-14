@@ -18,7 +18,7 @@ conf = {
     'cam_schedule_time': int(500 * 1e6),  # camera schedule time in milliseconds 500
     'base_resolution': (512, 512),  # base resolution for all images (256, 256)
     'number_of_images': 25000,  # simulation: number of images to generate in this batch
-    'number_of_test': None,  # left none for all images
+    'number_of_test': 500,  # left none for all images
     'number_of_minst': 100,
     'temporal_shift_freq': 50,  # simulation: temporal shift frequency
     'temporal_shift_intensity': 20,  # simulation: temporal shift check intensity
@@ -29,7 +29,7 @@ conf = {
     'dmd_bitDepth': 8,  # DMD bit depth
     'dmd_picture_time': 20000,  # DMD picture time in microseconds, corresponds to 50 Hz -> 20000, 10 Hz -> 100000
     'dmd_alp_version': '4.3',  # DMD ALP version
-    'crop_areas': [((773, 342), (1221, 790)), ((2350, 52), (3396, 1098))],  # crop areas for the camera images, need to be square
+    'crop_areas': [((745, 345), (1187, 787)), ((2347, 28), (3437, 1118))],  # crop areas for the camera images, need to be square
     'sim_pattern_max_num': 100,  # simulation: maximum number of distributions in the simulation
     'sim_fade_rate': 0.96,  # simulation: the probability of a distribution to disappear
     'sim_std_1': 0.02, # simulation: lower indication of std   0.03
@@ -43,7 +43,7 @@ conf = {
     # ----------------------------
     # Camera-only periodic experiment (new)
     # ----------------------------
-    'camera_only_enable': True,  # set to True to enable camera-only periodic acquisition experiment
+    'camera_only_enable': False,  # set to True to enable camera-only periodic acquisition experiment
     'camera_only_samples': 5,  # number of images to capture in camera-only experiment
     'camera_only_schedule_time': int(500 * 1e6),  # schedule time for camera-only experiment (same units as cam_schedule_time)
 }
@@ -237,21 +237,21 @@ if conf.get('camera_only_enable', False):
         'is_params': True,
     })
     
-    queue.append({
-        'experiment_description': 'CLEAR random beam with parameters: ...',
-        'purpose': 'testset',
-        'image_source': 'CLEAR e-beam',  
-        'image_device': 'Chromox scintillator', 
-        'images_per_sample': 2,  # still two cameras
-        'data': camera_only_generator(conf['camera_only_samples'], conf['base_resolution']),
-        'len': conf['camera_only_samples'],
-        # per-experiment schedule time (period), same units as conf['cam_schedule_time']
-        'cam_schedule_time': conf.get('camera_only_schedule_time', conf['cam_schedule_time']),
-        # no simulation added into the saved image
-        'include_simulation': False,
-        'is_calibration': False,
-        'is_params': True,
-    })
+    # queue.append({
+    #     'experiment_description': 'CLEAR random beam with parameters: ...',
+    #     'purpose': 'testset',
+    #     'image_source': 'CLEAR e-beam',  
+    #     'image_device': 'Chromox scintillator', 
+    #     'images_per_sample': 2,  # still two cameras
+    #     'data': camera_only_generator(conf['camera_only_samples'], conf['base_resolution']),
+    #     'len': conf['camera_only_samples'],
+    #     # per-experiment schedule time (period), same units as conf['cam_schedule_time']
+    #     'cam_schedule_time': conf.get('camera_only_schedule_time', conf['cam_schedule_time']),
+    #     # no simulation added into the saved image
+    #     'include_simulation': False,
+    #     'is_calibration': False,
+    #     'is_params': True,
+    # })
 
 
 # ============================

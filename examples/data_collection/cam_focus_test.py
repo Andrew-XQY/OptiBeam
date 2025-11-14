@@ -361,8 +361,8 @@ if __name__ == "__main__":
     try:
         DMD = dmd.ViALUXDMD(ALP4(version='4.3'))
         # calibration_img = simulation.generate_radial_gradient(size=DMD_DIM)
-        calibration_img = np.ones((256, 256)) * 255  # 0-255 grayscale
-        # calibration_img = simulation.generate_inverted_upward_arrow()
+        # calibration_img = np.ones((256, 256)) * 255  # 0-255 grayscale
+        calibration_img = simulation.generate_inverted_upward_arrow()
         
         # calibration_img = simulation.dmd_calibration_pattern_generation()
         
