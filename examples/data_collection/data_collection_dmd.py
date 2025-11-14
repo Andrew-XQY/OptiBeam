@@ -39,15 +39,44 @@ conf = {
     
     'dct_dim': (16, 16),  # DCT basis dimension
     'dct_value_range': (0.0, 100.0),  # remap DCT basis values to [0, 255]
+
+    # ----------------------------
+    # Camera-only periodic experiment (new)
+    # ----------------------------
+    'camera_only_enable': True,  # set to True to enable camera-only periodic acquisition experiment
+    'camera_only_samples': 1000,  # number of images to capture in camera-only experiment
+    'camera_only_schedule_time': int(1000 * 1e6),  # schedule time for camera-only experiment (same units as cam_schedule_time)
 }
 
 
 # ============================
 # Hardware/Software Initialization
 # ============================
-# DMD Initialization 
-DMD = dmd.ViALUXDMD(ALP4(version = conf['dmd_alp_version'])) 
-DMD.set_pictureTime(conf['dmd_picture_time'])
+# DMD Initialization (real hardware if available, otherwise dummy)
+try:
+    DMD = dmd.ViALUXDMD(ALP4(version=conf['dmd_alp_version']))
+    DMD.set_pictureTime(conf['dmd_picture_time'])
+except Exception as e:
+    print(f"Warning: DMD initialization failed ({e}). Using DummyDMD (camera-only mode).")
+
+    class DummyDMD:
+        def set_pictureTime(self, *args, **kwargs):
+            pass
+
+        def display_image(self, *args, **kwargs):
+            pass
+
+        def get_metadata(self):
+            return {"type": "DummyDMD", "status": "not_initialized"}
+
+        def free_memory(self):
+            pass
+
+        def end(self):
+            pass
+
+    DMD = DummyDMD()
+
 # generate_upward_arrow(), dmd_calibration_pattern_generation()   generate_circle_fiber_coupling_pattern(line_width=20)
 # calibration_img = np.ones((256, 256)) * 100
 # calibration_img = simulation.generate_radial_gradient()
@@ -56,6 +85,7 @@ DMD.set_pictureTime(conf['dmd_picture_time'])
 calibration_img = simulation.dmd_calibration_pattern_generation()
 calibration_img = simulation.macro_pixel(calibration_img, size=int(conf['dmd_dim']/calibration_img.shape[0])) 
 DMD.display_image(dmd.dmd_img_adjustment(calibration_img, conf['dmd_dim'], angle=conf['dmd_rotation'], horizontal_flip=conf['horizontal_flip'], vertical_flip=conf['vertical_flip']))
+
 # Cameras Initialization
 MANAGER = camera.MultiBaslerCameraManager()
 if conf['camera_order_flip']: MANAGER.flip = True
@@ -109,7 +139,7 @@ queue.append({'experiment_description':'empty (only black) image',
               'images_per_sample':2,
               'is_calibration':True,
               'data':[np.ones((256, 256)) * 0],
-              'len':1}) 
+              'len':1})
 
 # queue.append({'experiment_description':'calibration image', 
 #               'purpose':'calibration',
@@ -165,6 +195,7 @@ queue.append({'experiment_description':'local real beam image for evaluation',
               'is_params':True,
               'data':simulation.temporal_shift(conf['temporal_shift_freq'], conf['temporal_shift_intensity'])(simulation.read_local_generator)(paths, process_funcs),
               'len':len(paths) + utils.ceil_int_div(len(paths), conf['temporal_shift_freq'])}) 
+
 # queue.append({'experiment_description':'2d multi-gaussian distributions simulation',
 #               'purpose':'training',
 #               'image_source':'simulation',
@@ -175,6 +206,36 @@ queue.append({'experiment_description':'local real beam image for evaluation',
 #               'len':conf['number_of_images'] + utils.ceil_int_div(conf['number_of_images'], conf['temporal_shift_freq'])}) 
 
 
+# ============================
+# Camera-only periodic experiment (new, appended to queue)
+# ============================
+if conf.get('camera_only_enable', False):
+    queue = []
+
+    def camera_only_generator(num_samples, base_resolution):
+        """
+        Simple generator that yields blank images with the given base_resolution.
+        These are only used as placeholders to keep the framework identical;
+        the real information comes from the cameras via scheduled action commands.
+        """
+        for _ in range(num_samples):
+            yield np.zeros(base_resolution, dtype=np.uint8)
+
+    queue.append({
+        'experiment_description': 'camera-only periodic acquisition',
+        'purpose': 'camera_only',
+        'image_source': 'camera',
+        'image_device': 'camera-only',  # used in metadata
+        'images_per_sample': 2,  # still two cameras
+        'data': camera_only_generator(conf['camera_only_samples'], conf['base_resolution']),
+        'len': conf['camera_only_samples'],
+        # per-experiment schedule time (period), same units as conf['cam_schedule_time']
+        'cam_schedule_time': conf.get('camera_only_schedule_time', conf['cam_schedule_time']),
+        # no simulation added into the saved image
+        'include_simulation': False,
+        'is_calibration': False,
+        'is_params': False,
+    })
 
 
 # ============================
@@ -187,7 +248,7 @@ try:
         experiment_metadata = {
             "experiment_location": "Optical Lab, CERN, Geneva, Switzerland",
             "experiment_date": datetime.datetime.now().strftime('%Y-%m-%d'),
-            "image_device": "dmd",  # scintillation-screen, dmd, slm, led, OTR.
+            "image_device": experiment.get("image_device", "dmd"),  # scintillation-screen, dmd, slm, led, OTR.
             "fiber_config": {
                 "fiber_length": "1 m",
                 "fiber_name": "1500 micrometer Core-diameter Step-Index Multimode Fiber Patch Cable",
@@ -225,16 +286,20 @@ try:
             comment = None
             if isinstance(img, tuple): # check if the generator returns a tuple (image, comment)
                 img, comment = img
-            display = img.copy()
-            display = simulation.macro_pixel(display, size=int(conf['dmd_dim']/display.shape[0])) 
-            display = dmd.dmd_img_adjustment(display, conf['dmd_dim'], angle=conf['dmd_rotation'], horizontal_flip=conf['horizontal_flip'], vertical_flip=conf['vertical_flip'])
-            DMD.display_image(display)  # if loading too fast, the DMD might report memory error
+
+            # Only use img for DMD display if it is not None
+            if img is not None:
+                display = img.copy()
+                display = simulation.macro_pixel(display, size=int(conf['dmd_dim']/display.shape[0])) 
+                display = dmd.dmd_img_adjustment(display, conf['dmd_dim'], angle=conf['dmd_rotation'], horizontal_flip=conf['horizontal_flip'], vertical_flip=conf['vertical_flip'])
+                DMD.display_image(display)  # if loading too fast, the DMD might report memory error
             
             # capture the image from the cameras (Scheduled action command)
-            image = MANAGER.schedule_action_command(conf['cam_schedule_time']) 
+            schedule_time = experiment.get("cam_schedule_time", conf['cam_schedule_time'])
+            image = MANAGER.schedule_action_command(schedule_time) 
             if image is not None:
                 img_size = (image.shape[0], int(image.shape[1]//2))  
-                if experiment.get("include_simulation", False): # optional, add the very original image
+                if experiment.get("include_simulation", False) and img is not None: # optional, add the very original image
                     original_image = cv2.resize(img, (image.shape[0],image.shape[0])) 
                     image = np.hstack((original_image, image))
                 filename = str(time.time_ns()) + '.png'
