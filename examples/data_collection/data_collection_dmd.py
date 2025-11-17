@@ -15,7 +15,7 @@ import traceback
 conf = {
     'config_crop_area': False,  # set to True to select crop areas and stop the process
     'camera_order_flip': True,  # camera order flip
-    'cam_schedule_time': int(500 * 1e6),  # camera schedule time in milliseconds 500
+    'cam_schedule_time': int(700 * 1e6),  # camera schedule time in milliseconds 500
     'base_resolution': (512, 512),  # base resolution for all images (256, 256)
     'number_of_images': 25000,  # simulation: number of images to generate in this batch
     'number_of_test': 500,  # left none for all images
@@ -38,7 +38,7 @@ conf = {
     'sim_dim': 512,   # simulation: simulated image resolution
     
     'dct_dim': (16, 16),  # DCT basis dimension
-    'dct_value_range': (0.0, 100.0),  # remap DCT basis values to [0, 255]
+    'dct_value_range': (0.0, 45.0),  # remap DCT basis values to [0, 255]
 
     # ----------------------------
     # Camera-only periodic experiment (new)
@@ -133,13 +133,13 @@ if conf['number_of_minst']:
 # create a queue of image sources
 # simulation_config, other_notes, experiment_description, image_source, purpose, images_per_sample, is_params, is_calibration
 queue = []
-queue.append({'experiment_description':'empty (only black) image', 
-              'purpose':'calibration',
-              'image_source':'simulation',
-              'images_per_sample':2,
-              'is_calibration':True,
-              'data':[np.ones((256, 256)) * 0],
-              'len':1})
+# queue.append({'experiment_description':'empty (only black) image', 
+#               'purpose':'calibration',
+#               'image_source':'simulation',
+#               'images_per_sample':2,
+#               'is_calibration':True,
+#               'data':[np.ones((256, 256)) * 0],
+#               'len':1})
 
 # queue.append({'experiment_description':'calibration image', 
 #               'purpose':'calibration',
@@ -188,13 +188,13 @@ queue.append({'experiment_description':'empty (only black) image',
 #               'data':basis.make_dct(shape = conf['dct_dim'], value_range=conf['dct_value_range']).generator(),
 #               'len':conf['dct_dim'][0] * conf['dct_dim'][1]}) 
 
-queue.append({'experiment_description':'local real beam image for evaluation',
-              'purpose':'testing',
-              'images_per_sample':2,
-              'image_source':'e-beam',
-              'is_params':True,
-              'data':simulation.temporal_shift(conf['temporal_shift_freq'], conf['temporal_shift_intensity'])(simulation.read_local_generator)(paths, process_funcs),
-              'len':len(paths) + utils.ceil_int_div(len(paths), conf['temporal_shift_freq'])}) 
+# queue.append({'experiment_description':'local real beam image for evaluation',
+#               'purpose':'testing',
+#               'images_per_sample':2,
+#               'image_source':'e-beam',
+#               'is_params':True,
+#               'data':simulation.temporal_shift(conf['temporal_shift_freq'], conf['temporal_shift_intensity'])(simulation.read_local_generator)(paths, process_funcs),
+#               'len':len(paths) + utils.ceil_int_div(len(paths), conf['temporal_shift_freq'])}) 
 
 # queue.append({'experiment_description':'2d multi-gaussian distributions simulation',
 #               'purpose':'training',
@@ -205,6 +205,12 @@ queue.append({'experiment_description':'local real beam image for evaluation',
 #               'data':simulation.temporal_shift(conf['temporal_shift_freq'], conf['temporal_shift_intensity'])(simulation.canvas_generator)(CANVAS, conf),
 #               'len':conf['number_of_images'] + utils.ceil_int_div(conf['number_of_images'], conf['temporal_shift_freq'])}) 
 
+queue.append({'experiment_description':'position based coupling intensity',
+              'purpose':'intensity_position',
+              'image_source':'simulation',
+              'images_per_sample':2,
+              'data':simulation.moving_blocks_generator(size=conf['base_resolution'][0], block_size=32, intensity=255),
+              'len':256}) 
 
 # ============================
 # Camera-only periodic experiment queue (No DMD needed)
