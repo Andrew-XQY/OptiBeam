@@ -8,6 +8,7 @@ import datetime, time
 import cv2, json
 import subprocess
 import traceback
+import threading
 
 # ============================
 # Dataset Parameters
@@ -47,6 +48,60 @@ conf = {
     'camera_only_samples': 5,  # number of images to capture in camera-only experiment
     'camera_only_schedule_time': int(500 * 1e6),  # schedule time for camera-only experiment (same units as cam_schedule_time)
 }
+
+# ============================
+# External Trigger Controller
+# ============================
+class TriggerController:
+    def __init__(self, enabled: bool):
+        self.enabled = enabled
+        self._event = threading.Event()
+        if not self.enabled:
+            # if trigger not enabled, never block
+            self._event.set()
+
+    def wait(self):
+        """Block until a trigger arrives, if enabled."""
+        if not self.enabled:
+            return
+        self._event.wait()
+        self._event.clear()
+
+    def fire(self):
+        """Call this when an external signal happens."""
+        self._event.set()
+
+# enable only when you want external control (e.g. camera_only mode)
+TRIGGER = TriggerController(enabled=conf.get("camera_only_enable", False))
+
+# An example of control signal come from an server API endpoint
+
+# import urllib.request
+
+# API_URL = "http://your-server/api/trigger"  # <-- your real URL
+
+# def api_trigger_loop():
+#     last_ready = False
+#     while True:
+#         try:
+#             with urllib.request.urlopen(API_URL, timeout=2.0) as resp:
+#                 data = json.load(resp)
+#             ready = bool(data.get("ready", False))
+
+#             # rising edge: False -> True => one trigger
+#             if ready and not last_ready:
+#                 TRIGGER.fire()
+
+#             last_ready = ready
+#         except Exception as e:
+#             print("Trigger poll error:", e)
+
+#         time.sleep(1.0)  # check every 1 s
+
+# # start only when external trigger is desired
+# if conf.get("camera_only_enable", False):
+#     threading.Thread(target=api_trigger_loop, daemon=True).start()
+
 
 
 # ============================
@@ -335,6 +390,10 @@ try:
             
             # capture the image from the cameras (Scheduled action command)
             schedule_time = experiment.get("cam_schedule_time", conf['cam_schedule_time'])
+            
+            # external trigger gate (only blocks if camera_only_enable=True)
+            TRIGGER.wait()
+            
             image = MANAGER.schedule_action_command(schedule_time) 
             if image is not None:
                 img_size = (image.shape[0], int(image.shape[1]//2))  
