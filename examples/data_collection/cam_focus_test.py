@@ -20,7 +20,7 @@ class CameraCapture:
         print(''.join(['-']*50))
     
     
-    def __init__(self, camera_index=0):
+    def __init__(self, camera_index=0, initial_exposure_ms=40):
         self.camera = None
         self.camera_index = camera_index
         self.open_camera()
@@ -35,7 +35,7 @@ class CameraCapture:
         self.camera.GammaEnable.SetValue(True)    # Enable gamma correction if supported
         
         # Adjust camera settings - these values are examples and should be adjusted based on your needs and camera capabilities
-        self.camera.ExposureTimeRaw.SetValue(80000)  # Set exposure time to 20000 microseconds
+        self.camera.ExposureTimeRaw.SetValue(initial_exposure_ms * 1000)  # Convert milliseconds to microseconds
         self.camera.GainRaw.SetValue(0)            # Set gain
         self.camera.Gamma.SetValue(1.0)              # Set gamma value to 1.0 (if supported)
         self.print_camera_info()
@@ -249,16 +249,16 @@ def draw_crosshair_with_ticks(image, major_tick_spacing=50, color=(0, 255, 0), t
 
 
 # Display the image with the red box and magnified area
-def display_image(save_to='', scale_factor=0.5, intensity_monitor=False, camera_index=0, text_scale=1.0):
+def display_image(save_to='', scale_factor=0.5, intensity_monitor=False, camera_index=0, text_scale=1.0, initial_exposure_ms=40):
     
     coupling = processing.IntensityMonitor()
     
     parent_directory = os.path.dirname(os.path.realpath(__file__))
-    camera_capture = CameraCapture(camera_index=camera_index)
+    camera_capture = CameraCapture(camera_index=camera_index, initial_exposure_ms=initial_exposure_ms)
     cv2.namedWindow('Camera Output')
     cv2.setMouseCallback('Camera Output', mouse_callback)
     
-    cv2.createTrackbar('Exposure time (ms)', 'Camera Output', 40, 500, 
+    cv2.createTrackbar('Exposure time (ms)', 'Camera Output', initial_exposure_ms, 500, 
                        lambda x: camera_capture.camera.ExposureTimeRaw.SetValue(x*1000))  # miniseconds
     cv2.createTrackbar('Gain', 'Camera Output', 0, 300, 
                        lambda x: camera_capture.camera.GainRaw.SetValue(x))
@@ -365,6 +365,9 @@ DMD_DIM = 1024
 
 
 if __name__ == "__main__":
+    # Camera settings
+    INITIAL_EXPOSURE_MS = 15  # Initial camera exposure in milliseconds
+    
     save_dir = 'C:\\Users\\qiyuanxu\\Desktop\\'
     # Try to initialize and use the DMD; if it fails, continue in camera-only mode.
     try:
@@ -384,4 +387,4 @@ if __name__ == "__main__":
 
     click_position = None
     # Use camera_index=0 for first camera, camera_index=1 for second camera
-    display_image('results', camera_index=1, text_scale=1, scale_factor=0.9)
+    display_image('results', camera_index=1, text_scale=1, scale_factor=0.9, initial_exposure_ms=INITIAL_EXPOSURE_MS)

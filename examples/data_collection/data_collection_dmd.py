@@ -9,7 +9,7 @@ import cv2, json
 import subprocess
 import traceback
 import threading
-from .remoteJapcAccess import getMagnetCurrent, setMagnetCurrent, getMagnetsCurrent, setMagnetsCurrent, is_busy, getMagnetsStatus
+from remoteJapcAccess import *
 
 from dataclasses import dataclass
 
@@ -51,7 +51,7 @@ conf = {
     'dmd_bitDepth': 8,  # DMD bit depth
     'dmd_picture_time': 20000,  # DMD picture time in microseconds, corresponds to 50 Hz -> 20000, 10 Hz -> 100000
     'dmd_alp_version': '4.3',  # DMD ALP version
-    'crop_areas': [((966, 367), (1366, 767)), ((2347, 12), (3385, 1050))],  # crop areas for the camera images, need to be square
+    'crop_areas': [((407, 14), (1541, 1148)), ((2271, 20), (3431, 1180))],  # crop areas for the camera images, need to be square
     'sim_pattern_max_num': 100,  # simulation: maximum number of distributions in the simulation
     'sim_fade_rate': 0.96,  # simulation: the probability of a distribution to disappear
     'sim_std_1': 0.02, # simulation: lower indication of std   0.03
@@ -65,8 +65,8 @@ conf = {
     # ----------------------------
     # Camera-only periodic experiment (new)
     # ----------------------------
-    'camera_only_enable': False,  # set to True to enable camera-only periodic acquisition experiment
-    'camera_only_samples': 5,  # number of images to capture in camera-only experiment
+    'camera_only_enable': True,  # set to True to enable camera-only periodic acquisition experiment
+    'camera_only_samples': 50,  # number of images to capture in camera-only experiment
     'camera_only_schedule_time': int(500 * 1e6),  # schedule time for camera-only experiment (same units as cam_schedule_time)
     
     # ----------------------------
@@ -98,7 +98,8 @@ class TriggerController:
         self._event.set()
 
 # enable only when you want external control (e.g. camera_only mode)
-TRIGGER = TriggerController(enabled=conf.get("camera_only_enable", False))
+# TRIGGER = TriggerController(enabled=conf.get("camera_only_enable", False))
+TRIGGER = TriggerController(enabled=False)
 
 # An example of control signal come from an server API endpoint
 
@@ -304,8 +305,8 @@ if conf.get('camera_only_enable', False):
             yield np.zeros(base_resolution, dtype=np.uint8)
 
     queue.append({
-        'experiment_description': 'camera-only periodic acquisition',
-        'purpose': 'testset',
+        'experiment_description': 'camera-only periodic acquisition on CLEAR to check if the aquisition scripts work properly',
+        'purpose': 'first test at CLEAR',
         'image_source': 'CLEAR e-beam',  
         'image_device': 'Chromox scintillator', 
         'images_per_sample': 2,  # still two cameras
@@ -420,10 +421,10 @@ try:
             if conf['set_magnets']:
                 # example: set random magnet currents for CLEAR
                 setMagnetsCurrent({
-                    'CA.QFD0880': np.random.uniform(7.0, 9.0),
-                    'CA.QDD0870': np.random.uniform(7.0, 9.0),
-                    'CA.DHJ0840': np.random.uniform(5.0, 7.0),
-                    'CA.DVJ0840': np.random.uniform(5.0, 7.0),
+                    'CA.QFD0880': np.random.uniform(1.0, 20.0),
+                    'CA.QDD0870': np.random.uniform(1.0, 20.0),
+                    'CA.DHJ0840': np.random.uniform(-6.0, 6.0),
+                    'CA.DVJ0840': np.random.uniform(-6.0, 6.0),
                 })
             
                 # wait until all magnets are not busy
