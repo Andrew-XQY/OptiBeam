@@ -14,7 +14,7 @@ import threading
 # Dataset Parameters
 # ============================
 conf = {
-    'config_crop_area': False,  # set to True to select crop areas and stop the process
+    'config_crop_area': True,  # set to True to select crop areas and stop the process
     'camera_order_flip': True,  # camera order flip
     'cam_schedule_time': int(700 * 1e6),  # camera schedule time in milliseconds 500
     'base_resolution': (512, 512),  # base resolution for all images (256, 256)
@@ -30,7 +30,7 @@ conf = {
     'dmd_bitDepth': 8,  # DMD bit depth
     'dmd_picture_time': 20000,  # DMD picture time in microseconds, corresponds to 50 Hz -> 20000, 10 Hz -> 100000
     'dmd_alp_version': '4.3',  # DMD ALP version
-    'crop_areas': [((745, 345), (1187, 787)), ((2347, 28), (3437, 1118))],  # crop areas for the camera images, need to be square
+    'crop_areas': [((966, 367), (1366, 767)), ((2347, 12), (3385, 1050))],  # crop areas for the camera images, need to be square
     'sim_pattern_max_num': 100,  # simulation: maximum number of distributions in the simulation
     'sim_fade_rate': 0.96,  # simulation: the probability of a distribution to disappear
     'sim_std_1': 0.02, # simulation: lower indication of std   0.03
@@ -38,7 +38,7 @@ conf = {
     'sim_max_intensity': 100, # simulation: peak pixel intensity in a single distribution
     'sim_dim': 512,   # simulation: simulated image resolution
     
-    'dct_dim': (16, 16),  # DCT basis dimension
+    'dct_dim': (32, 32),  # DCT basis dimension
     'dct_value_range': (0.0, 45.0),  # remap DCT basis values to [0, 255]
 
     # ----------------------------
@@ -188,13 +188,13 @@ if conf['number_of_minst']:
 # create a queue of image sources
 # simulation_config, other_notes, experiment_description, image_source, purpose, images_per_sample, is_params, is_calibration
 queue = []
-# queue.append({'experiment_description':'empty (only black) image', 
-#               'purpose':'calibration',
-#               'image_source':'simulation',
-#               'images_per_sample':2,
-#               'is_calibration':True,
-#               'data':[np.ones((256, 256)) * 0],
-#               'len':1})
+queue.append({'experiment_description':'empty (only black) image', 
+              'purpose':'calibration',
+              'image_source':'simulation',
+              'images_per_sample':2,
+              'is_calibration':True,
+              'data':[np.ones((256, 256)) * 0],
+              'len':1})
 
 # queue.append({'experiment_description':'calibration image', 
 #               'purpose':'calibration',
@@ -210,12 +210,12 @@ queue = []
 #               'data': [np.ones(conf['base_resolution']) * 100],
 #               'len':1}) 
 
-# queue.append({'experiment_description':'position based coupling intensity',
-#               'purpose':'intensity_position',
-#               'image_source':'simulation',
-#               'images_per_sample':2,
-#               'data':simulation.moving_blocks_generator(size=conf['base_resolution'][0], block_size=64, intensity=255),
-#               'len':64}) 
+queue.append({'experiment_description':'position based coupling intensity',
+              'purpose':'intensity_position',
+              'image_source':'simulation',
+              'images_per_sample':2,
+              'data':simulation.moving_blocks_generator(size=conf['base_resolution'][0], block_size=64, intensity=255),
+              'len':64}) 
 # queue.append({'experiment_description':'position based coupling intensity',
 #               'purpose':'intensity_position',
 #               'image_source':'simulation',
@@ -236,20 +236,20 @@ queue = []
 #               'data':simulation.temporal_shift(conf['temporal_shift_freq'], conf['temporal_shift_intensity'])(utils.identity)(imgs_array),
 #               'len':minst_len + utils.ceil_int_div(minst_len, conf['temporal_shift_freq'])}) 
 
-# queue.append({'experiment_description':'DCT basis patterns',
-#               'purpose':'Orthogonal_basis',
-#               'image_source':'simulation',
-#               'images_per_sample':2,
-#               'data':basis.make_dct(shape = conf['dct_dim'], value_range=conf['dct_value_range']).generator(),
-#               'len':conf['dct_dim'][0] * conf['dct_dim'][1]}) 
+queue.append({'experiment_description':'DCT basis patterns',
+              'purpose':'Orthogonal_basis',
+              'image_source':'simulation',
+              'images_per_sample':2,
+              'data':basis.make_dct(shape = conf['dct_dim'], value_range=conf['dct_value_range']).generator(),
+              'len':conf['dct_dim'][0] * conf['dct_dim'][1]}) 
 
-# queue.append({'experiment_description':'local real beam image for evaluation',
-#               'purpose':'testing',
-#               'images_per_sample':2,
-#               'image_source':'e-beam',
-#               'is_params':True,
-#               'data':simulation.temporal_shift(conf['temporal_shift_freq'], conf['temporal_shift_intensity'])(simulation.read_local_generator)(paths, process_funcs),
-#               'len':len(paths) + utils.ceil_int_div(len(paths), conf['temporal_shift_freq'])}) 
+queue.append({'experiment_description':'local real beam image for evaluation',
+              'purpose':'testing',
+              'images_per_sample':2,
+              'image_source':'e-beam',
+              'is_params':True,
+              'data':simulation.temporal_shift(conf['temporal_shift_freq'], conf['temporal_shift_intensity'])(simulation.read_local_generator)(paths, process_funcs),
+              'len':len(paths) + utils.ceil_int_div(len(paths), conf['temporal_shift_freq'])}) 
 
 # queue.append({'experiment_description':'2d multi-gaussian distributions simulation',
 #               'purpose':'training',
@@ -260,12 +260,7 @@ queue = []
 #               'data':simulation.temporal_shift(conf['temporal_shift_freq'], conf['temporal_shift_intensity'])(simulation.canvas_generator)(CANVAS, conf),
 #               'len':conf['number_of_images'] + utils.ceil_int_div(conf['number_of_images'], conf['temporal_shift_freq'])}) 
 
-queue.append({'experiment_description':'position based coupling intensity',
-              'purpose':'intensity_position',
-              'image_source':'simulation',
-              'images_per_sample':2,
-              'data':simulation.moving_blocks_generator(size=conf['base_resolution'][0], block_size=32, intensity=255),
-              'len':256}) 
+
 
 # ============================
 # Camera-only periodic experiment queue (No DMD needed)
