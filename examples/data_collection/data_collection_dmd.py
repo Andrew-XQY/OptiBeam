@@ -9,7 +9,8 @@ import cv2, json
 import subprocess
 import traceback
 import threading
-from .remoteJapcAccess import getMagnetCurrent, setMagnetCurrent, getMagnetsCurrent
+from .remoteJapcAccess import getMagnetCurrent, setMagnetCurrent, getMagnetsCurrent, setMagnetsCurrent
+
 from dataclasses import dataclass
 
 @dataclass
@@ -67,6 +68,11 @@ conf = {
     'camera_only_enable': False,  # set to True to enable camera-only periodic acquisition experiment
     'camera_only_samples': 5,  # number of images to capture in camera-only experiment
     'camera_only_schedule_time': int(500 * 1e6),  # schedule time for camera-only experiment (same units as cam_schedule_time)
+    
+    # ----------------------------
+    # Real Beamtime Parameters
+    # ----------------------------
+    'set_magnets': True,  # whether to set magnets before each acquisition
 }
 
 # ============================
@@ -409,12 +415,27 @@ try:
             # external trigger gate (only blocks if camera_only_enable=True)
             TRIGGER.wait()
             
+            # set magnets
+            if experiment.get("image_source", "") == "CLEAR e-beam":
+                # example: set random magnet currents for CLEAR
+                setMagnetsCurrents({
+                    'CA.QFD0880': np.random.uniform(7.0, 9.0),
+                    'CA.QDD0870': np.random.uniform(7.0, 9.0),
+                    'CA.DHJ0840': np.random.uniform(5.0, 7.0),
+                    'CA.DVJ0840': np.random.uniform(5.0, 7.0),
+                })
             
-            CLEARStatus.from_remote_japc(getMagnetsCurrent(['CA.QFD0880', 'CA.QDD0870', 'CA.DHJ0840', 'CA.DVJ0840']))
-                
-
-
+            # wait until all magnets are not busy
+            
+            
+            # acquire status
+            try:
+                clear_status = CLEARStatus.from_remote_japc(getMagnetsCurrent(['CA.QFD0880', 'CA.QDD0870', 'CA.DHJ0840', 'CA.DVJ0840']))
             except:
+                clear_status = CLEARStatus()
+                
+            # save status as part of metadata
+            
                 
             image = MANAGER.schedule_action_command(schedule_time) 
             if image is not None:
