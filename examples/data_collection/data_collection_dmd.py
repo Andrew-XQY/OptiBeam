@@ -9,7 +9,7 @@ import cv2, json
 import subprocess
 import traceback
 import threading
-from .remoteJapcAccess import getMagnetCurrent, setMagnetCurrent, getMagnetsCurrent, setMagnetsCurrent, is_busy
+from .remoteJapcAccess import getMagnetCurrent, setMagnetCurrent, getMagnetsCurrent, setMagnetsCurrent, is_busy, getMagnetsStatus
 
 from dataclasses import dataclass
 
@@ -415,8 +415,8 @@ try:
             # external trigger gate (only blocks if camera_only_enable=True)
             TRIGGER.wait()
             
+            # ------------------------------------- logic for real beam ----------------------------------------
             # set magnets
-
             if conf['set_magnets']:
                 # example: set random magnet currents for CLEAR
                 setMagnetsCurrent({
@@ -426,25 +426,25 @@ try:
                     'CA.DVJ0840': np.random.uniform(5.0, 7.0),
                 })
             
-            # wait until all magnets are not busy
-            while True:
-                
-                if is_busy(getMagnetsCurrent(['CA.QFD0880', 'CA.QDD0870', 'CA.DHJ0840', 'CA.DVJ0840']).get('CA.QFD0880', 0)):
+                # wait until all magnets are not busy
+                magnet_names = ['CA.QFD0880', 'CA.QDD0870', 'CA.DHJ0840', 'CA.DVJ0840']
+                while True:
+                    statuses = getMagnetsStatus(magnet_names)
+                    if not any(statuses.values()):  # break if all magnets are not busy
+                        break
                     time.sleep(0.5)
-                else:
-                    break
+                        
+                # acquire status
+                try:
+                    clear_status = CLEARStatus.from_remote_japc(getMagnetsCurrent(['CA.QFD0880', 'CA.QDD0870', 'CA.DHJ0840', 'CA.DVJ0840']))
+                except:
+                    clear_status = CLEARStatus()
                     
-            # acquire status
-            try:
-                clear_status = CLEARStatus.from_remote_japc(getMagnetsCurrent(['CA.QFD0880', 'CA.QDD0870', 'CA.DHJ0840', 'CA.DVJ0840']))
-            except:
-                clear_status = CLEARStatus()
-                
-            # save status as part of metadata
-            beam_settings = {
-                "CLEAR_magnets": clear_status.__dict__,
-            }
-            
+                # save status as part of metadata
+                beam_settings = {
+                    "CLEAR_magnets": clear_status.__dict__,
+                }
+            # --------------------------------------------------------------------------------------------------------
             
             image = MANAGER.schedule_action_command(schedule_time) 
             if image is not None:
