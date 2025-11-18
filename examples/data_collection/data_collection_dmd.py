@@ -416,7 +416,7 @@ try:
             TRIGGER.wait()
             
             # set magnets
-            if experiment.get("image_source", "") == "CLEAR e-beam":
+            if conf['set_magnets']:
                 # example: set random magnet currents for CLEAR
                 setMagnetsCurrents({
                     'CA.QFD0880': np.random.uniform(7.0, 9.0),
