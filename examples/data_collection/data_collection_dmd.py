@@ -9,12 +9,32 @@ import cv2, json
 import subprocess
 import traceback
 import threading
+from .remoteJapcAccess import getMagnetCurrent, setMagnetCurrent, getMagnetsCurrent
+from dataclasses import dataclass
+
+@dataclass
+class CLEARStatus:
+    QFD0880: float |None = None
+    QDD0870: float |None = None
+    DHJ0840: float |None = None
+    DVJ0840: float |None = None
+    
+    @classmethod
+    def from_remote_japc(cls, clear_data: dict):
+        return cls(
+            QFD0880=clear_data.get('CA.QFD0880', None),
+            QDD0870=clear_data.get('CA.QDD0870', None),
+            DHJ0840=clear_data.get('CA.DHJ0840', None),
+            DVJ0840=clear_data.get('CA.DVJ0840', None),
+        )
+    
+    
 
 # ============================
 # Dataset Parameters
 # ============================
 conf = {
-    'config_crop_area': True,  # set to True to select crop areas and stop the process
+    'config_crop_area': False,  # set to True to select crop areas and stop the process
     'camera_order_flip': True,  # camera order flip
     'cam_schedule_time': int(700 * 1e6),  # camera schedule time in milliseconds 500
     'base_resolution': (512, 512),  # base resolution for all images (256, 256)
@@ -39,7 +59,7 @@ conf = {
     'sim_dim': 512,   # simulation: simulated image resolution
     
     'dct_dim': (32, 32),  # DCT basis dimension
-    'dct_value_range': (0.0, 45.0),  # remap DCT basis values to [0, 255]
+    'dct_value_range': (0.0, 70.0),  # remap DCT basis values to [0, 255]
 
     # ----------------------------
     # Camera-only periodic experiment (new)
@@ -322,7 +342,7 @@ try:
             "experiment_date": datetime.datetime.now().strftime('%Y-%m-%d_%H:%M:%S'),
             "image_device": experiment.get("image_device", "dmd"),  # scintillation-screen, dmd, slm, led, OTR.
             "fiber_config": {
-                "fiber_length": "1 m",
+                "fiber_length": "15 m",
                 "fiber_name": "1500 micrometer Core-diameter Step-Index Multimode Fiber Patch Cable",
                 "fiber_url": "FP1500ERT",  # FP1500ERT  FT600UMT
             },
@@ -389,6 +409,13 @@ try:
             # external trigger gate (only blocks if camera_only_enable=True)
             TRIGGER.wait()
             
+            
+            CLEARStatus.from_remote_japc(getMagnetsCurrent(['CA.QFD0880', 'CA.QDD0870', 'CA.DHJ0840', 'CA.DVJ0840']))
+                
+
+
+            except:
+                
             image = MANAGER.schedule_action_command(schedule_time) 
             if image is not None:
                 img_size = (image.shape[0], int(image.shape[1]//2))  

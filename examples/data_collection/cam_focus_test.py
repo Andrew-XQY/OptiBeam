@@ -267,9 +267,11 @@ def display_image(save_to='', scale_factor=0.5, intensity_monitor=False, camera_
     peak_buffer = {}
     frame_count = 0
     warmup_frames = 50  # Skip first 100 frames before tracking peaks
+    last_img = None  # Store the last captured image for saving on ESC
     
     try:
         for img in camera_capture.capture():
+            last_img = img  # Keep track of the last captured image
             resized_img = image_resize(img, scale_factor)  # only for display, not for saving
             frame_count += 1
             # Only pass peak_buffer after warmup period
@@ -330,6 +332,12 @@ def display_image(save_to='', scale_factor=0.5, intensity_monitor=False, camera_
             
             key = cv2.waitKey(1)
             if key == 27:  # ESC key to exit
+                # Save the last image before exiting
+                if last_img is not None:
+                    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+                    filename = f"{parent_directory}/{save_to}/{timestamp}.png"
+                    cv2.imwrite(filename, last_img)
+                    print(f"Last image saved as {filename}")
                 break
             elif key == ord('s'):  # 's' key to save the image
                 timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
@@ -357,14 +365,15 @@ DMD_DIM = 1024
 
 
 if __name__ == "__main__":
+    save_dir = 'C:\\Users\\qiyuanxu\\Desktop\\'
     # Try to initialize and use the DMD; if it fails, continue in camera-only mode.
     try:
         DMD = dmd.ViALUXDMD(ALP4(version='4.3'))
         # calibration_img = simulation.generate_radial_gradient(size=DMD_DIM)
         # calibration_img = np.ones((256, 256)) * 255  # 0-255 grayscale?
-        calibration_img = simulation.generate_inverted_upward_arrow(intesity=255)
+        calibration_img = simulation.generate_inverted_upward_arrow(intesity=50)
         
-        # calibration_img = simulation.dmd_calibration_pattern_generation()
+        # calibration_img = simulation.dmd_calibration_pattern_generation()3
         
         calibration_img = simulation.macro_pixel(calibration_img, size=int(DMD_DIM/calibration_img.shape[0])) 
         calibration_img = dmd.dmd_img_adjustment(calibration_img, DMD_DIM, angle=DMD_ROTATION_ANGLE)
@@ -375,4 +384,4 @@ if __name__ == "__main__":
 
     click_position = None
     # Use camera_index=0 for first camera, camera_index=1 for second camera
-    display_image('results', camera_index=0, text_scale=1, scale_factor=0.6)
+    display_image('results', camera_index=1, text_scale=1, scale_factor=0.6)
