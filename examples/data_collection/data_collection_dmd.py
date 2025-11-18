@@ -416,7 +416,8 @@ try:
             TRIGGER.wait()
             
             # set magnets
-            if conf.get('set_magnets', False):
+
+            if conf['set_magnets']:
                 # example: set random magnet currents for CLEAR
                 setMagnetsCurrent({
                     'CA.QFD0880': np.random.uniform(7.0, 9.0),
