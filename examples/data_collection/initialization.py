@@ -32,6 +32,7 @@ schema = {
             "image_path":"TEXT",  # (relative) path to the image file
             "config_id":"INTEGER",  # foreign key to the config table
             "comments":"TEXT",  # rest of information will be dumped here in form of a JSON or dict
+            "beam_settings":"TEXT",  # beam settings from the accelerator control system at the time of image capture
             "create_time":"TIMESTAMP DEFAULT CURRENT_TIMESTAMP",
             "update_time":"TIMESTAMP DEFAULT CURRENT_TIMESTAMP",
             "is_deleted":"BOOLEAN DEFAULT FALSE" # soft delete flag, could used to flag abnormal data

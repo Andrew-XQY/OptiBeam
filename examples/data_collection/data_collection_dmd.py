@@ -9,7 +9,7 @@ import cv2, json
 import subprocess
 import traceback
 import threading
-from .remoteJapcAccess import getMagnetCurrent, setMagnetCurrent, getMagnetsCurrent, setMagnetsCurrent
+from .remoteJapcAccess import getMagnetCurrent, setMagnetCurrent, getMagnetsCurrent, setMagnetsCurrent, is_busy
 
 from dataclasses import dataclass
 
@@ -416,9 +416,9 @@ try:
             TRIGGER.wait()
             
             # set magnets
-            if experiment.get("image_source", "") == "CLEAR e-beam":
+            if conf.get('set_magnets', False):
                 # example: set random magnet currents for CLEAR
-                setMagnetsCurrents({
+                setMagnetsCurrent({
                     'CA.QFD0880': np.random.uniform(7.0, 9.0),
                     'CA.QDD0870': np.random.uniform(7.0, 9.0),
                     'CA.DHJ0840': np.random.uniform(5.0, 7.0),
@@ -426,8 +426,13 @@ try:
                 })
             
             # wait until all magnets are not busy
-            
-            
+            while True:
+                
+                if is_busy(getMagnetsCurrent(['CA.QFD0880', 'CA.QDD0870', 'CA.DHJ0840', 'CA.DVJ0840']).get('CA.QFD0880', 0)):
+                    time.sleep(0.5)
+                else:
+                    break
+                    
             # acquire status
             try:
                 clear_status = CLEARStatus.from_remote_japc(getMagnetsCurrent(['CA.QFD0880', 'CA.QDD0870', 'CA.DHJ0840', 'CA.DVJ0840']))
@@ -435,8 +440,11 @@ try:
                 clear_status = CLEARStatus()
                 
             # save status as part of metadata
+            beam_settings = {
+                "CLEAR_magnets": clear_status.__dict__,
+            }
             
-                
+            
             image = MANAGER.schedule_action_command(schedule_time) 
             if image is not None:
                 img_size = (image.shape[0], int(image.shape[1]//2))  
@@ -480,7 +488,8 @@ try:
                         "image_path":relative_path,  
                         "config_id":config_id,
                         "batch":batch,
-                        "comments":comment
+                        "comments":comment,
+                        "beam_settings": beam_settings,  # beam settings at the time of image capture
                         }
                 ImageMeta.set_metadata(meta)
                 cv2.imwrite(image_path, image)

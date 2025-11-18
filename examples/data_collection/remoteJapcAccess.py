@@ -50,8 +50,30 @@ def setMagnetCurrent(magnet_name:str, current:float, timing_user:str='')-> None:
     parameter_values= {f"{par_name}@{timing_user}": {'current':{'value': current, 'type':'float32'}}}
     setJapcParameters(server, parameter_values)
     
+def setMagnetsCurrent(magnets_current:dict, timing_user:str='')-> None:    
+    url = f'http://{server}/set'        
+    parameter_values= {f"{magnet_name}/SettingPPM@{timing_user}": {'current':{'value': current, 'type':'float32'}} 
+                       for magnet_name, current in magnets_current.items()}
+    setJapcParameters(server, parameter_values)
+    return
+
+def getBooleanValueAtBit(integer_number, bit_position) -> bool:
+    mask = 1 << bit_position
+    return (integer_number & mask) != 0
+
+def is_busy(state: int) -> bool:
+    return getBooleanValueAtBit(state, 4)
+
+def getMagnetsStatus(magnets_name:List[str], timing_user:str='SCT.USER.SETUP')-> dict:
+    par_names = {magnet_name: f"{magnet_name}/Acquisition" for magnet_name in magnets_name}
+    data = getJapcParameter(server, [f"{par_name}@{timing_user}" for par_name in par_names.values()])            
+    return {magnet_name:is_busy(data[f"{timing_user}@{par_names[magnet_name]}"]['value']['current_status']) for magnet_name in magnets_name}
+    
     
 getMagnetCurrent('CA.QFD0760')
 setMagnetCurrent('CA.QFD0760', 8.9)
 
     
+
+
+

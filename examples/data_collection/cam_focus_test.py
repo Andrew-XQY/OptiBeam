@@ -384,4 +384,4 @@ if __name__ == "__main__":
 
     click_position = None
     # Use camera_index=0 for first camera, camera_index=1 for second camera
-    display_image('results', camera_index=1, text_scale=1, scale_factor=0.6)
+    display_image('results', camera_index=1, text_scale=1, scale_factor=0.9)
