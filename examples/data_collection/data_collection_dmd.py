@@ -37,7 +37,7 @@ class CLEARStatus:
 conf = {
     'config_crop_area': False,  # set to True to select crop areas and stop the process
     'camera_order_flip': True,  # camera order flip
-    'cam_schedule_time': int(700 * 1e6),  # camera schedule time in milliseconds 500
+    'cam_schedule_time': int(500 * 1e6),  # camera schedule time in milliseconds 500
     'base_resolution': (512, 512),  # base resolution for all images (256, 256)
     'number_of_images': 25000,  # simulation: number of images to generate in this batch
     'number_of_test': 500,  # left none for all images
@@ -51,7 +51,7 @@ conf = {
     'dmd_bitDepth': 8,  # DMD bit depth
     'dmd_picture_time': 20000,  # DMD picture time in microseconds, corresponds to 50 Hz -> 20000, 10 Hz -> 100000
     'dmd_alp_version': '4.3',  # DMD ALP version
-    'crop_areas': [((407, 14), (1541, 1148)), ((2271, 20), (3431, 1180))],  # crop areas for the camera images, need to be square
+    'crop_areas': [((625, 226), (1299, 900)), ((2273, 7), (3447, 1181))],  # crop areas for the camera images, need to be square
     'sim_pattern_max_num': 100,  # simulation: maximum number of distributions in the simulation
     'sim_fade_rate': 0.96,  # simulation: the probability of a distribution to disappear
     'sim_std_1': 0.02, # simulation: lower indication of std   0.03
@@ -65,7 +65,7 @@ conf = {
     # ----------------------------
     # Camera-only periodic experiment (new)
     # ----------------------------
-    'camera_only_enable': True,  # set to True to enable camera-only periodic acquisition experiment
+    'camera_only_enable': False,  # set to True to enable camera-only periodic acquisition experiment
     'camera_only_samples': 50,  # number of images to capture in camera-only experiment
     'camera_only_schedule_time': int(500 * 1e6),  # schedule time for camera-only experiment (same units as cam_schedule_time)
     
@@ -223,13 +223,13 @@ queue.append({'experiment_description':'empty (only black) image',
               'data':[np.ones((256, 256)) * 0],
               'len':1})
 
-# queue.append({'experiment_description':'calibration image', 
-#               'purpose':'calibration',
-#               'image_source':'simulation',
-#               'images_per_sample':2,
-#               'is_calibration':True,
-#               'data':[simulation.dmd_calibration_pattern_generation()],
-#               'len':1}) 
+queue.append({'experiment_description':'calibration image', 
+              'purpose':'calibration',
+              'image_source':'simulation',
+              'images_per_sample':2,
+              'is_calibration':True,
+              'data':[simulation.dmd_calibration_pattern_generation()],
+              'len':1}) 
 # queue.append({'experiment_description': 'full screen image',
 #               'purpose':'intensity_full',
 #               'image_source':'simulation',
@@ -278,14 +278,14 @@ queue.append({'experiment_description':'local real beam image for evaluation',
               'data':simulation.temporal_shift(conf['temporal_shift_freq'], conf['temporal_shift_intensity'])(simulation.read_local_generator)(paths, process_funcs),
               'len':len(paths) + utils.ceil_int_div(len(paths), conf['temporal_shift_freq'])}) 
 
-# queue.append({'experiment_description':'2d multi-gaussian distributions simulation',
-#               'purpose':'training',
-#               'image_source':'simulation',
-#               'images_per_sample':2,
-#               'simulation_config':CANVAS.get_metadata(),
-#               'other_notes':{key: value for key, value in conf.items() if 'sim' in key},
-#               'data':simulation.temporal_shift(conf['temporal_shift_freq'], conf['temporal_shift_intensity'])(simulation.canvas_generator)(CANVAS, conf),
-#               'len':conf['number_of_images'] + utils.ceil_int_div(conf['number_of_images'], conf['temporal_shift_freq'])}) 
+queue.append({'experiment_description':'2d multi-gaussian distributions simulation',
+              'purpose':'training',
+              'image_source':'simulation',
+              'images_per_sample':2,
+              'simulation_config':CANVAS.get_metadata(),
+              'other_notes':{key: value for key, value in conf.items() if 'sim' in key},
+              'data':simulation.temporal_shift(conf['temporal_shift_freq'], conf['temporal_shift_intensity'])(simulation.canvas_generator)(CANVAS, conf),
+              'len':conf['number_of_images'] + utils.ceil_int_div(conf['number_of_images'], conf['temporal_shift_freq'])}) 
 
 
 

@@ -70,9 +70,9 @@ def getMagnetsStatus(magnets_name:List[str], timing_user:str='SCT.USER.SETUP')->
     return {magnet_name:is_busy(data[f"{timing_user}@{par_names[magnet_name]}"]['value']['current_status']) for magnet_name in magnets_name}
     
     
-print('before', getMagnetCurrent('CA.QFD0880'))
-setMagnetCurrent('CA.QFD0880', 0)
-print('after', getMagnetCurrent('CA.QFD0880'))
+# print('before', getMagnetCurrent('CA.QFD0880'))
+# setMagnetCurrent('CA.QFD0880', 0)
+# print('after', getMagnetCurrent('CA.QFD0880'))
 
     
 

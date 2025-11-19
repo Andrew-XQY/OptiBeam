@@ -366,7 +366,7 @@ DMD_DIM = 1024
 
 if __name__ == "__main__":
     # Camera settings
-    INITIAL_EXPOSURE_MS = 15  # Initial camera exposure in milliseconds
+    INITIAL_EXPOSURE_MS = 40  # Initial camera exposure in milliseconds
     
     save_dir = 'C:\\Users\\qiyuanxu\\Desktop\\'
     # Try to initialize and use the DMD; if it fails, continue in camera-only mode.
@@ -374,7 +374,7 @@ if __name__ == "__main__":
         DMD = dmd.ViALUXDMD(ALP4(version='4.3'))
         # calibration_img = simulation.generate_radial_gradient(size=DMD_DIM)
         # calibration_img = np.ones((256, 256)) * 255  # 0-255 grayscale?
-        calibration_img = simulation.generate_inverted_upward_arrow(intesity=50)
+        calibration_img = simulation.generate_inverted_upward_arrow(intesity=255)
         
         # calibration_img = simulation.dmd_calibration_pattern_generation()3
         
@@ -387,4 +387,4 @@ if __name__ == "__main__":
 
     click_position = None
     # Use camera_index=0 for first camera, camera_index=1 for second camera
-    display_image('results', camera_index=1, text_scale=1, scale_factor=0.9, initial_exposure_ms=INITIAL_EXPOSURE_MS)
+    display_image('results', camera_index=1, text_scale=1, scale_factor=0.7, initial_exposure_ms=INITIAL_EXPOSURE_MS)
