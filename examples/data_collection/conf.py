@@ -11,7 +11,7 @@ from contextlib import ContextDecorator
 
 
 name = datetime.datetime.now().strftime('%Y-%m-%d')
-DMD_ROTATION_ANGLE = -45 + 2 # DMD rotation angle for image orientation correctionv, minus left, plus right
+DMD_ROTATION_ANGLE = -45 + 2.5 # DMD rotation angle for image orientation correctionv, minus left, plus right
 DATABASE_ROOT = f"../../DataHub/datasets/{name}/db/dataset_meta.db"
 DATASET_ROOT = f"../../DataHub/datasets/{name}/dataset/"
 # path_to_images = ["../../DataHub/local_images/MMF/procIMGs/processed",
@@ -37,7 +37,7 @@ with ChangeDirToFileLocation():
     full_path = os.path.abspath(os.path.join(os.getcwd(), "../../"))
     sys.path.insert(0, full_path)
     import optibeam.dmd as dmd
-    import optibeam.camera as camera
+    
     import optibeam.simulation as simulation
     import optibeam.utils as utils 
     import optibeam.database as database
@@ -47,6 +47,8 @@ with ChangeDirToFileLocation():
     import optibeam.visualization as visualization
     import optibeam.analysis as analysis
     import optibeam.basis as basis
+    import optibeam.camera as camera
+    import optibeam.camerav2 as camerav2
     
 
 def read_MNIST_images(filepath):

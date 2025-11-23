@@ -366,7 +366,7 @@ DMD_DIM = 1024
 
 if __name__ == "__main__":
     # Camera settings
-    INITIAL_EXPOSURE_MS = 40  # Initial camera exposure in milliseconds
+    INITIAL_EXPOSURE_MS = 195 #nitial camera exposure in milliseconds
     
     save_dir = 'C:\\Users\\qiyuanxu\\Desktop\\'
     # Try to initialize and use the DMD; if it fails, continue in camera-only mode.

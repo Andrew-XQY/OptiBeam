@@ -7,6 +7,9 @@ import os
 import cv2
 from collections import deque
 import time
+import multiprocessing as mp
+import tkinter as tk
+from tkinter import messagebox
 
 
 class MaxPixelBuffer:
@@ -218,17 +221,17 @@ def add_text_to_image(image, camera_params, frame_properties, text_scale=1.0):
                    text_scale, (255, 255, 255), thickness)  # White text
         y_position += line_spacing
     
-    # Overlay camera parameters (bottom right, blue)
+    # Overlay camera parameters (bottom right, green)
     y_position = img_bgr.shape[0] - int(20 * text_scale)
     for key, value in reversed(list(camera_params.items())):
         text = f'{key}: {value}'
         text_size = cv2.getTextSize(text, cv2.FONT_HERSHEY_SIMPLEX, text_scale, thickness)[0]
         x_position = img_bgr.shape[1] - text_size[0] - 10
-        # Add blue text with black outline for better visibility
+        # Add green text with black outline for better visibility
         cv2.putText(img_bgr, text, (x_position, y_position), cv2.FONT_HERSHEY_SIMPLEX, 
                    text_scale, (0, 0, 0), thickness + 2)  # Black outline
         cv2.putText(img_bgr, text, (x_position, y_position), cv2.FONT_HERSHEY_SIMPLEX, 
-                   text_scale, (255, 0, 0), thickness)  # Blue text
+                   text_scale, (0, 255, 0), thickness)  # Green text
         y_position -= line_spacing
     
     return img_bgr
@@ -273,34 +276,28 @@ def save_image_with_info(img, camera_params, frame_properties, save_dir, text_sc
     
     # Generate timestamp filename
     timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-    filename = os.path.join(save_dir, f"{timestamp}.png")
+    camera_index = camera_params.get('Camera Index', '0')
+    filename = os.path.join(save_dir, f"cam{camera_index}_{timestamp}.png")
     
     # Save image
     cv2.imwrite(filename, img_with_info)
     return filename
 
 
-def live_preview_and_capture(save_dir, camera_index=0, initial_exposure_us=40000, text_scale=1.0, scale_factor=0.6, update_rate_hz=1.0, max_buffer_seconds=10.0, dmd_device=None):
+def camera_process(camera_index, initial_exposure_us, save_dir, text_scale, scale_factor, 
+                   update_rate_hz, max_buffer_seconds):
     """
-    Display live preview with CV2 window, updating at specified rate, with exposure control
+    Process function for a single camera - runs in separate process
     
     Args:
-        save_dir: str - directory to save the image
-        camera_index: int - which camera to use (0 for first, 1 for second, etc.)
+        camera_index: int - which camera to use (0 or 1)
         initial_exposure_us: int - initial exposure time in microseconds
+        save_dir: str - directory to save the image
         text_scale: float - text scaling factor for overlays
-        scale_factor: float - rescale ratio for display window (default 0.6)
-        update_rate_hz: float - update rate in Hz (frames per second), default 1.0
-        max_buffer_seconds: float - time window in seconds for max pixel tracking (default 10.0)
-        dmd_device: DMD device object (optional) - if provided, will be used for displaying pattern
+        scale_factor: float - rescale ratio for display window
+        update_rate_hz: float - update rate in Hz (frames per second)
+        max_buffer_seconds: float - time window in seconds for max pixel tracking
     """
-    import time
-    import tkinter as tk
-    from tkinter import messagebox
-    
-    # Ensure save directory exists
-    os.makedirs(save_dir, exist_ok=True)
-    
     # Calculate wait time based on update rate
     wait_time_ms = int(1000 / update_rate_hz)  # Convert Hz to milliseconds
     
@@ -310,36 +307,87 @@ def live_preview_and_capture(save_dir, camera_index=0, initial_exposure_us=40000
     # Initialize max pixel buffer
     max_pixel_buffer = MaxPixelBuffer(window_seconds=max_buffer_seconds)
     
-    # Create CV2 window
-    cv2.namedWindow('Camera Live Preview')
+    # Camera labels
+    camera_label = "Fiber Camera" if camera_index == 0 else "Ground Truth Camera"
     
-    # Create a simple Tkinter window for exposure input
+    # Create CV2 window with unique name
+    window_name = f'{camera_label} (Cam {camera_index})'
+    cv2.namedWindow(window_name)
+    
+    # Position windows side by side (camera 0 on left, camera 1 on right)
+    window_x_position = 0 if camera_index == 0 else 800
+    cv2.moveWindow(window_name, window_x_position, 100)
+    
+    # Create a simple Tkinter window for exposure and gain input
     def create_exposure_input_window():
         input_window = tk.Tk()
-        input_window.title("Set Exposure Time")
-        input_window.geometry("350x120")
+        input_window.title(f"{camera_label} - Camera Parameters")
+        input_window.geometry("350x200")
         
-        tk.Label(input_window, text="Exposure Time (microseconds):", font=("Arial", 10)).pack(pady=10)
+        # Position Tkinter windows vertically stacked
+        window_y_position = 100 if camera_index == 0 else 350
+        input_window.geometry(f"350x200+{1200}+{window_y_position}")
+        
+        # Exposure Time Section
+        tk.Label(input_window, text=f"{camera_label} - Exposure Time (µs):", 
+                font=("Arial", 10)).pack(pady=(10, 5))
         
         exposure_entry = tk.Entry(input_window, font=("Arial", 12), width=15)
         exposure_entry.insert(0, str(initial_exposure_us))
         exposure_entry.pack(pady=5)
         
-        def set_exposure():
+        # Gain Section
+        tk.Label(input_window, text=f"{camera_label} - Gain:", 
+                font=("Arial", 10)).pack(pady=(10, 5))
+        
+        current_gain = camera_capture.camera.GainRaw.Value
+        gain_entry = tk.Entry(input_window, font=("Arial", 12), width=15)
+        gain_entry.insert(0, str(current_gain))
+        gain_entry.pack(pady=5)
+        
+        def set_parameters():
+            success_messages = []
+            error_occurred = False
+            
+            # Set Exposure
             try:
                 new_exposure_us = int(exposure_entry.get())
                 if new_exposure_us <= 0:
                     messagebox.showerror("Error", "Exposure must be positive!")
-                    return
-                camera_capture.camera.ExposureTimeRaw.SetValue(new_exposure_us)
-                print(f"Exposure updated to {new_exposure_us} us ({new_exposure_us/1000:.2f} ms)")
-                messagebox.showinfo("Success", f"Exposure set to {new_exposure_us} µs")
+                    error_occurred = True
+                else:
+                    camera_capture.camera.ExposureTimeRaw.SetValue(new_exposure_us)
+                    print(f"{camera_label}: Exposure updated to {new_exposure_us} us ({new_exposure_us/1000:.2f} ms)")
+                    success_messages.append(f"Exposure: {new_exposure_us} µs")
             except ValueError:
-                messagebox.showerror("Error", "Please enter a valid integer!")
+                messagebox.showerror("Error", "Please enter a valid integer for exposure!")
+                error_occurred = True
             except Exception as e:
                 messagebox.showerror("Error", f"Failed to set exposure: {e}")
+                error_occurred = True
+            
+            # Set Gain
+            try:
+                new_gain = int(gain_entry.get())
+                if new_gain < 0:
+                    messagebox.showerror("Error", "Gain must be non-negative!")
+                    error_occurred = True
+                else:
+                    camera_capture.camera.GainRaw.SetValue(new_gain)
+                    print(f"{camera_label}: Gain updated to {new_gain}")
+                    success_messages.append(f"Gain: {new_gain}")
+            except ValueError:
+                messagebox.showerror("Error", "Please enter a valid integer for gain!")
+                error_occurred = True
+            except Exception as e:
+                messagebox.showerror("Error", f"Failed to set gain: {e}")
+                error_occurred = True
+            
+            # Show success message if no errors occurred
+            if not error_occurred and success_messages:
+                messagebox.showinfo("Success", f"{camera_label} parameters updated:\n" + "\n".join(success_messages))
         
-        set_button = tk.Button(input_window, text="Set Exposure", command=set_exposure, 
+        set_button = tk.Button(input_window, text="Set Parameters", command=set_parameters, 
                               font=("Arial", 10), bg="lightblue", width=15)
         set_button.pack(pady=10)
         
@@ -351,10 +399,10 @@ def live_preview_and_capture(save_dir, camera_index=0, initial_exposure_us=40000
     # Create exposure input window
     exposure_window = create_exposure_input_window()
     
-    print("Live preview started. Press 's' to save, ESC to exit.")
-    print(f"Update rate: {update_rate_hz} Hz ({1/update_rate_hz:.2f} seconds per frame)")
-    print(f"Display scale factor: {scale_factor}")
-    print(f"Max pixel tracking window: {max_buffer_seconds} seconds")
+    print(f"\n{camera_label} - Live preview started. Press 's' to save, ESC to exit.")
+    print(f"{camera_label} - Update rate: {update_rate_hz} Hz ({1/update_rate_hz:.2f} seconds per frame)")
+    print(f"{camera_label} - Display scale factor: {scale_factor}")
+    print(f"{camera_label} - Max pixel tracking window: {max_buffer_seconds} seconds")
     
     try:
         while True:
@@ -365,7 +413,7 @@ def live_preview_and_capture(save_dir, camera_index=0, initial_exposure_us=40000
                 exposure_window.update()
             except tk.TclError:
                 # Window was closed
-                print("Exposure input window closed. Exiting...")
+                print(f"{camera_label} - Exposure input window closed. Exiting...")
                 break
             
             # Capture image
@@ -373,6 +421,10 @@ def live_preview_and_capture(save_dir, camera_index=0, initial_exposure_us=40000
             
             # Get camera parameters and frame properties
             camera_params = camera_capture.get_camera_parameters()
+            
+            # Add camera label to parameters
+            camera_params['Camera Type'] = camera_label
+            
             frame_properties = analyze_frame_properties(img)
             
             # Update max pixel buffer with current max pixel value
@@ -394,24 +446,24 @@ def live_preview_and_capture(save_dir, camera_index=0, initial_exposure_us=40000
             img_display = image_resize(img_with_info, scale_factor)
             
             # Display the image
-            cv2.imshow('Camera Live Preview', img_display)
+            cv2.imshow(window_name, img_display)
             
             # Wait for key press based on update rate
             key = cv2.waitKey(wait_time_ms)
             
             if key == 27:  # ESC key to exit
-                print("Exiting...")
+                print(f"{camera_label} - Exiting...")
                 break
             elif key == ord('s') or key == ord('S'):  # 's' or 'S' key to save
                 # Save the original full-resolution image with info
                 filename = save_image_with_info(img, camera_params, frame_properties, save_dir, text_scale)
-                print(f"Image saved: {filename}")
+                print(f"{camera_label} - Image saved: {filename}")
                 
                 # Print summary
-                print("\nImage Properties:")
+                print(f"\n{camera_label} - Image Properties:")
                 for k, v in frame_properties.items():
                     print(f"  {k}: {v}")
-                print("\nCamera Parameters:")
+                print(f"\n{camera_label} - Camera Parameters:")
                 for k, v in camera_params.items():
                     print(f"  {k}: {v}")
                 print()
@@ -431,23 +483,53 @@ def live_preview_and_capture(save_dir, camera_index=0, initial_exposure_us=40000
             pass
 
 
+def run_dual_cameras(camera_0_exposure_us, camera_1_exposure_us, save_dir, text_scale=1.0, 
+                     scale_factor=0.6, update_rate_hz=1.0, max_buffer_seconds=10.0):
+    """
+    Run two cameras simultaneously in separate processes
+    
+    Args:
+        camera_0_exposure_us: int - initial exposure for camera 0
+        camera_1_exposure_us: int - initial exposure for camera 1
+        save_dir: str - directory to save images
+        text_scale: float - text scaling factor for overlays
+        scale_factor: float - rescale ratio for display window
+        update_rate_hz: float - update rate in Hz (frames per second)
+        max_buffer_seconds: float - time window in seconds for max pixel tracking
+    """
+    # Create two separate processes for each camera
+    process_0 = mp.Process(target=camera_process, args=(
+        0, camera_0_exposure_us, save_dir, text_scale, scale_factor, 
+        update_rate_hz, max_buffer_seconds
+    ))
+    
+    process_1 = mp.Process(target=camera_process, args=(
+        1, camera_1_exposure_us, save_dir, text_scale, scale_factor, 
+        update_rate_hz, max_buffer_seconds
+    ))
+    
+    # Start both processes
+    print("Starting dual camera system...")
+    print("="*70)
+    process_0.start()
+    time.sleep(0.5)  # Small delay to stagger window creation
+    process_1.start()
+    
+    # Wait for both processes to complete
+    process_0.join()
+    process_1.join()
+    
+    print("\nDual camera system stopped.")
+
+
 # DMD constants
 DMD_DIM = 1024
 
 
 if __name__ == "__main__":
-    # Configuration
-    CAMERA_INDEX, INITIAL_EXPOSURE_US = 0, 195000 # fiber
-    # CAMERA_INDEX, INITIAL_EXPOSURE_US = 1, 195000 # truth
-    # CAMERA_INDEX = 1           # Which camera to use (0 for first, 1 for second, etc.)
-    # INITIAL_EXPOSURE_US = 125000 # 105000  # Initial exposure time in microseconds (250000 us = 250 ms) 195000
-    SAVE_DIR = 'C:\\Users\\qiyuanxu\\Desktop\\'  # Directory to save images
-    TEXT_SCALE = 1.0           # Text scaling factor for overlays
-    SCALE_FACTOR = 0.7         # Display window rescale ratio (0.7 = 70% of original size)
-    UPDATE_RATE_HZ = 1.0       # Update rate in Hz (frames per second), default 1.0 Hz = 1 frame/second
-    MAX_BUFFER_SECONDS = 10.0  # Time window for max pixel tracking in seconds (default 10.0)
     
     # Try to initialize and use the DMD; if it fails, continue in camera-only mode.
+    # Note: DMD initialization happens in main process before spawning camera processes
     DMD = None
     try:
         DMD = dmd.ViALUXDMD(ALP4(version='4.3'))
@@ -463,14 +545,33 @@ if __name__ == "__main__":
     except Exception as e:
         print(f"Warning: DMD initialization or display failed ({e}). Running in camera-only mode.")
     
-    # Start live preview with capture capability
-    live_preview_and_capture(
+    print("\n" + "="*70)
+    print("DUAL CAMERA SYSTEM")
+    print("="*70)
+    print("Controls for each camera window:")
+    print("  - Press 's' to save image from that camera")
+    print("  - Press ESC to exit (closes both cameras)")
+    print("  - Use separate exposure control windows for each camera")
+    print("="*70 + "\n")
+    
+    # Configuration
+    CAMERA_0_EXPOSURE_US = 150000  # Camera 0 (fiber) initial exposure in microseconds
+    CAMERA_0_GAIN = 300              # Camera 0 (fiber) initial gain
+    CAMERA_1_EXPOSURE_US = 150000  # Camera 1 (truth) initial exposure in microseconds
+    CAMERA_1_GAIN = 0              # Camera 1 (truth) initial gain
+    SAVE_DIR = 'C:\\Users\\qiyuanxu\\Desktop\\'  # Directory to save images
+    TEXT_SCALE = 1.0           # Text scaling factor for overlays
+    SCALE_FACTOR = 0.7         # Display window rescale ratio (0.7 = 70% of original size)
+    UPDATE_RATE_HZ = 1.0       # Update rate in Hz (frames per second), default 1.0 Hz = 1 frame/second
+    MAX_BUFFER_SECONDS = 10.0  # Time window for max pixel tracking in seconds (default 10.0)
+    
+    # Start dual camera system
+    run_dual_cameras(
+        camera_0_exposure_us=CAMERA_0_EXPOSURE_US,
+        camera_1_exposure_us=CAMERA_1_EXPOSURE_US,
         save_dir=SAVE_DIR,
-        camera_index=CAMERA_INDEX,
-        initial_exposure_us=INITIAL_EXPOSURE_US,
         text_scale=TEXT_SCALE,
         scale_factor=SCALE_FACTOR,
         update_rate_hz=UPDATE_RATE_HZ,
-        max_buffer_seconds=MAX_BUFFER_SECONDS,
-        dmd_device=DMD
+        max_buffer_seconds=MAX_BUFFER_SECONDS
     )

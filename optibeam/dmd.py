@@ -3,6 +3,8 @@ import cv2
 from abc import ABC, abstractmethod
 from ALP4 import *
 
+from .utils import timeout, print_underscore
+
 
 # https://github.com/wavefrontshaping/ALP4lib
 
@@ -127,6 +129,7 @@ class ViALUXDMD(DMD):
     def get_width(self) -> int:
         return self.width
     
+    @timeout(2)
     def free_memory(self) -> None:
         # Stop the sequence display
         self.dmd.Halt()
@@ -145,13 +148,15 @@ class ViALUXDMD(DMD):
         # Run the sequence in a loop
         self.dmd.Run()
         # time.sleep(0.01)
-
+    
+    @timeout(2)
     def get_metadata(self) -> dict:
         config = {}
         config["bit_depth"] = self.bitDepth
         config["picture_time"] = self.pictureTime  
         return config
     
+    @timeout(2)
     def end(self) -> None:
         """
         Stop the sequence display and deallocate the device.
@@ -185,7 +190,209 @@ def dmd_img_adjustment(display, DMD_DIM, angle=47, horizontal_flip=None, vertica
 
 
 
+import numpy as np
+from ALP4 import ALP4
 
+timeout_duration = 3  # seconds
+class ViALUXDMD_V2(DMD):
+    """
+    Drop-in replacement for ViALUXDMD with safer sequence handling.
 
+    API compatibility:
+      - __init__(self, dmd: ALP4 | None = None, ...)
+      - set_pictureTime, set_bitDepth
+      - display_image(image)
+      - free_memory()
+      - get_metadata()
+      - end()
+    """
 
+    def __init__(
+        self,
+        dmd: ALP4 | None = None,
+        bitDepth: int = 8,
+        pictureTime: int = 40000,      # us
+        illuminationTime: int | None = 38000,  # us
+    ) -> None:
+        super().__init__()
 
+        # Use passed ALP4 handle (your current pattern), or create a new one
+        if dmd is None:
+            self.dmd = ALP4(version="4.3")
+        else:
+            self.dmd = dmd
+
+        self.dmd.Initialize()
+
+        self.bitDepth = int(bitDepth)
+        self.pictureTime = int(pictureTime)
+
+        if illuminationTime is None:
+            self.illuminationTime = self.pictureTime
+        else:
+            self.illuminationTime = int(illuminationTime)
+
+        # Illumination time must not exceed picture time
+        if self.illuminationTime > self.pictureTime:
+            self.illuminationTime = self.pictureTime
+
+        self.hight = self.dmd.nSizeY
+        self.width = self.dmd.nSizeX
+
+        self._seq_allocated = False
+        self._nbImg = 0
+        self._closed = False
+
+    # -------- basic getters / setters --------
+
+    def set_pictureTime(self, pictureTime: int) -> None:
+        self.pictureTime = int(pictureTime)
+        if self.illuminationTime > self.pictureTime:
+            self.illuminationTime = self.pictureTime
+
+    def set_bitDepth(self, bitDepth: int) -> None:
+        if self._seq_allocated:
+            raise RuntimeError(
+                "Cannot change bit depth while a sequence is allocated. "
+                "Call free_memory() first."
+            )
+        self.bitDepth = int(bitDepth)
+
+    def get_height(self) -> int:
+        return self.hight
+
+    def get_width(self) -> int:
+        return self.width
+
+    # -------- internal helpers --------
+
+    def _prepare_image(self, image: np.ndarray) -> np.ndarray:
+        """
+        Adjust to DMD size and enforce uint8 grayscale, then flatten.
+        Keeps your intensity scale (no rescaling, just clip 0–255).
+        """
+        img = self.adjust_image(image)
+
+        if img.ndim == 3:
+            img = img[..., 0]
+
+        if img.dtype != np.uint8:
+            img = np.clip(img, 0, 255).astype(np.uint8)
+
+        return img.ravel()
+
+    def _ensure_sequence(self, nbImg: int = 1) -> None:
+        """
+        Ensure a sequence with nbImg frames exists, reallocating cleanly if needed.
+        """
+        if self._closed:
+            raise RuntimeError("DMD already freed; create a new ViALUXDMD_V2 instance.")
+
+        nbImg = int(nbImg)
+
+        if self._seq_allocated and self._nbImg == nbImg:
+            return
+
+        if self._seq_allocated:
+            try:
+                self.dmd.Halt()
+            except Exception:
+                pass
+            try:
+                self.dmd.FreeSeq()
+            except Exception:
+                pass
+
+        self.dmd.SeqAlloc(nbImg=nbImg, bitDepth=self.bitDepth)
+        self._seq_allocated = True
+        self._nbImg = nbImg
+
+    # -------- public API --------
+    @timeout(timeout_duration)
+    def display_image(self, image: np.ndarray) -> None:
+        """
+        Display a single static image on the DMD.
+
+        Pattern:
+          - reuse a 1-frame sequence,
+          - Halt() before updating,
+          - SeqPut(),
+          - SetTiming(),
+          - Run().
+        """
+        imgSeq = self._prepare_image(image)
+
+        self._ensure_sequence(nbImg=1)
+
+        try:
+            self.dmd.Halt()
+        except Exception:
+            pass
+
+        self.dmd.SeqPut(imgData=imgSeq)
+
+        self.dmd.SetTiming(
+            pictureTime=self.pictureTime,
+            illuminationTime=self.illuminationTime,
+        )
+
+        self.dmd.Run()
+
+    @timeout(timeout_duration)
+    def free_memory(self) -> None:
+        """
+        Stop any running sequence and free onboard sequence memory.
+        Safe to call after each acquisition as in your main loop.
+        """
+        if not self._seq_allocated:
+            return
+
+        try:
+            self.dmd.Halt()
+        except Exception:
+            pass
+
+        try:
+            self.dmd.FreeSeq()
+        except Exception:
+            pass
+
+        self._seq_allocated = False
+        self._nbImg = 0
+
+    @timeout(timeout_duration)
+    def get_metadata(self) -> dict:
+        return {
+            "bit_depth": self.bitDepth,
+            "picture_time": self.pictureTime,
+            "illumination_time": self.illuminationTime,
+            "height": self.hight,
+            "width": self.width,
+        }
+
+    @timeout(timeout_duration)
+    def end(self) -> None:
+        """
+        Fully release the DMD: Halt, FreeSeq, Free.
+        """
+        if self._closed:
+            return
+
+        if self._seq_allocated:
+            try:
+                self.dmd.Halt()
+            except Exception:
+                pass
+            try:
+                self.dmd.FreeSeq()
+            except Exception:
+                pass
+            self._seq_allocated = False
+            self._nbImg = 0
+
+        try:
+            self.dmd.Free()
+        except Exception:
+            pass
+
+        self._closed = True

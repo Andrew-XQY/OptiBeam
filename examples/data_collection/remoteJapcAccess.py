@@ -70,11 +70,26 @@ def getMagnetsStatus(magnets_name:List[str], timing_user:str='SCT.USER.SETUP')->
     return {magnet_name:is_busy(data[f"{timing_user}@{par_names[magnet_name]}"]['value']['current_status']) for magnet_name in magnets_name}
     
     
+# Quick server check
+try:
+    response = requests.get(f'http://{server}/', timeout=5)
+    print(f"Server is UP - Status: {response.status_code}")
+except requests.exceptions.Timeout:
+    print("Server TIMEOUT - not responding within 5 seconds")
+except requests.exceptions.ConnectionError:
+    print("Server DOWN - connection refused")
+except Exception as e:
+    print(f"Server check failed: {e}")
+
 # print('before', getMagnetCurrent('CA.QFD0880'))
-# setMagnetCurrent('CA.QFD0880', 0)
+# setMagnetCurrent('CA.QFD0880', 5.0)
 # print('after', getMagnetCurrent('CA.QFD0880'))
+# print("all complete.")
 
-    
 
+setMagnetCurrent('CA.QFD0880', 0.0)
+setMagnetCurrent('CA.QDD0515', 0.0)
+setMagnetCurrent('CA.DHJ0840', 0.0)
+setMagnetCurrent('CA.DVJ0840', 0.0)
 
 

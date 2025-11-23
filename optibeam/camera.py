@@ -92,9 +92,9 @@ class MultiBaslerCameraManager:
         Returns:
             None
         """
-        # Current maximum for exposure time is  up to 5000000 microseconds, gain is 360
-        type = {'Exposure':50, 'Gain':36} # 'Exposure':50 exposure time trackbar ticks (each tick = 10ms)
-        scale = {'Exposure':10000, 'Gain':10}
+        # Current maximum for exposure time is 2000000 microseconds, gain is 360
+        type = {'Exposure':200, 'Gain':36} # 'Exposure':200 exposure time in milliseconds
+        scale = {'Exposure':1000, 'Gain':10}
         for i in range(len(self.cameras)):
             params = create_camera_control_functions(self.cameras[i], scale)
             for key, val in type.items():
@@ -143,41 +143,6 @@ class MultiBaslerCameraManager:
         """
         font = cv2.FONT_HERSHEY_SIMPLEX
         cv2.putText(img, str(label), (10, 50), font, 2, (255, 255, 255), 2)
-    
-    def _plot_camera_settings(self, img: np.ndarray, cam_idx: int) -> None:
-        """
-        Plot current exposure and gain settings on bottom right of the image
-        
-        Args:
-            img: np.ndarray
-            cam_idx: int, camera index
-        
-        Returns:
-            None
-        """
-        font = cv2.FONT_HERSHEY_SIMPLEX
-        font_scale = 2
-        color = (255, 255, 255)  # White in BGR (255, 255, 255)
-        thickness = 2
-        
-        exposure = self.cameras[cam_idx].ExposureTimeAbs.Value
-        gain = self.cameras[cam_idx].GainRaw.Value
-        
-        # Position text at bottom right
-        height, width = img.shape[:2]
-        exposure_text = f'Exposure: {exposure/1000:.2f} ms'
-        gain_text = f'Gain: {gain}'
-        
-        # Calculate text size to position from bottom right
-        (exp_w, exp_h), _ = cv2.getTextSize(exposure_text, font, font_scale, thickness)
-        (gain_w, gain_h), _ = cv2.getTextSize(gain_text, font, font_scale, thickness)
-        
-        # Draw gain (first line from bottom)
-        cv2.putText(img, gain_text, (width - gain_w - 10, height - exp_h - 15), 
-                    font, font_scale, color, thickness)
-        # Draw exposure (second line from bottom)
-        cv2.putText(img, exposure_text, (width - exp_w - 10, height - 10), 
-                    font, font_scale, color, thickness)
         
     def _img_analyze(self, img: np.ndarray, normalize_range: tuple = (0, 100)) -> dict:
         """
@@ -253,18 +218,14 @@ class MultiBaslerCameraManager:
             grabResults = self._grab_results()
             imgs = [grabResult.GetArray() for grabResult in grabResults]
             if len(grabResults) > 1:
-                # Add properties and settings to each individual image before combining
-                for idx, img in enumerate(imgs):
+                combined_image = imgs[0]
+                properties = self._img_analyze(combined_image)
+                self._plot_frame_properties(combined_image, properties)
+                for img in imgs[1:]:
                     properties = self._img_analyze(img)
                     self._plot_frame_properties(img, properties)
-                    self._plot_camera_settings(img, idx)
-                
-                # Combine images
-                combined_image = imgs[0]
-                for img in imgs[1:]:
-                    combined_image = self._combine_images(combined_image, img)
-                
-                self._plot_image_label(combined_image, 'Ground Truth')
+                    combined_image = self._combine_images(combined_image, img) 
+                    self._plot_image_label(combined_image, 'Ground Truth')
                 cv2.imshow('Acquisition', combined_image)
                 key = cv2.waitKey(1)
                 if key == ord('f'):  # 'f' key to flip
@@ -321,20 +282,21 @@ class MultiBaslerCameraManager:
             self.cameras.append(camera)        
         
     @timeout(500)
-    def initialize(self) -> None:
+    def initialize(self, show_config_window: bool = True) -> None:
         """
         This function will first detect all cameras and initialize them (set a basic aquisition parameters). 
-        Then Call _set_config function to check if the user wants to flip the order of the images. 
+        Then Call _set_config function to check if the user wants to flip the order of the images (if show_config_window is True). 
         Finally, it will set up the PTP configuration for each camera and print the status of all cameras.
         
         Args:
-            None
+            show_config_window: bool, default True. If False, bypasses _set_config() and no window will show up.
         
         Returns:
             None
         """
         self._initialize_cams()
-        self._set_config()
+        if show_config_window:
+            self._set_config()
         for i in self.cameras:  # prepare for PTP and scheduled action command
             self._ptp_setup(i)
         self.print_all_camera_status()
@@ -472,6 +434,87 @@ class MultiBaslerCameraManager:
         self._stop_grabbing() 
         return combined_image
     
+    def schedule_action_command_with_info(self, scheduled_time: int):
+        """
+        Issue a scheduled action command to all cameras and return:
+        - combined_image: np.ndarray or None
+        - ts_info: dict with per-camera timestamps and inter-camera difference
+
+        ts_info structure:
+        {
+            "<camera_sn_1>": <timestamp_ns>,
+            "<camera_sn_2>": <timestamp_ns>,
+            ...
+            "time_difference_ns": <max_delta_between_cameras_in_ns>
+        }
+        """
+        # Latch current timestamp from the master device
+        self.cameras[self.master].GevTimestampControlLatch.Execute()
+        current_time = self.cameras[self.master].GevTimestampValue.Value
+
+        # Absolute scheduled time in the camera timestamp domain
+        scheduled_time_abs = current_time + scheduled_time  # scheduled_time = delay (same units as timestamp)
+
+        # Start grabbing on all cameras
+        self._start_grabbing()
+
+        # Issue the scheduled action command (non-blocking)
+        self.GigE_TL.IssueScheduledActionCommandNoWait(
+            self.action_key,
+            self.group_key,
+            self.group_mask,
+            scheduled_time_abs,
+            self.boardcast_ip
+        )
+        print("Scheduled command issued, retrieving image...")
+
+        # Retrieve grab results
+        grabResults = self._grab_results()
+
+        ts_info = {}
+        combined_image = None
+
+        if grabResults:
+            # Tick frequency is common for all cameras
+            tick_freq = self.cameras[0].GevTimestampTickFrequency.Value  # ticks per second
+
+            # Collect per-camera timestamps in ticks
+            ts_ticks_list = []
+            for cam, gr in zip(self.cameras, grabResults):
+                sn = cam.GetDeviceInfo().GetSerialNumber()
+                ts_ticks = int(gr.TimeStamp)          # device timestamp in ticks
+                ts_ns = int(1e9 * ts_ticks / tick_freq)
+                ts_info[sn] = ts_ns
+                ts_ticks_list.append(ts_ticks)
+
+            # Compute max time difference between cameras (in ns)
+            if len(ts_ticks_list) > 1:
+                timedif_ticks = self._max_time_difference(ts_ticks_list)
+                time_difference_ns = int(1e9 * timedif_ticks / tick_freq)
+                ts_info["time_difference_ns"] = time_difference_ns
+            else:
+                ts_info["time_difference_ns"] = 0
+
+            # Original logic: only combine if time difference (in ticks) < 1000
+            if len(grabResults) > 1:
+                timedif_ticks = self._max_time_difference(ts_ticks_list)
+                if timedif_ticks < 1000:  # your original threshold
+                    imgs = [gr.GetArray() for gr in grabResults]
+                    combined_image = imgs[0]
+                    for img in imgs[1:]:
+                        combined_image = self._combine_images(combined_image, img)
+                    print("Image retrieved.")
+                else:
+                    print(f"Warning: inter-camera timestamp difference = {timedif_ticks} ticks")
+
+        # Cleanup
+        self._grab_release(grabResults)
+        self._stop_grabbing()
+
+        # Now returns (combined_image, ts_info)
+        return combined_image, ts_info
+
+
     def free_run(self):
         """
         Free run mode, return the combined image of the two cameras in real time.
@@ -519,6 +562,20 @@ class MultiBaslerCameraManager:
         config['speckle_camera_model'] = self.cameras[c2].GetDeviceInfo().GetModelName()
         return config
     
+    def set_exposure(self, exposure_ms: float) -> None:
+        """
+        Set exposure time for all cameras.
+        
+        Args:
+            exposure_ms: float, exposure time in milliseconds
+            
+        Returns:
+            None
+        """
+        exposure_us = exposure_ms * 1000  # convert ms to µs
+        for cam in self.cameras:
+            cam.ExposureTimeAbs.Value = exposure_us
+    
     def end(self) -> None:
         """
         After the acquisition is done, call this function to close the cameras and terminate the grab.
@@ -532,4 +589,479 @@ class MultiBaslerCameraManager:
         self._stop_grabbing()
         for cam in self.cameras:
             cam.Close()
+        print("Camera closed, grab terminated.")
+        
+        
+
+
+class MultiBaslerCameraManagerV2:
+    """
+    Optimised manager for multiple Basler GigE cameras.
+
+    Main change vs V1:
+    - Cameras are started once and kept grabbing continuously.
+    - schedule_action_command() no longer starts/stops grabbing each call.
+    """
+
+    def __init__(
+        self,
+        params={
+            "grab_timeout": 5000,
+            "action_key": 0x1,
+            "group_key": 0x1,
+            "group_mask": 0xFFFFFFFF,
+            "boardcast_ip": "255.255.255.255",
+        },
+    ):
+        self.cameras = []
+        self.flip = False
+        self.master = None
+        self.tlFactory = pylon.TlFactory.GetInstance()
+        # GigE transport layer, used for issuing action commands
+        self.GigE_TL = self.tlFactory.CreateTl("BaslerGigE")
+
+        self.action_key = params.get("action_key")
+        self.group_key = params.get("group_key")
+        self.group_mask = params.get("group_mask")  # pylon.AllGroupMask or 0xFFFFFFFF
+        self.boardcast_ip = params.get("boardcast_ip")  # Broadcast to all devices
+        self.grab_timeout = params.get("grab_timeout")
+
+        # Internal flag to avoid repeated StartGrabbing/StopGrabbing
+        self._is_grabbing = False
+
+    # ------------------------------------------------------------------
+    # Low-level helpers
+    # ------------------------------------------------------------------
+    def _start_grabbing(self) -> None:
+        """
+        Start grabbing images from all cameras if not already grabbing.
+        Uses LatestImageOnly + GrabLoop_ProvidedByUser for low latency.
+        """
+        if self._is_grabbing:
+            return
+
+        for cam in self.cameras:
+            if not cam.IsGrabbing():
+                cam.StartGrabbing(
+                    pylon.GrabStrategy_LatestImageOnly,
+                    pylon.GrabLoop_ProvidedByUser,
+                )
+
+        # Mark as grabbing if at least one camera is grabbing
+        self._is_grabbing = any(cam.IsGrabbing() for cam in self.cameras)
+
+    def _stop_grabbing(self) -> None:
+        """
+        Stop grabbing images from all cameras if currently grabbing.
+        """
+        if not self._is_grabbing:
+            return
+
+        for cam in self.cameras:
+            if cam.IsGrabbing():
+                cam.StopGrabbing()
+
+        self._is_grabbing = False
+
+    def _combine_images(self, im0: np.ndarray, im1: np.ndarray) -> np.ndarray:
+        """
+        Combine two images horizontally side by side, flip the order if self.flip is True.
+        """
+        return np.hstack((im0, im1) if not self.flip else (im1, im0))
+
+    def _camera_params_setting(self, cv2_window_name: str) -> None:
+        """
+        Mount the camera control functions to cv2 trackbars, each camera has its own
+        trackbars for exposure and gain.
+        """
+        from .camera import create_camera_control_functions  # reuse your helper
+
+        type_ = {"Exposure": 200, "Gain": 36}  # exposure in ms, gain up to 360
+        scale = {"Exposure": 1000, "Gain": 10}
+
+        for i in range(len(self.cameras)):
+            params = create_camera_control_functions(self.cameras[i], scale)
+            for key, val in type_.items():
+                cv2.createTrackbar(f"{key}_{i}", cv2_window_name, 0, val, params[key])
+
+    def _grab_results(self) -> list:
+        """
+        Retrieve one grab result from each camera (blocking up to grab_timeout).
+        """
+        grabResults = []
+        for cam in self.cameras:
+            grabResult = cam.RetrieveResult(
+                self.grab_timeout, pylon.TimeoutHandling_ThrowException
+            )
+            if grabResult.GrabSucceeded():
+                grabResults.append(grabResult)
+        return grabResults
+
+    def _grab_release(self, grabResults: list) -> None:
+        """
+        Release all camera grabs.
+        """
+        for grabResult in grabResults:
+            grabResult.Release()
+
+    def _plot_image_label(self, img: np.ndarray, label: str) -> None:
+        font = cv2.FONT_HERSHEY_SIMPLEX
+        cv2.putText(img, str(label), (10, 50), font, 2, (255, 255, 255), 2)
+
+    def _img_analyze(self, img: np.ndarray, normalize_range: tuple = (0, 100)) -> dict:
+        """
+        Analyze frame properties and normalize them to a specified range.
+        """
+        max_pixel = np.max(img)
+        total_sum = np.sum(img, dtype=np.float64)
+
+        min_val, max_val = normalize_range
+        max_possible = 255 if img.dtype == np.uint8 else 65535
+
+        normalized_max = min_val + (max_pixel / max_possible) * (max_val - min_val)
+        max_possible_sum = img.size * max_possible
+        normalized_sum = min_val + (total_sum / max_possible_sum) * (max_val - min_val)
+
+        return {
+            "Max Pixel Value": f"{normalized_max:.2f}",
+            "Total Sum": f"{normalized_sum:.2f}",
+        }
+
+    def _plot_frame_properties(self, img: np.ndarray, properties: dict) -> None:
+        """
+        Plot frame properties on the image based on a dictionary.
+        """
+        font = cv2.FONT_HERSHEY_SIMPLEX
+        y_position = 100
+        line_spacing = 50
+
+        for key, value in properties.items():
+            text = f"{key}: {value}"
+            cv2.putText(img, text, (10, y_position), font, 2, (255, 255, 255), 2)
+            y_position += line_spacing
+
+    # ------------------------------------------------------------------
+    # Configuration window (free-run for tuning exposure/gain)
+    # ------------------------------------------------------------------
+    def _set_config(self) -> None:
+        """
+        Show a window for tuning exposure/gain and flipping the image order.
+        Works in free-run mode (continuous acquisition).
+        """
+        cv2.namedWindow("Acquisition", cv2.WINDOW_NORMAL)
+        width = sum([i.Width.GetValue() for i in self.cameras])
+        height = max([i.Height.GetValue() for i in self.cameras])
+
+        self._camera_params_setting(cv2_window_name="Acquisition")
+        cv2.resizeWindow("Acquisition", int(width // 2.5), int(height // 2.5))
+
+        self._start_grabbing()
+
+        try:
+            while all(cam.IsGrabbing() for cam in self.cameras):
+                grabResults = self._grab_results()
+                if not grabResults:
+                    continue
+
+                imgs = [grabResult.GetArray() for grabResult in grabResults]
+
+                if len(imgs) > 1:
+                    combined_image = imgs[0]
+                    props = self._img_analyze(combined_image)
+                    self._plot_frame_properties(combined_image, props)
+
+                    for img in imgs[1:]:
+                        props = self._img_analyze(img)
+                        self._plot_frame_properties(img, props)
+                        combined_image = self._combine_images(combined_image, img)
+                        self._plot_image_label(combined_image, "Ground Truth")
+
+                    cv2.imshow("Acquisition", combined_image)
+
+                key = cv2.waitKey(1)
+                if key == ord("f"):
+                    self.flip = not self.flip
+                    print("Image logic flipped.")
+                elif key == 27:  # ESC
+                    break
+
+                self._grab_release(grabResults)
+        finally:
+            self._stop_grabbing()
+            cv2.destroyAllWindows()
+
+    # ------------------------------------------------------------------
+    # PTP and camera initialisation
+    # ------------------------------------------------------------------
+    def _ptp_setup(self, cam: pylon.InstantCamera):
+        """
+        Configure each camera for IEEE1588 PTP and action-command triggering.
+        Note: AcquisitionMode is set to 'Continuous' for continuous triggered use.
+        """
+        cam.AcquisitionFrameRateEnable.Value = False
+        cam.GevIEEE1588.Value = True
+
+        # Continuous acquisition + trigger for each action command
+        cam.AcquisitionMode.SetValue("Continuous")
+        cam.TriggerMode.SetValue("On")
+        cam.TriggerSource.SetValue("Action1")
+        cam.TriggerSelector.SetValue("FrameStart")
+
+        cam.ActionDeviceKey.SetValue(self.action_key)
+        cam.ActionGroupKey.SetValue(self.group_key)
+        cam.ActionGroupMask.SetValue(self.group_mask)
+
+    def _initialize_cams(self):
+        """
+        Detect and open cameras, basic configuration before PTP.
+        """
+        while True:
+            devices = self.tlFactory.EnumerateDevices()
+            if len(devices) >= 2:
+                break
+            time.sleep(0.5)
+
+        for i, dev in enumerate(devices):
+            camera = pylon.InstantCamera(self.tlFactory.CreateDevice(dev))
+            camera.Open()
+
+            # Manual exposure/gain control
+            camera.ExposureAuto.Value = "Off"
+            print(f"Camera {i}: ExposureAuto current value: {camera.ExposureAuto.Value}")
+
+            camera.GainAuto.Value = "Off"
+            print(f"Camera {i}: GainAuto current value: {camera.GainAuto.Value}")
+
+            camera.AcquisitionFrameRateEnable.Value = True
+            camera.AcquisitionFrameRateAbs.Value = 20.0  # initial frame rate
+
+            self.cameras.append(camera)
+
+    @timeout(500)
+    def initialize(self, show_config_window: bool = True) -> None:
+        """
+        Detect cameras, set basic acquisition params, optional tuning window,
+        and configure PTP/action-command triggering.
+        """
+        self._initialize_cams()
+
+        if show_config_window:
+            self._set_config()
+
+        for cam in self.cameras:
+            self._ptp_setup(cam)
+
+        self.print_all_camera_status()
+
+    @print_underscore
+    def print_all_camera_status(self) -> None:
+        """
+        Print the status of all cameras.
+        """
+        print(f"Number of cameras detected: {len(self.cameras)}\n")
+        for cam in self.cameras:
+            info = cam.GetDeviceInfo()
+            print(
+                "Using %s @ %s @ %s"
+                % (info.GetModelName(), info.GetSerialNumber(), info.GetIpAddress())
+            )
+            print("ExposureAuto:", cam.ExposureAuto.Value)
+            print("GainAuto:", cam.GainAuto.Value)
+            print("ActionGroupKey:", hex(cam.ActionGroupKey.Value))
+            print("ActionGroupMask:", hex(cam.ActionGroupMask.Value))
+            print("TriggerSource:", cam.TriggerSource.Value)
+            print("TriggerMode:", cam.TriggerMode.Value)
+            print("AcquisitionMode:", cam.AcquisitionMode.Value)
+            print("Camera grabbing status:", cam.IsGrabbing())
+            print("Camera PTP status:", cam.GevIEEE1588Status.Value)
+            print()
+
+    @timeout(10)
+    def _check_cameras_ptp_state(self) -> bool:
+        """
+        Wait until all cameras report GevIEEE1588Status in ['Master', 'Slave'].
+        Sets self.master to the master camera index.
+        """
+        while True:
+            if all(
+                camera.GevIEEE1588Status.Value in ["Slave", "Master"]
+                for camera in self.cameras
+            ):
+                for i, camera in enumerate(self.cameras):
+                    if camera.GevIEEE1588Status.Value == "Master":
+                        self.master = i
+                return True
+            time.sleep(0.5)
+
+    def _max_time_difference(self, timestamps: list) -> int:
+        """
+        Calculate the maximum time difference in a timestamps list.
+        """
+        return max(timestamps) - min(timestamps)
+
+    def check_sync_status(self) -> list[float]:
+        """
+        Check the PTP offset of all slave cameras.
+        Returns list of offsets (ns) relative to master.
+        """
+        for camera in self.cameras:
+            camera.GevIEEE1588DataSetLatch.Execute()
+        return [
+            c.GevIEEE1588OffsetFromMaster.Value
+            for c in self.cameras
+            if c.GevIEEE1588Status.Value == "Slave"
+        ]
+
+    @timeout(20)
+    def synchronization(self, threshold: int = 300) -> list:
+        """
+        Wait until all cameras are synchronized within 'threshold' ns (max offset).
+        """
+        self._check_cameras_ptp_state()
+        print("Waiting for PTP time synchronization...")
+        records = []
+
+        while True:
+            offsets = self.check_sync_status()
+            if not offsets:
+                time.sleep(1)
+                continue
+
+            offset = max(offsets)
+            records.append(offset)
+            print(offset)
+
+            if abs(offset) < threshold:
+                print("Cameras synchronized.")
+                return records
+
+            time.sleep(1)
+
+    # ------------------------------------------------------------------
+    # Acquisition: scheduled action commands (PTP)
+    # ------------------------------------------------------------------
+    def set_exposure(self, exposure_ms: float) -> None:
+        """
+        Set exposure time for all cameras.
+        
+        Args:
+            exposure_ms: float, exposure time in milliseconds
+            
+        Returns:
+            None
+        """
+        exposure_us = exposure_ms * 1000  # convert ms to µs
+        for cam in self.cameras:
+            cam.ExposureTimeAbs.Value = exposure_us
+    
+    def schedule_action_command(self, scheduled_time: int) -> np.ndarray | None:
+        """
+        Issue a scheduled action command to all cameras.
+
+        Important change vs V1:
+        - Does NOT start/stop grabbing each call.
+        - Grabbing is started once and kept running to minimise overhead.
+        """
+        # Ensure cameras are grabbing (only starts once)
+        self._start_grabbing()
+
+        # Get current master timestamp and compute scheduled time
+        self.cameras[self.master].GevTimestampControlLatch.Execute()
+        current_time = self.cameras[self.master].GevTimestampValue.Value
+        scheduled_time += current_time  # delay in ns
+
+        # Send scheduled action command
+        self.GigE_TL.IssueScheduledActionCommandNoWait(
+            self.action_key,
+            self.group_key,
+            self.group_mask,
+            scheduled_time,
+            self.boardcast_ip,
+        )
+        print("Scheduled command issued, retrieving image...")
+
+        grabResults = self._grab_results()
+        combined_image = None
+
+        if len(grabResults) > 1:
+            imgs = [grabResult.GetArray() for grabResult in grabResults]
+            timestamps = [grabResult.TimeStamp for grabResult in grabResults]
+            timedif = self._max_time_difference(timestamps)
+
+            # Keep your tight sync requirement
+            if timedif < 1000:  # ns
+                combined_image = imgs[0]
+                for img in imgs[1:]:
+                    combined_image = self._combine_images(combined_image, img)
+                print("Image retrieved (Δt = %d ns)." % timedif)
+            else:
+                print("Warning: large camera timestamp difference: %d ns" % timedif)
+
+        self._grab_release(grabResults)
+        return combined_image
+
+    # ------------------------------------------------------------------
+    # Free-run mode (mainly for debugging / live view)
+    # ------------------------------------------------------------------
+    def free_run(self):
+        """
+        Free run mode: yield combined images in real time.
+        Uses continuous grabbing and releases results each loop.
+        """
+        self._start_grabbing()
+
+        try:
+            while all(cam.IsGrabbing() for cam in self.cameras):
+                grabResults = self._grab_results()
+                if len(grabResults) > 1:
+                    imgs = [grabResult.GetArray() for grabResult in grabResults]
+                    combined_image = imgs[0]
+                    for img in imgs[1:]:
+                        combined_image = self._combine_images(combined_image, img)
+                    self._grab_release(grabResults)
+                    yield combined_image
+                else:
+                    self._grab_release(grabResults)
+        finally:
+            self._stop_grabbing()
+
+    # ------------------------------------------------------------------
+    # Metadata / teardown
+    # ------------------------------------------------------------------
+    def get_metadata(self) -> dict:
+        """
+        API for metadata class to get the camera configurations.
+        """
+        config = {}
+        c1, c2 = 0, 1
+        if self.flip:
+            c1, c2 = 1, 0
+
+        config["ground_truth_camera_exposure"] = self.cameras[c1].ExposureTimeAbs.Value
+        config["ground_truth_camera_gain"] = self.cameras[c1].GainRaw.Value
+        config["ground_truth_camera_sn"] = (
+            self.cameras[c1].GetDeviceInfo().GetSerialNumber()
+        )
+        config["ground_truth_camera_model"] = (
+            self.cameras[c1].GetDeviceInfo().GetModelName()
+        )
+
+        config["speckle_camera_exposure"] = self.cameras[c2].ExposureTimeAbs.Value
+        config["speckle_camera_gain"] = self.cameras[c2].GainRaw.Value
+        config["speckle_camera_sn"] = (
+            self.cameras[c2].GetDeviceInfo().GetSerialNumber()
+        )
+        config["speckle_camera_model"] = (
+            self.cameras[c2].GetDeviceInfo().GetModelName()
+        )
+        return config
+
+    def end(self) -> None:
+        """
+        After the acquisition is done, call this to stop grabbing and close cameras.
+        """
+        self._stop_grabbing()
+        for cam in self.cameras:
+            if cam.IsOpen():
+                cam.Close()
         print("Camera closed, grab terminated.")
