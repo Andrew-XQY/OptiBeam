@@ -87,9 +87,9 @@ except Exception as e:
 # print("all complete.")
 
 
-setMagnetCurrent('CA.QFD0880', 0.0)
-setMagnetCurrent('CA.QDD0515', 0.0)
-setMagnetCurrent('CA.DHJ0840', 0.0)
-setMagnetCurrent('CA.DVJ0840', 0.0)
+# setMagnetCurrent('CA.QFD0880', 0.0)
+# setMagnetCurrent('CA.QDD0515', 0.0)
+# setMagnetCurrent('CA.DHJ0840', 0.0)
+# setMagnetCurrent('CA.DVJ0840', 0.0)
 
 
