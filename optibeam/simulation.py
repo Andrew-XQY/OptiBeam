@@ -256,6 +256,15 @@ class DynamicPatterns:
         """
         return [dst.get_metadata() for dst in self._distributions]
 
+    def pattern_stream(self, **update_kwargs) -> Generator[np.ndarray, None, None]:
+        """
+        Generator yielding updated canvas patterns indefinitely.
+        Call next() to get the next pattern.
+        """
+        while True:
+            self.update(**update_kwargs)
+            yield self.get_image()
+
 
 class Distribution(ABC):
     """
